@@ -19,6 +19,7 @@
 package com.cloudera.streaming.examples.flink;
 
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -49,13 +50,14 @@ public class StreamingJob {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
 //        DataStream<String> stream = env.fromElements("foo", "bar");
-        DataStream<Tuple4<String, Integer, String, Long>> stream = env.addSource(new DummySource());
+        DataStream<DummyRecord> stream = env.addSource(new DummySource());
 
-        SingleOutputStreamOperator<Tuple2<Integer, Integer>> s2 = stream.map(tup -> new Tuple2<Integer, Integer>(tup.f1, 1))
-                .returns(Types.TUPLE(Types.INT,Types.INT));
-
-        s2.keyBy("f0").timeWindow(Time.seconds(12)).sum("f1").print();
-
+        SingleOutputStreamOperator<Tuple2<Integer, Integer>> s2 = stream.
+                map(record -> new Tuple2<>(record.index, 1)).
+                returns(new TypeHint<Tuple2<Integer, Integer>>() {
+                });
+        s2.keyBy(0).timeWindow(Time.seconds(12)).sum(1).print();
+        stream.printToErr();
         env.execute("Flink Streaming Java API Skeleton");
     }
 }

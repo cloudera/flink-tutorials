@@ -10,26 +10,24 @@ import java.net.InetAddress;
 import java.util.Random;
 import java.util.stream.IntStream;
 
-public class DummySource extends RichParallelSourceFunction<Tuple4<String, Integer, String, Long>> {
+public class DummySource extends RichParallelSourceFunction<DummyRecord> {
 
-    private boolean running = true;
+    private volatile boolean running = true;
 
     private RuntimeContext ctx;
 
     private String hostname;
 
     @Override
-    public void run(SourceContext<Tuple4<String, Integer, String, Long>> sourceContext) throws Exception {
-
-        Thread.sleep((int) (Math.random() * 1000));
+    public void run(SourceContext<DummyRecord> sourceContext) throws Exception {
 
         ctx = this.getRuntimeContext();
         hostname = InetAddress.getLocalHost().getHostName();
 
         while (running) {
-            Tuple4<String, Integer, String, Long> record = new Tuple4<>(ctx.getTaskName(), ctx.getIndexOfThisSubtask(), hostname, System.currentTimeMillis());
+            DummyRecord record = new DummyRecord(ctx.getTaskName(), ctx.getIndexOfThisSubtask(), hostname, System.currentTimeMillis());
             sourceContext.collect(record);
-            Thread.sleep((ctx.getIndexOfThisSubtask() + 1) * 1000);
+            Thread.sleep((ctx.getIndexOfThisSubtask() + 1) * 100);
         }
 
     }

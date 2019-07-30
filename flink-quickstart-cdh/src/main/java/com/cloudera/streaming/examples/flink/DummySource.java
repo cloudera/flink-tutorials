@@ -26,10 +26,8 @@ public class DummySource extends RichParallelSourceFunction<Tuple4<String, Integ
         ctx = this.getRuntimeContext();
         hostname = InetAddress.getLocalHost().getHostName();
 
-
-        Tuple4<String, Integer, String, Long> record = new Tuple4<>(ctx.getTaskName(), ctx.getIndexOfThisSubtask(), hostname, System.currentTimeMillis());
-
         while (running) {
+            Tuple4<String, Integer, String, Long> record = new Tuple4<>(ctx.getTaskName(), ctx.getIndexOfThisSubtask(), hostname, System.currentTimeMillis());
             sourceContext.collect(record);
             Thread.sleep((ctx.getIndexOfThisSubtask() + 1) * 1000);
         }

@@ -18,6 +18,8 @@
 
 package com.cloudera.streaming.examples.flink;
 
+import org.apache.flink.api.java.tuple.Tuple3;
+import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -41,7 +43,7 @@ public class StreamingJob {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
 //        DataStream<String> stream = env.fromElements("foo", "bar");
-        DataStream<String> stream = env.addSource(new DummySource());
+        DataStream<Tuple4<String, Integer, String, Long>> stream = env.addSource(new DummySource());
 
         stream.print();
         env.execute("Flink Streaming Java API Skeleton");

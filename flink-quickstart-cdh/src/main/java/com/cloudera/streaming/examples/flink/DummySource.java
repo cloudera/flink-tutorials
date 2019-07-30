@@ -1,24 +1,37 @@
 package com.cloudera.streaming.examples.flink;
 
+import org.apache.flink.api.common.functions.RuntimeContext;
+import org.apache.flink.api.java.tuple.Tuple;
+import org.apache.flink.api.java.tuple.Tuple3;
+import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 
+import java.net.InetAddress;
 import java.util.Random;
 import java.util.stream.IntStream;
 
-public class DummySource extends RichParallelSourceFunction<String> {
+public class DummySource extends RichParallelSourceFunction<Tuple4<String, Integer, String, Long>> {
 
     private boolean running = true;
 
-    Random random = new Random();
+    private RuntimeContext ctx;
+
+    private String hostname;
 
     @Override
-    public void run(SourceContext<String> sourceContext) throws Exception {
+    public void run(SourceContext<Tuple4<String, Integer, String, Long>> sourceContext) throws Exception {
 
         Thread.sleep((int) (Math.random() * 1000));
 
+        ctx = this.getRuntimeContext();
+        hostname = InetAddress.getLocalHost().getHostName();
+
+
+        Tuple4<String, Integer, String, Long> record = new Tuple4<>(ctx.getTaskName(), ctx.getIndexOfThisSubtask(), hostname, System.currentTimeMillis());
+
         while (running) {
-            sourceContext.collect(String.format("job_%s-%s", this.getRuntimeContext().getIndexOfThisSubtask(), System.currentTimeMillis()));
-            Thread.sleep(1000);
+            sourceContext.collect(record);
+            Thread.sleep((ctx.getIndexOfThisSubtask() + 1) * 1000);
         }
 
     }

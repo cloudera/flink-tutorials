@@ -30,6 +30,8 @@ import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.time.Time;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Skeleton for a Flink Streaming Job.
@@ -45,6 +47,8 @@ import org.apache.flink.streaming.api.windowing.time.Time;
  */
 public class StreamingJob {
 
+    private static Logger logger = LoggerFactory.getLogger(StreamingJob.class);
+
     public static void main(String[] args) throws Exception {
         // set up the streaming execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -56,8 +60,9 @@ public class StreamingJob {
                 map(record -> new Tuple2<>(record.index, 1)).
                 returns(new TypeHint<Tuple2<Integer, Integer>>() {
                 });
-        s2.keyBy(0).timeWindow(Time.seconds(12)).sum(1).print();
-        stream.printToErr();
+//        s2.keyBy(0).timeWindow(Time.seconds(5)).sum(1).print();
+        stream.addSink(new LogSink());
+//        stream.print();
         env.execute("Flink Streaming Java API Skeleton");
     }
 }

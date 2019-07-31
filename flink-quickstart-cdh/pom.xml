@@ -49,6 +49,10 @@ under the License.
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>
+		<repository>
+			<id>cloudera</id>
+			<url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+		</repository>
 	</repositories>
 
 	<dependencies>
@@ -91,6 +95,22 @@ under the License.
 			<artifactId>log4j</artifactId>
 			<version>1.2.17</version>
 			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka-log4j-appender</artifactId>
+			<version>0.9.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka-clients</artifactId>
+			<version>2.1.0-cdh6.2.0</version>
 		</dependency>
 	</dependencies>
 

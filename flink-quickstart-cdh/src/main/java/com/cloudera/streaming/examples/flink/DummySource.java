@@ -25,7 +25,7 @@ public class DummySource extends RichParallelSourceFunction<DummyRecord> {
         hostname = InetAddress.getLocalHost().getHostName();
 
         while (running) {
-            DummyRecord record = new DummyRecord(ctx.getTaskName(), ctx.getIndexOfThisSubtask(), hostname, System.currentTimeMillis());
+            DummyRecord record = new DummyRecord("task", ctx.getIndexOfThisSubtask(), hostname, System.currentTimeMillis());
             sourceContext.collect(record);
             Thread.sleep((ctx.getIndexOfThisSubtask() + 1) * 100);
         }

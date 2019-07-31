@@ -12,7 +12,7 @@ public class LogSinkTest {
 
     @Test
     public void testLogSink() throws Exception {
-
+        LOG.info("testLogSink");
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         DataStream<String> stream = env.fromElements("foo", "bar");

@@ -11,7 +11,7 @@ public class LogSink implements SinkFunction {
 
     @Override
     public void invoke(Object value, Context context) throws Exception {
-        if (LOG.isInfoEnabled()) {
+        if (LOG.isInfoEnabled() && value != null) {
             LOG.info(value.toString());
         }
     }

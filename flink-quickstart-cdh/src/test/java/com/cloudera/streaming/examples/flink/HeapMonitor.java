@@ -17,7 +17,7 @@ public class HeapMonitor {
             leak = new ArrayList<>(MEGA);
             bucket.add(leak);
             for (MemoryPoolMXBean mpBean : ManagementFactory.getMemoryPoolMXBeans()) {
-                System.out.println(mpBean.getName() +":"+mpBean.getUsage().getUsed());
+                System.out.println(mpBean.getName() + ":" + mpBean.getUsage().getUsed());
                 if (mpBean.getType() == MemoryType.HEAP && mpBean.getName().equals("PS Old Gen")) {
                     MemoryUsage memoryUsage = mpBean.getUsage();
 //                    System.out.printf(
@@ -28,6 +28,5 @@ public class HeapMonitor {
             }
         }
     }
-
 
 }

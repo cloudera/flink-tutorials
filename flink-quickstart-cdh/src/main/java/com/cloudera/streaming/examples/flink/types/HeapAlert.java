@@ -36,8 +36,8 @@ public class HeapAlert {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
         HeapAlert heapAlert = (HeapAlert) o;
         return Objects.equals(message, heapAlert.message) &&
                 Objects.equals(triggeringStats, heapAlert.triggeringStats);

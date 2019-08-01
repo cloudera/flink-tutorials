@@ -31,7 +31,6 @@ public class HeapMonitorSource extends RichParallelSourceFunction<HeapStats> {
         this.sleepMillis = sleepMillis;
     }
 
-
     @Override
     public void run(SourceFunction.SourceContext<HeapStats> sourceContext) throws Exception {
         LOG.info("starting HeapMonitorSource");

@@ -18,7 +18,6 @@
 
 package com.cloudera.streaming.examples.flink;
 
-
 import com.cloudera.streaming.examples.flink.types.HeapAlert;
 import com.cloudera.streaming.examples.flink.types.HeapStats;
 import org.apache.flink.api.common.serialization.SimpleStringEncoder;

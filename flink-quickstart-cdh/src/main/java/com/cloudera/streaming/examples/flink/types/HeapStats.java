@@ -58,8 +58,8 @@ public class HeapStats {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
         HeapStats heapStats = (HeapStats) o;
         return used == heapStats.used &&
                 max == heapStats.max &&

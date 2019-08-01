@@ -58,19 +58,6 @@ public class HeapMonitorPipeline {
     }
 
     public static DataStream<HeapAlert> computeHeapAlerts(DataStream<HeapStats> statsInput) {
-        return statsInput
-                .flatMap(new FlatMapFunction<HeapStats, HeapAlert>() {
-                    @Override
-                    public void flatMap(HeapStats stats, Collector<HeapAlert> out) throws Exception {
-                        if (stats.area.equals("PS Old Gen")) {
-                            if (stats.ratio >= 0.8) {
-                                out.collect(new HeapAlert("Critical old gen usage", stats));
-                            } else if (stats.ratio >= 0.5) {
-                                out.collect(new HeapAlert("Full GC expected soon", stats));
-                            }
-                        }
-                    }
-                }).name("Create Alerts");
+        return statsInput.flatMap(new AlertingFunction()).name("Create Alerts");
     }
-
 }

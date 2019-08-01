@@ -4,6 +4,9 @@ import java.util.Objects;
 
 public class HeapStats {
 
+    public static final String OLD_GEN = "PS Old Gen";
+    public static final String EDEN = "PS Eden Space";
+    public static final String SURVIVOR = "PS Survivor Space";
 
     public String area;
     /**

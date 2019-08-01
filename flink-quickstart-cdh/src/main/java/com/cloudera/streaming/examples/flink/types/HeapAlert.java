@@ -4,6 +4,9 @@ import java.util.Objects;
 
 public class HeapAlert {
 
+    private static String GC_EXPECTED = "Full GC expected soon";
+    private static String CRITICAL = "Critical old gen usage";
+
     public String message;
 
     public HeapStats triggeringStats;
@@ -13,6 +16,14 @@ public class HeapAlert {
     public HeapAlert(String message, HeapStats triggeringStats) {
         this.message = message;
         this.triggeringStats = triggeringStats;
+    }
+
+    public static HeapAlert GCWarning(HeapStats stat) {
+        return new HeapAlert(GC_EXPECTED, stat);
+    }
+
+    public static HeapAlert criticalOldGen(HeapStats stat) {
+        return new HeapAlert(CRITICAL, stat);
     }
 
     @Override

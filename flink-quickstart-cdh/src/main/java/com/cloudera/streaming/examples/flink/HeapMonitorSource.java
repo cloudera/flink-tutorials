@@ -1,5 +1,6 @@
 package com.cloudera.streaming.examples.flink;
 
+import com.cloudera.streaming.examples.flink.types.HeapStats;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;

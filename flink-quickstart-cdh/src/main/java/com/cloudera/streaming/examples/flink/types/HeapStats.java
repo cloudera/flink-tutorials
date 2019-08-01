@@ -1,4 +1,6 @@
-package com.cloudera.streaming.examples.flink;
+package com.cloudera.streaming.examples.flink.types;
+
+import java.util.Objects;
 
 public class HeapStats {
 
@@ -49,5 +51,23 @@ public class HeapStats {
                 ", jobId=" + jobId +
                 ", hostname='" + hostname + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        HeapStats heapStats = (HeapStats) o;
+        return used == heapStats.used &&
+                max == heapStats.max &&
+                Double.compare(heapStats.ratio, ratio) == 0 &&
+                Objects.equals(area, heapStats.area) &&
+                Objects.equals(jobId, heapStats.jobId) &&
+                Objects.equals(hostname, heapStats.hostname);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(area, used, max, ratio, jobId, hostname);
     }
 }

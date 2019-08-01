@@ -18,8 +18,12 @@
 
 package com.cloudera.streaming.examples.flink;
 
+import com.cloudera.streaming.examples.flink.types.HeapAlert;
+import com.cloudera.streaming.examples.flink.types.HeapStats;
+import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.util.Collector;
 
 public class HeapMonitorPipeline {
 
@@ -27,10 +31,30 @@ public class HeapMonitorPipeline {
 
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        DataStream<HeapStats> stream = env.addSource(new HeapMonitorSource(100));
+        DataStream<HeapStats> statsInput = env.addSource(new HeapMonitorSource(100))
+                .name("Heap Monitor Source");
 
-        stream.addSink(new LogSink());
+        DataStream<HeapAlert> alertStream = computeHeapAlerts(statsInput);
+
+        alertStream.addSink(new LogSink());
 
         env.execute("HeapMonitor");
     }
+
+    public static DataStream<HeapAlert> computeHeapAlerts(DataStream<HeapStats> statsInput) {
+        return statsInput
+                .flatMap(new FlatMapFunction<HeapStats, HeapAlert>() {
+                    @Override
+                    public void flatMap(HeapStats stats, Collector<HeapAlert> out) throws Exception {
+                        if (stats.area.equals("PS Old Gen")) {
+                            if (stats.ratio >= 0.8) {
+                                out.collect(new HeapAlert("Critical old gen usage", stats));
+                            } else if (stats.ratio >= 0.5) {
+                                out.collect(new HeapAlert("Full GC expected soon", stats));
+                            }
+                        }
+                    }
+                }).name("Create Alerts");
+    }
+
 }

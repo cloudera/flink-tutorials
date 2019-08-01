@@ -4,6 +4,8 @@ import com.cloudera.streaming.examples.flink.types.HeapStats;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
@@ -13,10 +15,13 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 
 public class HeapMonitorSource extends RichParallelSourceFunction<HeapStats> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(HeapMonitorSource.class);
+
     private static final int MEGA = 1024 * 1024;
     private final long sleepMillis;
 
-    private volatile  boolean running = true;
+    private volatile boolean running = true;
 
     private RuntimeContext ctx;
 
@@ -26,8 +31,10 @@ public class HeapMonitorSource extends RichParallelSourceFunction<HeapStats> {
         this.sleepMillis = sleepMillis;
     }
 
+
     @Override
     public void run(SourceFunction.SourceContext<HeapStats> sourceContext) throws Exception {
+        LOG.info("starting HeapMonitorSource");
 
         ctx = this.getRuntimeContext();
 

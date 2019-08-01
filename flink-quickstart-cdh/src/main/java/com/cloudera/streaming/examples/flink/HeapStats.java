@@ -1,6 +1,9 @@
 package com.cloudera.streaming.examples.flink;
 
 public class HeapStats {
+
+
+    public String area;
     /**
      * Bytes used for the old generation of the heap.
      */
@@ -14,20 +17,37 @@ public class HeapStats {
      */
     public double ratio;
 
-    public HeapStats(){}
+    /**
+     * ID of the Flink job
+     */
+    public Integer jobId;
 
-    public HeapStats(long used, long max, double ratio){
+    /**
+     * Host the Flink job is running on
+     */
+    public String hostname;
+
+    public HeapStats() {
+    }
+
+    public HeapStats(String area, long used, long max, double ratio, Integer jobId, String hostname) {
+        this.area = area;
         this.used = used;
         this.max = max;
         this.ratio = ratio;
+        this.jobId = jobId;
+        this.hostname = hostname;
     }
 
     @Override
     public String toString() {
         return "HeapStats{" +
+                "area=" + area +
                 "used=" + used +
                 ", max=" + max +
                 ", ratio=" + ratio +
+                ", jobId=" + jobId +
+                ", hostname='" + hostname + '\'' +
                 '}';
     }
 }

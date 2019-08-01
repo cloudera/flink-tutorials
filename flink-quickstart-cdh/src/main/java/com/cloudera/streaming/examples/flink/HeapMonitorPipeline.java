@@ -24,12 +24,12 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 public class HeapMonitorPipeline {
 
     public static void main(String[] args) throws Exception {
-        // set up the streaming execution environment
+
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        DataStream<HeapStats> stream = env.addSource(new HeapMonitorSource(250));
+        DataStream<HeapStats> stream = env.addSource(new HeapMonitorSource(100));
 
-        stream.print();
+        stream.addSink(new LogSink());
 
         env.execute("HeapMonitor");
     }

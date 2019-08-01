@@ -43,7 +43,7 @@ public class HeapStats {
     public String toString() {
         return "HeapStats{" +
                 "area=" + area +
-                "used=" + used +
+                ", used=" + used +
                 ", max=" + max +
                 ", ratio=" + ratio +
                 ", jobId=" + jobId +

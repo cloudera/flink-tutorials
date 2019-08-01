@@ -18,25 +18,36 @@
 
 package com.cloudera.streaming.examples.flink;
 
+
 import com.cloudera.streaming.examples.flink.types.HeapAlert;
 import com.cloudera.streaming.examples.flink.types.HeapStats;
 import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.common.serialization.SimpleStringEncoder;
+import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink;
 import org.apache.flink.util.Collector;
+
 
 public class HeapMonitorPipeline {
 
     public static void main(String[] args) throws Exception {
 
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.enableCheckpointing(10_000);
 
         DataStream<HeapStats> statsInput = env.addSource(new HeapMonitorSource(100))
                 .name("Heap Monitor Source");
+        final StreamingFileSink<String> sfs = StreamingFileSink
+                .forRowFormat(new Path("alerts"), new SimpleStringEncoder<String>("UTF-8"))
+                .build();
+        statsInput.map(stats -> stats.toString()).addSink(sfs);
+
 
         DataStream<HeapAlert> alertStream = computeHeapAlerts(statsInput);
-
         alertStream.addSink(new LogSink());
+
 
         env.execute("HeapMonitor");
     }

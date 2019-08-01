@@ -13,9 +13,10 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 
 public class HeapMonitorSource extends RichParallelSourceFunction<HeapStats> {
-    private boolean running = true;
     private static final int MEGA = 1024 * 1024;
     private final long sleepMillis;
+
+    private volatile  boolean running = true;
 
     private RuntimeContext ctx;
 
@@ -49,13 +50,10 @@ public class HeapMonitorSource extends RichParallelSourceFunction<HeapStats> {
                 }
             }
         }
-
     }
 
     @Override
     public void cancel() {
         this.running = false;
     }
-
-
 }

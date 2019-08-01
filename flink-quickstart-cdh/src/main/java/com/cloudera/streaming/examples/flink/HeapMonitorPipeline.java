@@ -21,15 +21,12 @@ package com.cloudera.streaming.examples.flink;
 
 import com.cloudera.streaming.examples.flink.types.HeapAlert;
 import com.cloudera.streaming.examples.flink.types.HeapStats;
-import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringEncoder;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink;
-import org.apache.flink.util.Collector;
-
 
 public class HeapMonitorPipeline {
 
@@ -44,15 +41,15 @@ public class HeapMonitorPipeline {
 
         DataStream<HeapStats> statsInput = env.addSource(new HeapMonitorSource(100))
                 .name("Heap Monitor Source");
+
         final StreamingFileSink<String> sfs = StreamingFileSink
                 .forRowFormat(new Path(output), new SimpleStringEncoder<String>("UTF-8"))
                 .build();
-        statsInput.map(stats -> stats.toString()).addSink(sfs);
 
+        statsInput.map(stats -> stats.toString()).addSink(sfs).name("HDFS Sink");
 
         DataStream<HeapAlert> alertStream = computeHeapAlerts(statsInput);
-        alertStream.addSink(new LogSink());
-
+        alertStream.addSink(new LogSink<>()).name("Logger Sink");
 
         env.execute("HeapMonitor");
     }

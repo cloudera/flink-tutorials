@@ -65,7 +65,9 @@ The business logic of a Flink application consists of one or more operators chai
 
 
 ## Running the application on a remote Cluster
-The Flink Quickstart Application can be deployed on a CDH cluster remotely. The actual version of the application was tested agains CDH6.2.x and FLINK-1.8.1-cdh6.2.0-p1-el7 without any security integration on it.
+The Flink Quickstart Application can be deployed on a CDH cluster remotely. The actual version of the application was tested agains CDH6.2.x and FLINK-1.8.1-cdh6.2.0-p1-el7 without any security integration on it. The Flink parcel is accessible at
+https://drive.google.com/drive/folders/1k_UfOVdDHvcfHIwT4L03xBEmF6DGLdwQ
+
 
 
 Building the artifact:

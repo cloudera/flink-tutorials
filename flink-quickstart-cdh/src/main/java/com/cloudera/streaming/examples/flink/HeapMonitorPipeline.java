@@ -31,9 +31,9 @@ public class HeapMonitorPipeline {
 
     public static void main(String[] args) throws Exception {
 
-        ParameterTool paramTool = ParameterTool.fromArgs(args);
+        ParameterTool params = ParameterTool.fromArgs(args);
 
-        final String output = paramTool.get("output", "/tmp/flink-quickstart-cdh/alerts");
+        final String output = params.get("output", "/tmp/flink-quickstart-cdh/alerts");
 
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.enableCheckpointing(10_000);
@@ -47,13 +47,13 @@ public class HeapMonitorPipeline {
 
         statsInput.map(stats -> stats.toString()).addSink(sfs).name("HDFS Sink");
 
-        DataStream<HeapAlert> alertStream = computeHeapAlerts(statsInput);
+        DataStream<HeapAlert> alertStream = computeHeapAlerts(statsInput, params);
         alertStream.addSink(new LogSink<>()).name("Logger Sink");
 
         env.execute("HeapMonitor");
     }
 
-    public static DataStream<HeapAlert> computeHeapAlerts(DataStream<HeapStats> statsInput) {
-        return statsInput.flatMap(new AlertingFunction()).name("Create Alerts");
+    public static DataStream<HeapAlert> computeHeapAlerts(DataStream<HeapStats> statsInput, ParameterTool params) {
+        return statsInput.flatMap(new AlertingFunction(params)).name("Create Alerts");
     }
 }

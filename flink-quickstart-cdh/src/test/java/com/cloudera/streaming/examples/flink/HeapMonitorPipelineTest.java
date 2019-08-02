@@ -3,6 +3,7 @@ package com.cloudera.streaming.examples.flink;
 import com.cloudera.streaming.examples.flink.types.HeapAlert;
 import com.cloudera.streaming.examples.flink.types.HeapStats;
 import org.apache.commons.compress.utils.Sets;
+import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
@@ -23,12 +24,12 @@ public class HeapMonitorPipelineTest {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         HeapStats edenStat = testStats(HeapStats.EDEN, 0.99);
-        HeapStats warning = testStats(HeapStats.OLD_GEN, 0.6);
-        HeapStats normalOld = testStats(HeapStats.OLD_GEN, 0.45);
+        HeapStats warning = testStats(HeapStats.OLD_GEN, 0.45);
+        HeapStats normalOld = testStats(HeapStats.OLD_GEN, 0.25);
         HeapStats criticalOld = testStats(HeapStats.OLD_GEN, 0.99);
 
         DataStreamSource<HeapStats> testInput = env.fromElements(edenStat, warning, normalOld, criticalOld);
-        HeapMonitorPipeline.computeHeapAlerts(testInput).addSink(new SinkFunction<HeapAlert>() {
+        HeapMonitorPipeline.computeHeapAlerts(testInput, ParameterTool.fromArgs(new String[]{"--warningThreshold", "0.4"})).addSink(new SinkFunction<HeapAlert>() {
             @Override
             public void invoke(HeapAlert value) throws Exception {
                 testOutput.add(value);

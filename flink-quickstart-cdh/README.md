@@ -6,6 +6,7 @@ The purpose of the Flink Quickstart Application is to have a working boilerplate
 
 ```
 git clone https://github.infra.cloudera.com/morhidi/flink-ref.git
+cd flink-quickstart-cdh
 
 ```
 ## Importing the project to IntelliJ

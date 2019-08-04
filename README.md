@@ -1,20 +1,20 @@
-# Reference Architecture for Flink on CDH
+# Reference Architecture for Flink on Cloudera
 
 ## Introduction
 
-The goal of this document is to give architects and software engineers enough context and practical guidelines to start building low-latency, stateful streaming applications that run on the CDH platform using Flink.
+The goal of this document is to give architects and software engineers sufficient context and practical guidelines to start building low-latency, stateful streaming applications that run on the Cloudera platform using Flink.
 
 ## Dataflow programming model
 
-A full introduction to the programming model can be found on the [official flink website](https://ci.apache.org/projects/flink/flink-docs-release-1.8/concepts/programming-model.html). What follows here is a quick overview of the core concepts.
+A full introduction to the programming model can be found on the [official flink website](https://ci.apache.org/projects/flink/flink-docs-release-1.8/concepts/programming-model.html). What follows here is a brief overview of the core concepts.
 
 ### Streams, operators and dataflows
 
 The basic building blocks of Flink programs are streams and transformations.
 
-**Data Stream** :  A flow of data records. Can be finite (file, db table, etc.) or infinite (message queues, socket connections, etc.) Streams are usually distributed (parallel) and can be partitioned by the user to achieve certain application semantics during processing. Data streams can only be created from input sources or as a result of a transformation on another datastream.
+**Data Stream** :  A flow of data records. Can be bounded (file, db table, etc.) or unbounded (message queues, socket connections, etc.) Streams are usually distributed (parallel) and can be partitioned to achieve certain performance and application semantics during processing. Data streams can be created from input sources or as a result of a transformations on another datastream.
 
-**Transformations** : A transformation is an operation applied to one more streams and produces one or more output streams as a result. These operators generally process the incoming records one-by-one for maximal flexibility and minimal latency but optimised APIs exist for sophisticated window and batch processing.
+**Transformations** : A transformation is an operation applied to one or more streams and produces one or more output streams as a result. These operators generally process the incoming records one-by-one for maximal flexibility and minimal latency but optimised APIs exist for sophisticated window and batch processing.
 
 Flink programs are streaming dataflows that consist of data streams and transformations. We can represent these dataflows as directed acyclic graphs (DAGs) where data records flow from the sources, through the operators to the data sinks.
 
@@ -23,7 +23,6 @@ Flink programs are streaming dataflows that consist of data streams and transfor
 ***Important to know***
 
 Flink streaming programs are always executed lazily. Developers compose the full dataflow pipeline from streams and transformations and computation is only started when `StreamExecutionEnvironment.execute(...)` method is called. This allows the system to perform optimizations on the pipeline.
-
 
 ### Stateful applications
 
@@ -35,9 +34,9 @@ Flink streaming programs are always executed lazily. Developers compose the full
 
 ### Processing guarantees
 
-Flink supports strong consistency guarantees for stateful streaming applications. While it is possible to select weaker processing guarantees for minimal performance gain, we always recommend that users select `EXACTLY-ONCE` processing semantics.
+Flink supports strong consistency guarantees for stateful streaming applications. While it is possible to select weaker processing guarantees for minimal performance gain, we recommend that users select `EXACTLY-ONCE` processing semantics.
 
-With this setting Flink will take periodical checkpoints of the processing state (at pre-configured intervals) that are used for recovery in case of a failure.
+With this setting Flink takes periodical checkpoints of the processing state (at pre-configured intervals) that are used for recovery in case of a failure.
 
 When configured properly these checkpoints are lightweight and do not have a significant impact on the application performance.
 
@@ -126,13 +125,19 @@ TODO: State backend types when to use them and basic config guidelines
 
 TODO: Where do logs and metrics go, how to find what we are looking for + how to improve: Kafka logger (+metrics reported?)
 
-## Running Flink on Yarn
+### Running Flink on Yarn
 
-TODO: How Flink applications run on YARN, types of containes and overview of the deployment flow.
+TODO: How Flink applications run on YARN, types of containes and overview of the deployment flow. Special parameter configuration for long running YARN applications.
 
 ### Configuring YARN for Flink applications
 
-### Resource allocation guidelines
+#### Resource allocation guidelines
+
+## Security
+
+### Kerberos authentication
+
+### TLS encryption
 
 ## Development guidelines
 

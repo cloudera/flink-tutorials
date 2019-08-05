@@ -10,8 +10,7 @@ public class LogSinkTest {
 
     private static final Logger LOG = LoggerFactory.getLogger(LogSinkTest.class);
 
-    @Test
-    public void testLogSink() throws Exception {
+    public static void main(String[] args) throws Exception {
         LOG.info("testLogSink");
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 

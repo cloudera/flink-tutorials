@@ -85,7 +85,7 @@ Cluster->Yarn->Applications->application_<ID>->Tracking URL:	ApplicationMaster.
 Log messages from a Flink application can be also collected and forwarded to a Kafka topic for convenience. This requires only a few extra configuration steps and dependencies in Flink. The default log4j config can be overriden with a command parameter:
 
 ```
---conf log4j.configuration.file=log4j.properties
+-yD log4j.configuration.file=log4j.properties
 ```
 
 ```
@@ -120,9 +120,9 @@ log4j.appender.kafka.layout.ConversionPattern=%d{HH:mm:ss,SSS} %-5p %-60c %x - %
 
 ```
 
-The KafkaLog4jAppender requires a few dependencies also which can be shipped with the run command also. The --ship parameter should point to a local folder containing all the dependencies for logging:
+The KafkaLog4jAppender requires a few dependencies also which can be shipped with the run command also. The --yarnship parameter should point to a local folder containing all the dependencies for logging:
 ```
---ship kafka-appender
+--yarnship kafka-appender
 
 [root@flink-ref-1 ~]# tree kafka-appender
 kafka-appender
@@ -133,7 +133,7 @@ kafka-appender
 
 An example for the full command with Kafka logging:
 ```
-JAVA_HOME=/usr/java/jdk1.8.0_141-cloudera/ flink run -sae -m yarn-cluster -p 2 --conf log4j.configuration.file=log4j.properties -c com.cloudera.streaming.examples.flink.HeapMonitorPipeline flink-quickstart-cdh-1.0-SNAPSHOT.jar --ship kafka-appender --output hdfs:///tmp/flink-quickstart-cdh/alerts
+JAVA_HOME=/usr/java/jdk1.8.0_141-cloudera/ flink run -sae -m yarn-cluster -p 2 --yarnship kafka-appender -yD log4j.configuration.file=log4j.properties -c com.cloudera.streaming.examples.flink.HeapMonitorPipeline flink-quickstart-cdh-1.0-SNAPSHOT.jar --ship kafka-appender --output hdfs:///tmp/flink-quickstart-cdh/alerts
 ```
 
 Accessing the logs from the Kafka topic is possible then with:

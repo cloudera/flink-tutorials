@@ -40,19 +40,23 @@ Under normal circumstances the logs are silent. The application triggers alert e
 13:50:56,481 INFO  com.cloudera.streaming.examples.flink.LogSink                 - HeapAlert{message='Full GC expected soon', triggeringStats=HeapStats{area=PS Old Gen, used=65709552, max=5726797824, ratio=0.011474047804625276, jobId=10, hostname='morhidi-mbp.local'}}
 ```
 
-LogSink is a custom sink implementation that simply sends the messages to the logging framework. The logs can be redirected via log4j to any centralized logging system or simply printed to the standard output when debugging. The quick start application provides a sample log4j config for redirecting the logs to the standard error.
+LogSink is a custom sink implementation that simply sends the messages to the logging framework. The logs can be redirected via log4j to any centralized logging system or simply printed to the standard output when debugging. The quick start application provides a sample log4j config for redirecting the alert logs to the standard error.
 
 ```
-...
-log4j.logger.com.cloudera=INFO, stdout, kafka
-log4j.additivity.com.cloudera=false
+log4j.rootLogger=INFO, stdout
 
-log4j.appender.kafka=org.apache.kafka.log4jappender.KafkaLog4jAppender
-log4j.appender.kafka.brokerList=flink-ref-1.gce.cloudera.com:9092,flink-ref-2.gce.cloudera.com:9092,flink-ref-3.gce.cloudera.com:9092
-log4j.appender.kafka.topic=flink
-log4j.appender.kafka.layout=org.apache.log4j.PatternLayout
-log4j.appender.kafka.layout.ConversionPattern=%d{HH:mm:ss,SSS} %-5p %-60c %x - %m%n
-...
+log4j.logger.com.cloudera.streaming.examples.flink.LogSink=INFO, stderr
+log4j.additivity.com.cloudera.streaming.examples.flink.LogSink=false
+
+log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+log4j.appender.stdout.Target   = System.out
+log4j.appender.stdout.layout.ConversionPattern=%d{HH:mm:ss,SSS} %-5p %-60c %x - %m%n
+
+log4j.appender.stderr=org.apache.log4j.ConsoleAppender
+log4j.appender.stderr.layout=org.apache.log4j.PatternLayout
+log4j.appender.stderr.Target   = System.err
+log4j.appender.stderr.layout.ConversionPattern=%d{HH:mm:ss,SSS} %-5p %-60c %x - %m%n
 ```
 The alerts thresholds are configurable via two program arguments that can be set to a low value for testing:
 
@@ -133,7 +137,7 @@ kafka-appender
 
 An example for the full command with Kafka logging:
 ```
-JAVA_HOME=/usr/java/jdk1.8.0_141-cloudera/ flink run -sae -m yarn-cluster -p 2 --yarnship kafka-appender -yD log4j.configuration.file=log4j.properties -c com.cloudera.streaming.examples.flink.HeapMonitorPipeline flink-quickstart-cdh-1.0-SNAPSHOT.jar --ship kafka-appender --output hdfs:///tmp/flink-quickstart-cdh/alerts
+flink run -sae -m yarn-cluster -p 2 --yarnship kafka-appender -yD log4j.configuration.file=log4j.properties -c com.cloudera.streaming.examples.flink.HeapMonitorPipeline flink-quickstart-cdh-1.0-SNAPSHOT.jar --ship kafka-appender --output hdfs:///tmp/flink-quickstart-cdh/alerts
 ```
 
 Accessing the logs from the Kafka topic is possible then with:

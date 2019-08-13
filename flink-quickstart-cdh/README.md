@@ -162,7 +162,7 @@ The alerts thresholds are configurable via two program arguments that can be set
 ## Testing our data pipeline
 The business logic of a Flink application consists of one or more operators chained together, which is often called a pipeline. Pipelines can be extracted to static methods and can be easily tested with JUnit framework. The HeapMonitorPipelineTest class gives a sample for this.
 
-We will write a simple JUnit test to verify our core application logic. The test is implemented in the `HeapMonitorPipelineTest` and should be regarded as an integration test of the application flow. Even though this pipeline is very simple we can later use the same idea to test more complex application flows.
+A simple JUnit test was written to verify our core application logic. The test is implemented in the `HeapMonitorPipelineTest` and should be regarded as an integration test of the application flow. Even though this pipeline is very simple we can later use the same idea to test more complex application flows.
 
 Our test mimics our application main class with only minor differences:
 1. We create the StreamExecutionEnvironment the same ways
@@ -182,9 +182,8 @@ We have specifically set the parallelism of our data sink to 1 to avoid any conc
 
 As we cannot always force strict ordering for the output elements we used a `Set` instead of a `List` to compare expected output regardless of the order. This might or might not be the correct approach depending on the application flow, but it works very well in our case.
 
-## Running the application on a remote Cluster
-The Flink Quickstart Application can be deployed on a CDH cluster remotely. The actual version of the application was tested agains CDH6.2.x and FLINK-1.8.1-cdh6.2.0-p1-el7 without any security integration on it. The Flink parcel is accessible at
-https://drive.google.com/drive/folders/1k_UfOVdDHvcfHIwT4L03xBEmF6DGLdwQ
+## Running the application on a remote Cluster (integration testing)
+The Flink Quickstart Application can be deployed on a CDH cluster remotely. The actual version of the application was tested agains CDH6.2.x and FLINK-1.8.1-cdh6.2.0-p1-el7 without any security integration on it. The Flink parcel is accessible at the [flink-temporary repo](http://support-ci.sre-dev.cloudera.com:8081/artifactory/webapp/#/artifacts/browse/tree/General/flink-temporary)
 
 Uploading the application:
 ```
@@ -246,8 +245,8 @@ The KafkaLog4jAppender requires a few dependencies also which can be shipped wit
 kafka-appender
 ├── kafka-clients-2.1.0-cdh6.2.0.jar
 └── kafka-log4j-appender-0.9.0.0.jar
-
 ```
+The dependency jars for convenience were also uploaded to a temporary [location](https://drive.google.com/drive/u/0/folders/1QByahsACBKdHMVftfE9pKsZuIhYN0eBi)
 
 An example for the full command with Kafka logging:
 ```

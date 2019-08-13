@@ -40,7 +40,7 @@ Under normal circumstances the logs are silent. The application triggers alert e
 13:50:56,481 INFO  com.cloudera.streaming.examples.flink.LogSink                 - HeapAlert{message='Full GC expected soon', triggeringStats=HeapStats{area=PS Old Gen, used=65709552, max=5726797824, ratio=0.011474047804625276, jobId=10, hostname='morhidi-mbp.local'}}
 ```
 
-LogSink is a custom sink implementation that simply sends the messages to the logging framework. The logs can be redirected via log4j to any centralized logging system or simply printed to the standard output when debugging. The quick start application provides a sample log4j config for redirecting the logs to a Kafka topic.
+LogSink is a custom sink implementation that simply sends the messages to the logging framework. The logs can be redirected via log4j to any centralized logging system or simply printed to the standard output when debugging. The quick start application provides a sample log4j config for redirecting the logs to the standard error.
 
 ```
 ...

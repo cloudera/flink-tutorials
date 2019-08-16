@@ -155,8 +155,8 @@ log4j.appender.stderr.layout.ConversionPattern=%d{HH:mm:ss,SSS} %-5p %-60c %x - 
 The alerts thresholds are configurable via two program arguments that can be set to a low value for testing:
 
 ```
---warningThreshold 0.1
---criticalThreshold 0.2
+--warningThreshold 0.001
+--criticalThreshold 0.002
 ```
 
 ## Testing our data pipeline

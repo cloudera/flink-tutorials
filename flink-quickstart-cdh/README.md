@@ -1,6 +1,6 @@
-# Flink Quickstart Application
+# Stateless Monitoring Application
 
-The purpose of the Flink Quickstart Application is to provide a self-contained boilerplate code example for a Flink application on top of CDH. The application demonstrates some basic capabilities of the DataStream API. 
+The purpose of the Flink Quickstart Application is to provide a self-contained boilerplate code example for a Flink application on top of CDH. The application demonstrates some basic capabilities of the DataStream API.
 It collects basic heap statistics of the JVM it is running on and dumps the collected data to a filesystem. It also triggers alert messages when reaching concerning heap values. The application purposefully leaks memory to generate changing data values.
 
 ## Usage
@@ -187,7 +187,7 @@ The Flink Quickstart Application can be deployed on a CDH cluster remotely. The 
 
 Uploading the application:
 ```
-scp target/flink-quickstart-cdh-1.0-SNAPSHOT.jar root@flink-ref-1.gce.cloudera.com:. 
+scp target/flink-quickstart-cdh-1.0-SNAPSHOT.jar root@flink-ref-1.gce.cloudera.com:.
 ```
 
 Running the application
@@ -197,7 +197,7 @@ flink run -sae -m yarn-cluster -p 2 -c com.cloudera.streaming.examples.flink.Hea
 ```
 
 After launching the application Flink will create a log running yarn session and launch a dashbord where the application can be monitored. The Flink dashbord can be reached from CM through the following path:
-Cluster->Yarn->Applications->application_<ID>->Tracking URL:	ApplicationMaster. 
+Cluster->Yarn->Applications->application_<ID>->Tracking URL:	ApplicationMaster.
 
 Log messages from a Flink application can be also collected and forwarded to a Kafka topic for convenience. This requires only a few extra configuration steps and dependencies in Flink. The default log4j config can be overriden with a command parameter:
 
@@ -257,8 +257,3 @@ Accessing the logs from the Kafka topic is possible then with:
 ```
 kafka-console-consumer --bootstrap-server flink-ref-1.gce.cloudera.com:9092 --topic flink
 ```
-
-
-
-
-

@@ -3,7 +3,7 @@
 # Table of contents
 1. [Overview](#overview)
 2. [Flink Streaming Application](#app)
-    1. [Application structure](#strcture)
+    1. [Application structure](#structure)
     2. [Inventory management logic](#mgmt-logic)
     3. [Kafka inputs and outputs](#kafka)
     4. [Windowed summaries](#windowing)

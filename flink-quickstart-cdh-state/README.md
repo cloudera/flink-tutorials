@@ -401,6 +401,8 @@ Now that we have a transaction input stream in the `transaction.log.1` topic we 
 flink run -m yarn-cluster -d -p 8 -ys 4 -ytm 1500 -ynm TransactionProcessor flink-quickstart-cdh-state-1.0-SNAPSHOT.jar config/job.properties
 ```
 
+*If the deployment hangs, make sure that **yarn.scheduler.maximum-allocation-vcores** is set to at least 4 in the YARN configuration for the cluster*
+
 Once the job is up and running, we can look at the Flink UI and (hopefully) observe that our job doesn't go as fast as our data generator.
 
 By looking at the `numRecordsInPerSecond` metric at one of our transaction processor subtasks we can see that each parallel instance processes around 30k/sec totaling to about 240k item transactions per sec for our job.

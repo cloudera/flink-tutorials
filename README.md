@@ -8,6 +8,6 @@ This repo contains reference Flink Streaming applications for a few example use-
 
 ## Stateful Transaction and Query Processor Service
 
-[This application](flink-quickstart-cdh-state) implements a production grade stateful application for handling incoming item transactions together with some querying capabilities.
+[This application](flink-quickstart-cdh-state) implements a production grade stateful service for handling incoming item transactions together with some querying capabilities.
 
 We dive deeper into structuring streaming application code, state handling and resource configuration. We also show how to set up our Kafka data sources and sink for scalability and how to properly validate our pipeline before deployment.

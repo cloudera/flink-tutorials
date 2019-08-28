@@ -13,7 +13,11 @@ public class QueryResultSchema implements KeyedSerializationSchema<QueryResult> 
 
     @Override
     public byte[] serializeValue(QueryResult res) {
-        return (res.queryId + "\t" + res.itemInfo.itemId + "\t" + res.itemInfo.quantity).getBytes(StandardCharsets.UTF_8);
+        if (res.itemInfo != null) {
+            return (res.queryId + "\t" + res.itemInfo.itemId + "\t" + res.itemInfo.quantity).getBytes(StandardCharsets.UTF_8);
+        } else {
+            return (res.queryId + "\tMISSING").getBytes(StandardCharsets.UTF_8);
+        }
     }
 
     @Override

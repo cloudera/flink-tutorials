@@ -1,6 +1,22 @@
 # Real-time item management service
 
-## Overview
+# Table of contents
+1. [Overview](#overview)
+2. [Flink Streaming Application](#app)
+    1. [Application structure](#structure)
+    2. [Inventory management logic](#mgmt-logic)
+    3. [Kafka inputs and outputs](#kafka)
+    4. [Windowed summaries](#windowing)
+3. [Testing and Validation](#testing)
+4. [Production Configuration](#prod-config)
+    1. [StreamExecutionEnvironment configuration](#streamenv)
+    2. [Parallelism and Resources](#resources)
+    3. [Kafka configuration](#kafka-config)
+5. [Deployment](#deploy)
+    1. [Transaction Generator Job](#generator-deploy)
+    2. [Transaction Processor Job](#job-deploy)
+
+## Overview <a name="overview"></a>
 
 This streaming application implements the backend logic of an item management system. You can think of this as the service handling the available items for a large e-commerce site or any other similar application.
 
@@ -9,7 +25,7 @@ Our service should have the following capabilities:
  1. Validate and execute the incoming item transaction requests (new stock / purchase requests essentially)
  2. Output the result of the transactions (success / failure)
  3. Expose query functionality for the current item status (number in stock)
- 4. Output periodic transaction summaries for the most popular items
+ 4. Output periodic transaction summaries
 
 We design the application to scale to very large transaction and query rates (up to millions of transactions/queries per second) and also to be able to handle very large inventories (hundreds of millions or more items). As always the scale at which the application can perform well will depend on the available resources, but we will provide you the configurations guidelines to achieve good performance on the desired scale.
 
@@ -24,19 +40,19 @@ From this we can identify the key elements of our dataflow
  1. Transaction & Query sources
  2. Stateful Transaction & Query processor
  3. Transaction Summary aggregator
- 4. Output data sinks
+ 4. Output sinks
 
 Our core business logic will be built into **2.** and **3.** and the data input sources and output sinks will be chosen depending on our environment.
 
 For production deployments we will use Kafka as our data input and output bus, but for testing and local deployments we will replace it with something more simple like data generators and socket based sources.
 
-## Implementing the Flink application
+## Implementing the Flink application <a name="app"></a>
 
-### Structuring the application code
+### Structuring the application code <a name="structure"></a>
 
 With production applications it's very important that we structure them in a way that it makes testing and input/output configuration easy without affecting the business logic.
 
-To achieve this we implemented our main pipeline in the `ItemTransactionJob` abstract class. This way we assume that the input/output logic is provided by the subclasses by implementing the following methods:
+To achieve this we implemented our core logic in the `ItemTransactionJob` abstract class. Subclasses only need to provide the input and output logic by implementing the following methods:
 
 ```
 // ...
@@ -49,9 +65,9 @@ abstract void writeTransactionResults(...);
 
 This way our production job will simply be a subclass of `ItemTransactionJob` and can read and write to Kafka while our tests can easily verify correct behaviour by using more controlled sources and sinks.
 
-In order to run the actual application we need to call the `createApplicationPipeline(parameters)` which will return an instance of `StreamExecutionEnvironment` that we can `.execute(...)`.
+To run the actual application we need to call the `createApplicationPipeline(parameters)` which will return an instance of `StreamExecutionEnvironment` that we can `.execute(...)`.
 
-We can take a quick look at how the main method (the entrypoint for the Flink client) in `KafkaItemTransactionJob` is implemented to leverage this simple pattern.
+The main method (entrypoint for the Flink client) in the `KafkaItemTransactionJob` is implemented to leverage this simple pattern:
 
 ```
 public static void main(String[] args) throws Exception {
@@ -69,7 +85,7 @@ In addition to factoring the core logic into its own class we also use the `Para
 
 As we can see here we parse the properties file under the provided path into the ParameterTool object. This object can now be safely used by our function implementations.
 
-## Inventory management and query logic
+### Inventory management and query logic <a name="mgmt-logic"></a>
 
 We use the following simple POJO types to capture our data structure. Notice that all types have only public, non-final fields and have an empty constructor for efficient serialization.
 
@@ -90,9 +106,9 @@ To process multiple input streams in a single operator we can either `union` the
 
 We connect the `ItemTransaction` and `ItemQuery` streams after applying `.keyBy("itemId")` on both of them which partitions the streams according to their itemId and allows us to use keyed states in our processing operator. We implement the operator logic in a `CoProcessFunction` which allows us to access state and also exposes some lower level functionality like side-outputs to let us send 2 output streams to separete transaction and query results nicely.
 
-Note that we assigned a uid to the operator by calling `.uid("Transaction Processor")`. This is makes it possible for flink to restore the state of the operator from the checkpoint even if the processing pipeline changes. It is very important to always assign unique uids to stateful operators.
+Note that we assigned a uid to the operator by calling `.uid("Transaction Processor")`. This is makes it possible for Flink to restore the state of the operator from the checkpoint even if the processing pipeline changes. It is very important to always assign unique uids to stateful operators.
 
-### TransactionProcessor
+#### TransactionProcessor
 
 In our `CoProcessFunction` the `processElement1` method takes care of applying or rejecting new transactions on our inventory state and `processElement2` simply reads this state to serve queries.
 
@@ -102,7 +118,7 @@ This pattern allows us to avoid using a union output type that we have to filter
 
 The `ItemInfo` state is created during the operator initializaiton step in the `open(...)` method and it is a simple `ValueState` object that allows us to store an `ItemInfo` instance per key (`itemId`).
 
-## Setting up Kafka inputs and outputs
+### Setting up Kafka inputs and outputs <a name="kafka"></a>
 
 As we have seen earlier the `KafkaItemTransactionJob` extends our abstract `ItemTransactionJob` and implements the Kafka wiring logic to read the query and transactions streams and to write the outputs at the end.
 
@@ -119,7 +135,7 @@ We use Kafka in our production application as it provides scalability for our ap
 
 We could for example easily build a RESTful java application that would receive transaction and query requests form the users and communicate asynchronously with the Flink job using Kafka messages to power any user facing application.
 
-### Setting up the FlinkKafkaConsumer sources
+#### Setting up the FlinkKafkaConsumer sources
 
 The `FlinkKafkaConsumer` class is used to consume the input records.
 
@@ -154,7 +170,7 @@ Flink relies on its own consumer offset management when consuming kafka messages
 
 Finally we set the consumer start offset that takes effect when the job is started for the first time (no checkpoint present). When a job is restored from a checkpoints or recovers after a failure it will always continue exactly where it left off.
 
-### Setting up the FlinkKafkaProducer sinks
+#### Setting up the FlinkKafkaProducer sinks
 
 Let's look at the Kafka sink used to write query results:
 
@@ -181,11 +197,9 @@ For the producer properties we set the following 2 parameters:
 
 We use a custom Kafka partitioner that will ensure that queryResult messages are partitioned according to their queryIds which would allow us to create a nicely scalable querying service.
 
-## Windowed transaction summaries
+### Windowed transaction summaries <a name="windowing"></a>
 
-An interesting thing to compute would be the number of failed and successful transactions together with the total volume for each item over a given time frame.
-
-If we notice that some items have exceptionally transaction failure rates for instance that might indicate some problem with other systems.
+An interesting thing to compute would be the number of failed and successful transactions together with the total volume for each item over a given time frame. If we notice that some items have exceptionally transaction failure rates for instance that might indicate some problem with other systems.
 
 ```
 processedTransactions
@@ -197,7 +211,7 @@ processedTransactions
 
 By using the standard windowing API we can transparently switch between event and processing time by setting the TimeCharacteristics on the StreamExecutionEnvironment.
 
-## Validating our pipeline
+## Testing and validating our pipeline <a name="testing"></a>
 
 Simple Flink jobs can be tested by providing a List of input records running the job. Once it completes, with some tricks, we validate the output. This approach however is only applicable in the simplest cases, and fails miserably for most real-world applications where the expected output depends on the order of input elements from multiple sources and the lack of ordering guarantees in the pipeline.
 
@@ -264,7 +278,7 @@ After running our test logic we call `JobTester.stopTest()` to shut down all the
 
 ### Testing input and output connectors
 
-In theory it is possible to bootstrap test environments for our connectors such as Kafka and test the full production pipeline locally but in this case we chose to only test the correct application behaviour and assume that the connectors work as expected.
+It is possible to bootstrap test environments for our connectors such as Kafka and test the full production pipeline locally but in this case we chose to only test the correct application behaviour and assume that the connectors work as expected.
 
 In most cases it is enough to unit test custom schema and partitioning configuration and assume the correct behaviour for the connectors themselves.
 
@@ -272,15 +286,15 @@ In most cases it is enough to unit test custom schema and partitioning configura
 
 We have seen above an example for a pipeline integration test. While it is important to have integration tests for the complex pipeline behavior it is also good practice to unit test the individual components and operator implementations, either as small test jobs or using one of the numerous testing utilities.
 
-# Production configuration
+## Production configuration <a name="prod-config"></a>
 
-## Configuring the StreamExecutionEnvironment
+### Configuring the StreamExecutionEnvironment <a name="streamenv"></a>
 
 The `ItemTransactionJob.createExecutionEnvironment(...)` method is responsible for configuring the `StreamExecutionEnvironment`. We use the same settings for both production and testing to ensure that we test as close to the cluster behaviour as possible.
 
 We will only configure things in the StreamExecutionEnvironment that are essential to our application logic or cannot be configured from the Flink configuration otherwise. For example we will not set parallelism and state backend configuration here as those come from the Flink conf.
 
-### Max parallelism
+#### Max parallelism
 
 All production jobs should set an explicit maximum job parallelism by calling `setMaxParallelism(128)` which controls the number of key-groups the state backends create. We should consider 3 things when setting the max parallelism
 
@@ -290,7 +304,7 @@ All production jobs should set an explicit maximum job parallelism by calling `s
 
 From these criteria we suggest using either powers of 2 (128, 256, 1024, ...) or factorials (120, 720, 5040) as those have many divisors making parallelism tuning easier in the future.   
 
-### Checkpointing settings
+#### Checkpointing settings
 
 Certain checkpointing configs can only be set in the StreamExecutionEnvironment at the moment of writing so we configure these. Most of these are accessible through the `env.getCheckpointConfig()` configuration object.
 
@@ -301,7 +315,7 @@ We set the following parameters here:
  - We enable externalized checkpoints, so we can restore our job from checkpoints as well in addition to savepoints when needed
  - We enable checkpoint compression to reduce the overall state size and speed up recovery
 
-## Parallelism and resources
+### Parallelism and resources <a name="resources"></a>
 
 To fully control the resource utilization of our Flink job we set the following CLI parameters:
 
@@ -334,13 +348,13 @@ For 1 million items a generous estimate would be:
 
 We can round this up to 1GB to be on the even safer side. This means if we split the state on 2 TaskManagers we need to give them an extra 500MB memory on top of the default 1000MB associated to them -> `-ytm 1500`
 
-## Kafka topic configuration
+### Kafka topic configuration <a name="kafka-config"></a>
 
 We should ensure that our high-throughput topics such as the transaction input and output topics have enough partitions. The good number depends on the estimated peak throughput. In our example we will go with 16.
 
 ...
 
-# Running the application on the cluster
+## Deploying the application <a name="deploy"></a>
 
 We first need to build a fatjar of our application by using:
 
@@ -352,11 +366,9 @@ If all run correctly the jar is located under `target/flink-quickstart-cdh-state
 
 Now it's time to copy our jar and job configuration located under `config/job.properties` to our cluster.
 
-## Kafka Data Generator
+### Kafka Data Generator <a name="generator-deploy"></a>
 
-To make it easier to play with and performance test our application we included a simple data generator Flink job that generates `ItemTransaction` data to a target kafka topic.
-
-It takes 2 configuration parameters that we can include in our job configuration file:
+To make it easier to play with and performance test our application we included a simple data generator Flink job that generates `ItemTransaction` data to a target kafka topic. It takes 2 configuration parameters that we can include in our job configuration file:
 
 ```
 num.items=1000000
@@ -368,7 +380,7 @@ We reuse the config key for the target kafka topic from our main application con
 Starting the streaming job to generate transaction data
 
 ```
-# First create the kafka topic
+# First create the kafka topic with 16 partitions
 kafka-topics --create --partitions 16 --replication-factor 1 --zookeeper gyula-1.gce.cloudera.com:2181 --topic transaction.log.1
 
 # Run the data generator job
@@ -381,15 +393,17 @@ We can now check the configured kafka topic for the generated transaction data s
 kafka-console-consumer --bootstrap-server gyula-1.gce.cloudera.com:9092 --topic transaction.log.1
 ```
 
-## Kafka Transaction Job
+### Kafka Transaction Job <a name="job-deploy"></a>
 
-Starting the transaction processor job
+Now that we have a transaction input stream in the `transaction.log.1` topic we can deploy our transaction processor job.
 
 ```
 flink run -m yarn-cluster -d -p 8 -ys 4 -ytm 1500 -ynm TransactionProcessor flink-quickstart-cdh-state-1.0-SNAPSHOT.jar config/job.properties
 ```
 
-We can look at the Flink UI and observe that our job doesn't go as fast as our data generator.
+*If the deployment hangs, make sure that **yarn.scheduler.maximum-allocation-vcores** is set to at least 4 in the YARN configuration for the cluster*
+
+Once the job is up and running, we can look at the Flink UI and (hopefully) observe that our job doesn't go as fast as our data generator.
 
 By looking at the `numRecordsInPerSecond` metric at one of our transaction processor subtasks we can see that each parallel instance processes around 30k/sec totaling to about 240k item transactions per sec for our job.
 
@@ -417,4 +431,10 @@ kafka-console-consumer --bootstrap-server gyula-1.gce.cloudera.com:9092 --topic 
 *Taking a savepoint*
 ```
 flink savepoint -m yarn-cluster -yid yarnAppID flinkJobId
+```
+
+*Restoring from a savepoint*
+
+```
+flink run -m yarn-cluster -d -p 8 -ys 4 -ytm 1500 -ynm TransactionProcessor -s hdfs://savepointpath flink-quickstart-cdh-state-1.0-SNAPSHOT.jar config/job.properties
 ```

@@ -4,11 +4,9 @@ import java.util.Objects;
 
 public class HeapAlert {
 
-    private static String GC_EXPECTED = "Full GC expected soon";
-    private static String CRITICAL = "Critical old gen usage";
+    private static final String MASK_RATIO_MATCH_MSG = " was found in the HeapStats ratio.";
 
     public String message;
-
     public HeapStats triggeringStats;
 
     public HeapAlert() {}
@@ -18,12 +16,8 @@ public class HeapAlert {
         this.triggeringStats = triggeringStats;
     }
 
-    public static HeapAlert GCWarning(HeapStats stat) {
-        return new HeapAlert(GC_EXPECTED, stat);
-    }
-
-    public static HeapAlert criticalOldGen(HeapStats stat) {
-        return new HeapAlert(CRITICAL, stat);
+    public static HeapAlert maskRatioMatch(String alertMask, HeapStats heapStats){
+        return new HeapAlert(alertMask + MASK_RATIO_MATCH_MSG, heapStats);
     }
 
     @Override

@@ -12,19 +12,15 @@ import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryType;
 import java.lang.management.MemoryUsage;
 import java.net.InetAddress;
-import java.util.ArrayList;
 
 public class HeapMonitorSource extends RichParallelSourceFunction<HeapStats> {
 
     private static final Logger LOG = LoggerFactory.getLogger(HeapMonitorSource.class);
 
-    private static final int MEGA = 1024 * 1024;
     private final long sleepMillis;
-
     private volatile boolean running = true;
 
     private RuntimeContext ctx;
-
     private String hostname;
 
     public HeapMonitorSource(long sleepMillis) {
@@ -39,12 +35,8 @@ public class HeapMonitorSource extends RichParallelSourceFunction<HeapStats> {
 
         hostname = InetAddress.getLocalHost().getHostName();
 
-        ArrayList<ArrayList<Long>> leak = new ArrayList<>();
-
         while (running) {
             Thread.sleep(sleepMillis);
-            ArrayList<Long> largeArrayList = new ArrayList<>(MEGA);
-//            leak.add(noleak);
 
             for (MemoryPoolMXBean mpBean : ManagementFactory.getMemoryPoolMXBeans()) {
                 if (mpBean.getType() == MemoryType.HEAP) {

@@ -31,23 +31,36 @@ public class HeapMonitorPipeline {
 
     public static void main(String[] args) throws Exception {
 
+        // Read the parameters from the commandline
         ParameterTool params = ParameterTool.fromArgs(args);
+        final boolean clusterExec = params.getBoolean("cluster", false);
+        final String output = params.get("output", "/tmp/flink-quickstart-cdh/heap-metrics");
 
-        final String output = params.get("output", "/tmp/flink-quickstart-cdh/alerts");
-
+        // Create and configure the execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.enableCheckpointing(10_000);
 
-        DataStream<HeapStats> statsInput = env.addSource(new HeapMonitorSource(100))
+        // Define our source
+        DataStream<HeapStats> heapStats = env.addSource(new HeapMonitorSource(100))
                 .name("Heap Monitor Source");
 
-        final StreamingFileSink<String> sfs = StreamingFileSink
-                .forRowFormat(new Path(output), new SimpleStringEncoder<String>("UTF-8"))
-                .build();
+        // Define the sink for the whole statistics stream
+        if (!clusterExec) {
+            // In local execution mode print the stats to stdout
+            heapStats.print();
+        } else {
+            // In cluster execution mode write the stats to HDFS
+            final StreamingFileSink<String> sfs = StreamingFileSink
+                    .forRowFormat(new Path(output), new SimpleStringEncoder<String>("UTF-8"))
+                    .build();
 
-        statsInput.map(stats -> stats.toString()).addSink(sfs).name("HDFS Sink");
+            heapStats.map(stats -> stats.toString()).addSink(sfs).name("HDFS Sink");
+        }
 
-        DataStream<HeapAlert> alertStream = computeHeapAlerts(statsInput, params);
+        // Detect suspicious events in the statistics stream, defining this as a separate function enables testing
+        DataStream<HeapAlert> alertStream = computeHeapAlerts(heapStats, params);
+
+        // Write the output to the log stream, we can direct this to stderr or to Kafka via the log4j configuration
         alertStream.addSink(new LogSink<>()).name("Logger Sink");
 
         env.execute("HeapMonitor");

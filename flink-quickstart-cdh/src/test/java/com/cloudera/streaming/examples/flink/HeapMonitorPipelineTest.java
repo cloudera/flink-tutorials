@@ -21,27 +21,32 @@ public class HeapMonitorPipelineTest {
     @Test
     public void testPipeline() throws Exception {
 
+        final String alertMask = "42";
+
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        HeapStats edenStat = testStats(HeapStats.EDEN, 0.99);
-        HeapStats warning = testStats(HeapStats.OLD_GEN, 0.45);
-        HeapStats normalOld = testStats(HeapStats.OLD_GEN, 0.25);
-        HeapStats criticalOld = testStats(HeapStats.OLD_GEN, 0.99);
+        HeapStats alert1 = testStats(0.42);
+        HeapStats regular1 = testStats(0.452);
+        HeapStats regular2 = testStats(0.245);
+        HeapStats alert2 = testStats(0.9423);
 
-        DataStreamSource<HeapStats> testInput = env.fromElements(edenStat, warning, normalOld, criticalOld);
-        HeapMonitorPipeline.computeHeapAlerts(testInput, ParameterTool.fromArgs(new String[]{"--warningThreshold", "0.4"})).addSink(new SinkFunction<HeapAlert>() {
-            @Override
-            public void invoke(HeapAlert value) throws Exception {
-                testOutput.add(value);
-            }
-        }).setParallelism(1);
+        DataStreamSource<HeapStats> testInput = env.fromElements(alert1, alert2, regular1, regular2);
+        HeapMonitorPipeline.computeHeapAlerts(testInput, ParameterTool.fromArgs(new String[]{"--alertMask", alertMask}))
+                .addSink(new SinkFunction<HeapAlert>() {
+                    @Override
+                    public void invoke(HeapAlert value) {
+                        testOutput.add(value);
+                    }
+                })
+                .setParallelism(1);
 
         env.execute();
 
-        assertEquals(Sets.newHashSet(HeapAlert.GCWarning(warning), HeapAlert.criticalOldGen(criticalOld)), testOutput);
+        assertEquals(Sets.newHashSet(HeapAlert.maskRatioMatch(alertMask, alert1),
+                HeapAlert.maskRatioMatch(alertMask, alert2)), testOutput);
     }
 
-    private HeapStats testStats(String area, double ratio) {
-        return new HeapStats(area, 0, 0, ratio, 0, "testhost");
+    private HeapStats testStats(double ratio) {
+        return new HeapStats(HeapStats.OLD_GEN, 0, 0, ratio, 0, "testhost");
     }
 }

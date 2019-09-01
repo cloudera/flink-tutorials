@@ -1,49 +1,36 @@
 # Stateless Monitoring Application
 
-The purpose of the Flink Quickstart Application is to provide a self-contained boilerplate code example for a Flink application on top of CDH. The application demonstrates some basic capabilities of the DataStream API.
-It collects basic heap statistics of the JVM it is running on and dumps the collected data to a filesystem. It also triggers alert messages when reaching concerning heap values. The application purposefully leaks memory to generate changing data values.
+The purpose of the Flink Quickstart Application is to provide a self-contained boilerplate code example for a Flink application on top of CDH. 
+The application demonstrates basic capabilities of the DataStream API and shares best practices for testing and logging.
+It is designed to be self-contained, so that it can be executed from an IDE without setting up a cluster.
 
-## Usage
+What you will learn how to:
+1. Write and deploy a Flink application
+2. Interact with the Flink logging framework
+3. Test a Flink application
+
+## Build
 Check out the repository and build the artifact:
 ```
 git clone https://github.infra.cloudera.com/morhidi/flink-ref.git
 cd flink-quickstart-cdh
-mvn clean install
+mvn clean package
 ```
 
-The content of the project is the following:
+## Application logic
+The application monitors the heap metrics that it is running on and produces metrics records similar to the following:
 ```
-|____flink-quickstart-cdh
-| |____pom.xml
-| |____README.md
-| |____src
-| | |____test
-| | | |____java
-| | | | |____com
-| | | | | |____cloudera
-| | | | | | |____streaming
-| | | | | | | |____examples
-| | | | | | | | |____flink
-| | | | | | | | | |____LogSinkTest.java
-| | | | | | | | | |____HeapMonitorPipelineTest.java
-| | | | | | | | | |____HeapMonitor.java
-| | |____main
-| | | |____resources
-| | | | |____log4j.properties
-| | | |____java
-| | | | |____com
-| | | | | |____cloudera
-| | | | | | |____streaming
-| | | | | | | |____examples
-| | | | | | | | |____flink
-| | | | | | | | | |____HeapMonitorSource.java
-| | | | | | | | | |____types
-| | | | | | | | | | |____HeapAlert.java
-| | | | | | | | | | |____HeapStats.java
-| | | | | | | | | |____AlertingFunction.java
-| | | | | | | | | |____LogSink.java
-| | | | | | | | | |____HeapMonitorPipeline.java
+HeapStats{area=PS Old Gen, used=14495768, max=2863661056, ratio=0.005061970574215889, jobId=1, hostname='martonbalassis-MacBook-Pro.local'}
 ```
+We can build on this input to also demonstrate an alerting solution. As a simple logic consider the following: when the ratio component of the
+heap statistics contains a substring specified by the user we send an alert. Let's refer to this substring in question as alert mask.
+
+So for example if the we choose the alert mask as `42` then for the above statistics we will produce an alert:
+```
+HeapAlert{message='42 was found in the HeapStats ratio.', triggeringStats=HeapStats{area=PS Old Gen, used=14495768, max=2863661056, ratio=0.005061970574215889, jobId=1, hostname='martonbalassis-MacBook-Pro.local'}}
+```
+
+In this example we are demonstrating how you can direct these alerts to a sinks like stderr or Kafka via the logging framework.
 
 Every Flink application is built from 4 main components:
 
@@ -56,16 +43,17 @@ Every Flink application is built from 4 main components:
 
 A Flink application has to define a main class that will be executed on the client side on job submission. The main class will define the application pipeline that is going to be executed on the cluster.
 
-Our main class is the `HeapMonitorPipeline` which contains a main method like any standard Java application. The arguments passed to our main method will be determined by us when we use the flink-client. We use the  `ParameterTool` utility to conveniently pass parameters to our job that we can use in our operator implementations.
+Our main class is the `HeapMonitorPipeline` which contains a main method like any standard Java application. The arguments passed to our main method will be determined by us when we use the flink client. We use the  `ParameterTool` utility to conveniently pass parameters to our job that we can use in our operator implementations.
 
-The first thing we do is create the `StreamExecutionEnvironment` which can be used to define DataStreams and data processing logic as we will se below. It is also used to configure important job parameters such as checkpointing behaviour to guarantee data consistency for our application.
+At first we create the `StreamExecutionEnvironment` which can be used to define DataStreams and data processing logic as we will se below. It is also used to configure important job parameters such as checkpointing behaviour to guarantee data consistency for our application.
 
 ```
 final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 env.enableCheckpointing(10_000);
 ```
 
-The `getExecutionEnvironment()` static call guarantees that our pipeline will always be using the correct environment where it is executed. When running from our IDE this means a local execution environment, and when running from the client for cluster submission it will return the yarn execution environment. This ensures that our pipeline can be executed both locally for testing purposes and for cluster deployment without modifying our pipeline.
+The `getExecutionEnvironment()` static call guarantees that our pipeline will always be using the correct environment where it is executed. When running from our IDE this means a local execution environment, and when running from the client for cluster submission it will return the yarn execution environment. 
+This ensures that our pipeline can be executed both locally for testing purposes and for cluster deployment without modifying the pipeline itself.
 
 Even though this application doesn't rely on user defined state we enable checkpointing every 10 seconds to allow the datasinks to produce consistent output to HDFS.
 
@@ -75,13 +63,13 @@ The rest of the main class defines the application sources, processing flow and 
 
 The key data abstraction for every Flink streaming application is the `DataStream` which is a bounded or unbounded flow of records. In our application we will be processing memory related information so we created the `HeapStats` class to represent our data records.
 
-The `HeapStats` class has a few key properties that make it efficiently serializable by the Flink type system that we must point out here:
+The `HeapStats` class has a few key properties that make it efficiently serializable by the Flink type system that we note here:
 
 1. It is public and standalone class (no non-static inner class)
 2. It has a public empty constructor
 3. All fields are public non final
 
-It is possible to structure the class differently by keeping the same serialization properties, for the exact rules please refer to the docs: https://ci.apache.org/projects/flink/flink-docs-stable/dev/types_serialization.html#rules-for-pojo-types
+These classes are called POJOs in the Flink community. It is possible to structure the class differently by keeping the same serialization properties, for the exact rules please refer to the docs: https://ci.apache.org/projects/flink/flink-docs-stable/dev/types_serialization.html#rules-for-pojo-types
 
 Now that we have our record class we need to produce a `DataStream<HeapStats>` of the heap information, which can be done by adding a data source in our application. The `HeapMonitorSource` class extends the `RichParallelSourceFunction<HeapStats>` abstract class which allows us to use it as a data source.
 
@@ -93,7 +81,7 @@ Let's take a closer look at this class:
 
 - The `RichParallelSourceFunction` extends the basic `SourceFunction` behaviour in 2 important ways:
  - It extends the `ParallelSourceFunction`, allowing Flink to create multiple instances of the source logic. One per parallel task instance.
- - It extends the `RichFunction` abstract class which allows the implementation to access runtime information such as parallelism and subtask index that we will leverage in our source implementation
+ - It extends the `RichFunction` abstract class which allows the implementation to access runtime information such as parallelism and subtask index that we will leverage in our source implementation.
 
 Our source will continuously poll the heap memory usage of this application and output it along with some task related information producing the datastream.
 
@@ -110,7 +98,7 @@ The core alerting logic is implemented in the `AlertingFunction` class. It is a 
 The quickstart application is based on the upstream Flink quickstart maven archetype. The project can be imported into IntelliJ by following the instructions from the public Flink documentation:
 https://ci.apache.org/projects/flink/flink-docs-stable/dev/projectsetup/java_api_quickstart.html#maven
 
-Simply run the class HeapMonitorPipeline from the IDE which should print one or multiple lines to the console (depending on the number of cores of your machine chosen as default parallelism):
+Simply run the class `HeapMonitorPipeline` from the IDE which should print one or multiple lines to the console (depending on the number of cores of your machine chosen as default parallelism):
 ```
 ...
 13:50:54,524 INFO  com.cloudera.streaming.examples.flink.HeapMonitorSource       - starting HeapMonitorSource
@@ -120,21 +108,24 @@ Simply run the class HeapMonitorPipeline from the IDE which should print one or 
 ...
 ```
 
-The heap statistics are generated by the HeapMonitorSource class, a custom source implementation. All messages are saved to the filesystem, local or HDFS, depending on where the application runs. The output path is configurable with a program argument, e.g.:
-```
---output /tmp/flinf-quickstart-cdh/stats
---output hdfs:///tmp/flinf-quickstart-cdh/stats
-```
-
-Under normal circumstances the logs are silent. The application triggers alert events only when the old gen space of the heap exceeds certain threshold values. The heap alerts are sent to a special sink called LogSink:
+Once the application has successfully started we can observe `HeapStats` events printed to stdout in rapid succession:
 
 ```
-13:50:56,481 INFO  com.cloudera.streaming.examples.flink.LogSink                 - HeapAlert{message='Full GC expected soon', triggeringStats=HeapStats{area=PS Old Gen, used=65709552, max=5726797824, ratio=0.011474047804625276, jobId=3, hostname='morhidi-mbp.local'}}
-13:50:56,482 INFO  com.cloudera.streaming.examples.flink.LogSink                 - HeapAlert{message='Full GC expected soon', triggeringStats=HeapStats{area=PS Old Gen, used=65709552, max=5726797824, ratio=0.011474047804625276, jobId=11, hostname='morhidi-mbp.local'}}
-13:50:56,481 INFO  com.cloudera.streaming.examples.flink.LogSink                 - HeapAlert{message='Full GC expected soon', triggeringStats=HeapStats{area=PS Old Gen, used=65709552, max=5726797824, ratio=0.011474047804625276, jobId=10, hostname='morhidi-mbp.local'}}
+3> HeapStats{area=PS Survivor Space, used=10980192, max=11010048, ratio=0.9972882952008929, jobId=2, hostname='martonbalassis-MacBook-Pro.local'}
+3> HeapStats{area=PS Old Gen, used=14410024, max=2863661056, ratio=0.005032028483192111, jobId=2, hostname='martonbalassis-MacBook-Pro.local'}
+4> HeapStats{area=PS Eden Space, used=19258296, max=1409286144, ratio=0.013665284429277693, jobId=3, hostname='martonbalassis-MacBook-Pro.local'}
 ```
 
-LogSink is a custom sink implementation that simply sends the messages to the logging framework. The logs can be redirected via log4j to any centralized logging system or simply printed to the standard output when debugging. The quick start application provides a sample log4j config for redirecting the alert logs to the standard error.
+Having a prefix in the above output lines (`3>` and `>4` in the example) is a feature of the `DataStream.print()` function.
+The prefix refers to the sequential id of each parallel instance of the sink.
+
+Occasionally, the application triggers alerts that are printed to stderr via the logging framework.
+
+```
+08:20:11,829 INFO  com.cloudera.streaming.examples.flink.LogSink                 - HeapAlert{message='42 was found in the HeapStats ratio.', triggeringStats=HeapStats{area=PS Eden Space, used=23876376, max=1409286144, ratio=0.016942177500043596, jobId=0, hostname='martonbalassis-MacBook-Pro.local'}}
+```
+
+Let's explore this logging implementation and it's configuration. `LogSink` is a custom sink implementation that simply sends the messages to the logging framework. The logs can be redirected via log4j to any centralized logging system or simply printed to the standard output when debugging. The quick start application provides a sample log4j config for redirecting the alert logs to the standard error.
 
 ```
 log4j.rootLogger=INFO, stdout
@@ -152,22 +143,22 @@ log4j.appender.stderr.layout=org.apache.log4j.PatternLayout
 log4j.appender.stderr.Target   = System.err
 log4j.appender.stderr.layout.ConversionPattern=%d{HH:mm:ss,SSS} %-5p %-60c %x - %m%n
 ```
-The alerts thresholds are configurable via two program arguments that can be set to a low value for testing:
+The alerts mask is configurable a parameter to produce more frequent hits for testing:
 
 ```
---warningThreshold 0.001
---criticalThreshold 0.002
+--alertMask 42
+--alertMask 4
 ```
 
 ## Testing our data pipeline
-The business logic of a Flink application consists of one or more operators chained together, which is often called a pipeline. Pipelines can be extracted to static methods and can be easily tested with JUnit framework. The HeapMonitorPipelineTest class gives a sample for this.
+The business logic of a Flink application consists of one or more operators chained together, which is often called a pipeline. Pipelines can be extracted to static methods and can be easily tested with JUnit framework. The `HeapMonitorPipelineTest` class gives a sample for this.
 
 A simple JUnit test was written to verify our core application logic. The test is implemented in the `HeapMonitorPipelineTest` and should be regarded as an integration test of the application flow. Even though this pipeline is very simple we can later use the same idea to test more complex application flows.
 
 Our test mimics our application main class with only minor differences:
-1. We create the StreamExecutionEnvironment the same ways
-2. Instead of using our source implementation we will use the `env.fromElements(..)` method to pre-populate a DataStream with some testing data.
-3. We feed this data to our static data processing logic like before
+1. We create the `StreamExecutionEnvironment` the same ways
+2. Instead of using our source implementation we will use the `env.fromElements(..)` method to pre-populate a `DataStream` with some testing data.
+3. We feed this data to our static data processing logic like before.
 4. Instead of writing the output anywhere we verify the correctness once the pipeline finished.
 
 ### Producing test input
@@ -183,20 +174,15 @@ We have specifically set the parallelism of our data sink to 1 to avoid any conc
 As we cannot always force strict ordering for the output elements we used a `Set` instead of a `List` to compare expected output regardless of the order. This might or might not be the correct approach depending on the application flow, but it works very well in our case.
 
 ## Running the application on a remote Cluster (integration testing)
-The Flink Quickstart Application can be deployed on a CDH cluster remotely. The actual version of the application was tested agains CDH6.2.x and FLINK-1.8.1-cdh6.2.0-p1-el7 without any security integration on it. The Flink parcel is accessible at the [flink-temporary repo](http://support-ci.sre-dev.cloudera.com:8081/artifactory/webapp/#/artifacts/browse/tree/General/flink-temporary)
+The Flink Quickstart Application can be deployed on a CDH cluster remotely. The actual version of the application was tested against CDH6.3.0 and FLINK-1.9.0-csa0.1.0-cdh6.3.0-dd2d2e9-el7 without any security integration on it. The Flink parcel is accessible at the [flink-temporary repo](http://support-ci.sre-dev.cloudera.com:8081/artifactory/webapp/#/artifacts/browse/tree/General/flink-temporary)
+After you have [built](#Build) the project run the application from a Flink GateWay node:
 
-Uploading the application:
 ```
-scp target/flink-quickstart-cdh-1.0-SNAPSHOT.jar root@flink-ref-1.gce.cloudera.com:.
-```
-
-Running the application
-```
-flink run -sae -m yarn-cluster -p 2 -c com.cloudera.streaming.examples.flink.HeapMonitorPipeline flink-quickstart-cdh-1.0-SNAPSHOT.jar --output hdfs:///tmp/flink-quickstart-cdh/alerts
+flink run -d -m yarn-cluster -p 2 -c com.cloudera.streaming.examples.flink.HeapMonitorPipeline target/flink-quickstart-cdh-1.0-SNAPSHOT.jar
 
 ```
 
-After launching the application Flink will create a log running yarn session and launch a dashbord where the application can be monitored. The Flink dashbord can be reached from CM through the following path:
+After launching the application Flink will create a log running yarn session and launch a dashboard where the application can be monitored. The Flink dashbord can be reached from CM through the following path:
 Cluster->Yarn->Applications->application_<ID>->Tracking URL:	ApplicationMaster.
 
 Log messages from a Flink application can be also collected and forwarded to a Kafka topic for convenience. This requires only a few extra configuration steps and dependencies in Flink. The default log4j config can be overriden with a command parameter:

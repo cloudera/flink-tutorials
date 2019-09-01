@@ -34,7 +34,7 @@ public class HeapMonitorPipeline {
         // Read the parameters from the commandline
         ParameterTool params = ParameterTool.fromArgs(args);
         final boolean clusterExec = params.getBoolean("cluster", false);
-        final String output = params.get("output", "/tmp/flink-quickstart-cdh/heap-metrics");
+        final String output = params.get("output", "/tmp/flink-heap-metrics");
 
         // Create and configure the execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();

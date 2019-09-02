@@ -1,43 +1,59 @@
 # Stateless Monitoring Application
+The purpose of the Flink Quickstart Application is to provide a self-contained boilerplate code example for a Flink application.
 
-The purpose of the Flink Quickstart Application is to provide a self-contained boilerplate code example for a Flink application on top of CDH. 
+# Table of contents
+1. [Overview](#overview)
+2. [Build](#build)
+3. [Application logic](#application-logic)
+4. [Application main class](#application-main-class)
+    1. [Creating the stream of heap metrics](#creating-the-stream-of-heap-metrics)
+    2. [Computing GC warnings and heap alerts](#computing-gc-warnings-and-heap-alerts)
+5. [Running the application from IntelliJ](#running-the-application-from-intellij)
+6. [Testing our data pipeline](#testing-our-data-pipeline)
+    1. [Producing test input](#producing-test-input)
+    2. [Collecting the test output](#collecting-the-test-output)
+7. [Running the application on a Cloudera cluster](#running-the-application-on-a-cloudera-cluster)
+    1. [Writing logs to Kafka](#writing-logs-to-kafka)
+    2. [Writing output to HDFS](#writing-output-to-hdfs)
+
+
+## Overview
 The application demonstrates basic capabilities of the DataStream API and shares best practices for testing and logging.
-It is designed to be self-contained, so that it can be executed from an IDE without setting up a cluster.
 
-What you will learn how to:
-1. Write and deploy a Flink application
-2. Interact with the Flink logging framework
-3. Test a Flink application
+The quickstart demonstrates:
+1. Writing and deploying a Flink application
+2. Interacting with the Flink logging framework
+3. Testing a Flink application
 
 ## Build
 Check out the repository and build the artifact:
 ```
 git clone https://github.infra.cloudera.com/morhidi/flink-ref.git
-cd flink-quickstart-cdh
+cd flink-ref/flink-quickstart-cdh
 mvn clean package
 ```
 
 ## Application logic
-The application monitors the heap metrics that it is running on and produces metrics records similar to the following:
+The application monitors the metrics of the JVM heap that it is running on and produces metrics records similar to the following:
 ```
-HeapStats{area=PS Old Gen, used=14495768, max=2863661056, ratio=0.005061970574215889, jobId=1, hostname='martonbalassis-MacBook-Pro.local'}
+HeapMetrics{area=PS Old Gen, used=14495768, max=2863661056, ratio=0.005061970574215889, jobId=1, hostname='martonbalassis-MacBook-Pro.local'}
 ```
-We can build on this input to also demonstrate an alerting solution. As a simple logic consider the following: when the ratio component of the
+We can build on this input to also demonstrate an alerting solution. As a simple alerting logic consider the following: when the ratio component of the
 heap statistics contains a substring specified by the user we send an alert. Let's refer to this substring in question as alert mask.
 
 So for example if the we choose the alert mask as `42` then for the above statistics we will produce an alert:
 ```
-HeapAlert{message='42 was found in the HeapStats ratio.', triggeringStats=HeapStats{area=PS Old Gen, used=14495768, max=2863661056, ratio=0.005061970574215889, jobId=1, hostname='martonbalassis-MacBook-Pro.local'}}
+HeapAlert{message='42 was found in the HeapMetrics ratio.', triggeringStats=HeapMetrics{area=PS Old Gen, used=14495768, max=2863661056, ratio=0.005061970574215889, jobId=1, hostname='martonbalassis-MacBook-Pro.local'}}
 ```
 
-In this example we are demonstrating how you can direct these alerts to a sinks like stderr or Kafka via the logging framework.
+In this example we are demonstrating how you can direct these alerts to sinks like stderr or Kafka via the logging framework.
 
 Every Flink application is built from 4 main components:
 
-1. **Application main class:** Defines the `StreamExecutionEnvironment` and creates the pipeline
-2. **Data Sources:** Access the heap information and make it available for processing
-3. **Processing operators and flow:** Process the heap usage information to detect critical memory levels and produce the alerts
-4. **Data Sinks:** Store the memory information collected on HDFS and log the alerts to the configured logger
+1. **Application main class:** Defines the `StreamExecutionEnvironment` and creates the pipeline.
+2. **Data Sources:** Access the heap information and make it available for processing.
+3. **Processing operators and flow:** Process the heap usage information to detect critical memory levels and produce the alerts.
+4. **Data Sinks:** Store the memory information collected on HDFS and log the alerts to the configured logger.
 
 ## Application main class
 
@@ -52,18 +68,17 @@ final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEn
 env.enableCheckpointing(10_000);
 ```
 
-The `getExecutionEnvironment()` static call guarantees that our pipeline will always be using the correct environment where it is executed. When running from our IDE this means a local execution environment, and when running from the client for cluster submission it will return the yarn execution environment. 
-This ensures that our pipeline can be executed both locally for testing purposes and for cluster deployment without modifying the pipeline itself.
+The `getExecutionEnvironment()` static call guarantees that our pipeline will always be using the correct environment based on the location it is executed. When running from our IDE this means a local execution environment, and when running from the client for cluster submission it will return the yarn execution environment. 
 
 Even though this application doesn't rely on user defined state we enable checkpointing every 10 seconds to allow the datasinks to produce consistent output to HDFS.
 
 The rest of the main class defines the application sources, processing flow and the sinks followed by the `execute()` call which will trigger the actual execution of the pipeline either locally or on the cluster.
 
-### Creating the stream of heap information
+### Creating the stream of heap metrics
 
-The key data abstraction for every Flink streaming application is the `DataStream` which is a bounded or unbounded flow of records. In our application we will be processing memory related information so we created the `HeapStats` class to represent our data records.
+The key data abstraction for every Flink streaming application is the `DataStream` which is a bounded or unbounded flow of records. In our application we will be processing memory related information so we created the `HeapMetrics` class to represent our data records.
 
-The `HeapStats` class has a few key properties that make it efficiently serializable by the Flink type system that we note here:
+The `HeapMetrics` class has a few key properties that make it efficiently serializable by the Flink type system that we note here:
 
 1. It is public and standalone class (no non-static inner class)
 2. It has a public empty constructor
@@ -71,7 +86,7 @@ The `HeapStats` class has a few key properties that make it efficiently serializ
 
 These classes are called POJOs in the Flink community. It is possible to structure the class differently by keeping the same serialization properties, for the exact rules please refer to the docs: https://ci.apache.org/projects/flink/flink-docs-stable/dev/types_serialization.html#rules-for-pojo-types
 
-Now that we have our record class we need to produce a `DataStream<HeapStats>` of the heap information, which can be done by adding a data source in our application. The `HeapMonitorSource` class extends the `RichParallelSourceFunction<HeapStats>` abstract class which allows us to use it as a data source.
+Now that we have our record class we need to produce a `DataStream<HeapMetrics>` of the heap information, which can be done by adding a data source in our application. The `HeapMonitorSource` class extends the `RichParallelSourceFunction<HeapMetrics>` abstract class which allows us to use it as a data source.
 
 Let's take a closer look at this class:
 
@@ -87,7 +102,7 @@ Our source will continuously poll the heap memory usage of this application and 
 
 ### Computing GC warnings and heap alerts
 
-The core data processing logic is encapsulated in the `HeapMonitorPipeline.computeHeapAlerts(DataStream<HeapStats> statsInput, ParameterTool params)` method that takes as input the DataStream of heap information and should produce a datastream of alerts when the conditions are met.
+The core data processing logic is encapsulated in the `HeapMonitorPipeline.computeHeapAlerts(DataStream<HeapMetrics> statsInput, ParameterTool params)` method that takes as input the DataStream of heap information and should produce a datastream of alerts when the conditions are met.
 
 The reason for structuring the code this way is to make our pipeline easily testable later by replacing our production data source with the test data stream.
 
@@ -108,12 +123,12 @@ Simply run the class `HeapMonitorPipeline` from the IDE which should print one o
 ...
 ```
 
-Once the application has successfully started we can observe `HeapStats` events printed to stdout in rapid succession:
+Once the application has successfully started we can observe `HeapMetrics` events printed to stdout in rapid succession:
 
 ```
-3> HeapStats{area=PS Survivor Space, used=10980192, max=11010048, ratio=0.9972882952008929, jobId=2, hostname='martonbalassis-MacBook-Pro.local'}
-3> HeapStats{area=PS Old Gen, used=14410024, max=2863661056, ratio=0.005032028483192111, jobId=2, hostname='martonbalassis-MacBook-Pro.local'}
-4> HeapStats{area=PS Eden Space, used=19258296, max=1409286144, ratio=0.013665284429277693, jobId=3, hostname='martonbalassis-MacBook-Pro.local'}
+3> HeapMetrics{area=PS Survivor Space, used=10980192, max=11010048, ratio=0.9972882952008929, jobId=2, hostname='martonbalassis-MacBook-Pro.local'}
+3> HeapMetrics{area=PS Old Gen, used=14410024, max=2863661056, ratio=0.005032028483192111, jobId=2, hostname='martonbalassis-MacBook-Pro.local'}
+4> HeapMetrics{area=PS Eden Space, used=19258296, max=1409286144, ratio=0.013665284429277693, jobId=3, hostname='martonbalassis-MacBook-Pro.local'}
 ```
 
 Having a prefix in the above output lines (`3>` and `>4` in the example) is a feature of the `DataStream.print()` function.
@@ -122,7 +137,7 @@ The prefix refers to the sequential id of each parallel instance of the sink.
 Occasionally, the application triggers alerts that are printed to stderr via the logging framework.
 
 ```
-08:20:11,829 INFO  com.cloudera.streaming.examples.flink.LogSink                 - HeapAlert{message='42 was found in the HeapStats ratio.', triggeringStats=HeapStats{area=PS Eden Space, used=23876376, max=1409286144, ratio=0.016942177500043596, jobId=0, hostname='martonbalassis-MacBook-Pro.local'}}
+08:20:11,829 INFO  com.cloudera.streaming.examples.flink.LogSink  - HeapAlert{message='42 was found in the HeapMetrics ratio.', triggeringStats=HeapMetrics{area=PS Eden Space, used=23876376, max=1409286144, ratio=0.016942177500043596, jobId=0, hostname='martonbalassis-MacBook-Pro.local'}}
 ```
 
 Let's explore this logging implementation and it's configuration. `LogSink` is a custom sink implementation that simply sends the messages to the logging framework. The logs can be redirected via log4j to any centralized logging system or simply printed to the standard output when debugging. The quick start application provides a sample log4j config for redirecting the alert logs to the standard error.
@@ -173,73 +188,88 @@ We have specifically set the parallelism of our data sink to 1 to avoid any conc
 
 As we cannot always force strict ordering for the output elements we used a `Set` instead of a `List` to compare expected output regardless of the order. This might or might not be the correct approach depending on the application flow, but it works very well in our case.
 
-## Running the application on a remote Cluster (integration testing)
+## Running the application on a Cloudera cluster
 The Flink Quickstart Application can be deployed on a CDH cluster remotely. The actual version of the application was tested against CDH6.3.0 and FLINK-1.9.0-csa0.1.0-cdh6.3.0-dd2d2e9-el7 without any security integration on it. The Flink parcel is accessible at the [flink-temporary repo](http://support-ci.sre-dev.cloudera.com:8081/artifactory/webapp/#/artifacts/browse/tree/General/flink-temporary)
 After you have [built](#Build) the project run the application from a Flink GateWay node:
 
 ```
-flink run -d -m yarn-cluster -p 2 -c com.cloudera.streaming.examples.flink.HeapMonitorPipeline target/flink-quickstart-cdh-1.0-SNAPSHOT.jar
-
+flink run -m yarn-cluster -d -p 2 -ynm HeapMonitor target/flink-quickstart-cdh-1.0-SNAPSHOT.jar
 ```
 
-After launching the application Flink will create a log running yarn session and launch a dashboard where the application can be monitored. The Flink dashbord can be reached from CM through the following path:
-Cluster->Yarn->Applications->application_<ID>->Tracking URL:	ApplicationMaster.
+After launching the application Flink will create a YARN session and launch a dashboard where the application can be monitored. The Flink dashbord can be reached from CM through the following path:
+`Cluster->Yarn->Applications->application_<ID>->Tracking URL:ApplicationMaster`.
 
+![YarnApp](images/YarnApp.png "The Flink application webdashboard is accessible from YARN.")
+
+Following through this link we can access the Flink application master webdashboard. On the dashboard we can choose the TaskManagers tab on the left navigation pane to gain access to the logs.
+
+![TaskLogs](images/TaskLogs.png "The logs are accesible on the TaskManager pane of the webdashboard.")
+
+In this case we have actually run the application with the default `log4j.configuration` controlled by CM and not with the one we have used locally in our IDE.
+
+### Writing logs to Kafka
 Log messages from a Flink application can be also collected and forwarded to a Kafka topic for convenience. This requires only a few extra configuration steps and dependencies in Flink. The default log4j config can be overriden with a command parameter:
 
 ```
--yD log4j.configuration.file=log4j.properties
+-yD log4j.configuration.file=kafka-appender/log4j.properties
 ```
 
-```
-log4j.rootLogger=DEBUG, file
-
-log4j.logger.akka=INFO
-log4j.logger.org.apache.kafka=INFO
-log4j.logger.org.apache.hadoop=INFO
-log4j.logger.org.apache.zookeeper=INFO
-
-log4j.appender.file=org.apache.log4j.FileAppender
-log4j.appender.file.file=${log.file}
-log4j.appender.file.append=false
-log4j.appender.file.layout=org.apache.log4j.PatternLayout
-log4j.appender.file.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %-60c %x - %m%n
-log4j.logger.org.apache.flink.yarn.Utils=DEBUG
-log4j.logger.org.apache.flink.shaded.akka.org.jboss.netty.channel.DefaultChannelPipeline=ERROR, file
-
-log4j.logger.com.cloudera=INFO, stdout, kafka
-log4j.additivity.com.cloudera=false
-
-log4j.appender.stdout=org.apache.log4j.ConsoleAppender
-log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
-log4j.appender.stdout.Target   = System.out
-log4j.appender.stdout.layout.ConversionPattern=%d{HH:mm:ss,SSS} %-5p %-60c %x - %m%n
-
-log4j.appender.kafka=org.apache.kafka.log4jappender.KafkaLog4jAppender
-log4j.appender.kafka.brokerList=flink-ref-1.gce.cloudera.com:9092,flink-ref-2.gce.cloudera.com:9092,flink-ref-3.gce.cloudera.com:9092
-log4j.appender.kafka.topic=flink
-log4j.appender.kafka.layout=org.apache.log4j.PatternLayout
-log4j.appender.kafka.layout.ConversionPattern=%d{HH:mm:ss,SSS} %-5p %-60c %x - %m%n
-
-```
-
-The KafkaLog4jAppender requires a few dependencies also which can be shipped with the run command also. The --yarnship parameter should point to a local folder containing all the dependencies for logging:
+The KafkaLog4jAppender requires its dependencies to be loaded early with the system jars, to achieve this we can use the `--yarnship` parameter pointing to a local folder.
 ```
 --yarnship kafka-appender
 
-[root@flink-ref-1 ~]# tree kafka-appender
+# tree kafka-appender
 kafka-appender
-├── kafka-clients-2.1.0-cdh6.2.0.jar
+├── kafka-clients-2.2.1-cdh6.3.0.jar
 └── kafka-log4j-appender-0.9.0.0.jar
 ```
-The dependency jars for convenience were also uploaded to a temporary [location](https://drive.google.com/drive/u/0/folders/1QByahsACBKdHMVftfE9pKsZuIhYN0eBi)
+
+By default we are using the `flink-heap-alerts` Kafka topic for tracking the alerts. You can create this topic as follows:
+```
+kafka-topics --create --partitions 16 --replication-factor 1 --zookeeper <your_zookeeper>:2181 --topic flink-heap-alerts```
+```
 
 An example for the full command with Kafka logging:
 ```
-flink run -sae -m yarn-cluster -p 2 --yarnship kafka-appender -yD log4j.configuration.file=log4j.properties -c com.cloudera.streaming.examples.flink.HeapMonitorPipeline flink-quickstart-cdh-1.0-SNAPSHOT.jar --ship kafka-appender --output hdfs:///tmp/flink-quickstart-cdh/alerts
+flink run -m yarn-cluster --yarnship kafka-appender -yD log4j.configuration.file=kafka-appender/log4j.properties -d -p 2 -ynm HeapMonitor target/flink-quickstart-cdh-1.0-SNAPSHOT.jar
 ```
 
 Accessing the logs from the Kafka topic is possible then with:
 ```
-kafka-console-consumer --bootstrap-server flink-ref-1.gce.cloudera.com:9092 --topic flink
+kafka-console-consumer --bootstrap-server <your_broker>:9092 --topic flink-heap-alerts
+...
+00:17:53,398 INFO  com.cloudera.streaming.examples.flink.LogSink                 - HeapAlert{message='42 was found in the HeapMetrics ratio.', triggeringStats=HeapMetrics{area=PS Eden Space, used=54560840, max=94371840, ratio=0.578147464328342, jobId=0, hostname='mbalassi-2.gce.cloudera.com'}}
+
+00:17:53,498 INFO  com.cloudera.streaming.examples.flink.LogSink                 - HeapAlert{message='42 was found in the HeapMetrics ratio.', triggeringStats=HeapMetrics{area=PS Eden Space, used=54560840, max=94371840, ratio=0.578147464328342, jobId=0, hostname='mbalassi-2.gce.cloudera.com'}}
+
+00:17:53,599 INFO  com.cloudera.streaming.examples.flink.LogSink                 - HeapAlert{message='42 was found in the HeapMetrics ratio.', triggeringStats=HeapMetrics{area=PS Eden Space, used=54560840, max=94371840, ratio=0.578147464328342, jobId=0, hostname='mbalassi-2.gce.cloudera.com'}}
+
+00:17:53,700 INFO  com.cloudera.streaming.examples.flink.LogSink                 - HeapAlert{message='42 was found in the HeapMetrics ratio.', triggeringStats=HeapMetrics{area=PS Eden Space, used=54560840, max=94371840, ratio=0.578147464328342, jobId=0, hostname='mbalassi-2.gce.cloudera.com'}}
+
+00:17:53,800 INFO  com.cloudera.streaming.examples.flink.LogSink                 - HeapAlert{message='42 was found in the HeapMetrics ratio.', triggeringStats=HeapMetrics{area=PS Eden Space, used=54560840, max=94371840, ratio=0.578147464328342, jobId=0, hostname='mbalassi-2.gce.cloudera.com'}}
+```
+### Writing output to HDFS
+
+On a cluster environment we also prefer to write the output to a durable storage medium. We have choosen HDFS for this storage layer. We can switch to the HDFS writer from the
+stdout writer with the following parameter:
+
+```
+--cluster true
+```
+
+By default the output files will be stored under `hdfs:///tmp/flink-heap-stats`, but this location is configurable via the `--output` parameter. The complete command saving the HDFS and 
+logging to Kafka is:
+
+```
+flink run -m yarn-cluster --yarnship kafka-appender -yD log4j.configuration.file=kafka-appender/log4j.properties -d -p 2 -ynm HeapMonitor target/flink-quickstart-cdh-1.0-SNAPSHOT.jar --cluster true
+``` 
+
+To inspect the output we can call `hdfs` directly:
+
+```
+hdfs dfs -cat /tmp/flink-heap-stats/*/*
+...
+HeapMetrics{area=PS Eden Space, used=50399064, max=90701824, ratio=0.5556565654071081, jobId=1, hostname='mbalassi-2.gce.cloudera.com'}
+HeapMetrics{area=PS Survivor Space, used=903448, max=15728640, ratio=0.05743967692057292, jobId=1, hostname='mbalassi-2.gce.cloudera.com'}
+HeapMetrics{area=PS Old Gen, used=19907144, max=251658240, ratio=0.07910388310750326, jobId=1, hostname='mbalassi-2.gce.cloudera.com'}
 ```

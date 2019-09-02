@@ -1,12 +1,12 @@
 package com.cloudera.streaming.examples.flink;
 
 import com.cloudera.streaming.examples.flink.types.HeapAlert;
-import com.cloudera.streaming.examples.flink.types.HeapStats;
+import com.cloudera.streaming.examples.flink.types.HeapMetrics;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.util.Collector;
 
-public class AlertingFunction implements FlatMapFunction<HeapStats, HeapAlert> {
+public class AlertingFunction implements FlatMapFunction<HeapMetrics, HeapAlert> {
 
     public static final String ALERT_MASK = "alertMask";
     private final String alertMask;
@@ -16,7 +16,7 @@ public class AlertingFunction implements FlatMapFunction<HeapStats, HeapAlert> {
     }
 
     @Override
-    public void flatMap(HeapStats stats, Collector<HeapAlert> out) throws Exception {
+    public void flatMap(HeapMetrics stats, Collector<HeapAlert> out) throws Exception {
         if (Double.toString(stats.ratio).contains(alertMask)) {
             out.collect(HeapAlert.maskRatioMatch(alertMask, stats));
         }

@@ -1,7 +1,7 @@
 package com.cloudera.streaming.examples.flink;
 
 import com.cloudera.streaming.examples.flink.types.HeapAlert;
-import com.cloudera.streaming.examples.flink.types.HeapStats;
+import com.cloudera.streaming.examples.flink.types.HeapMetrics;
 import org.apache.commons.compress.utils.Sets;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
@@ -25,12 +25,12 @@ public class HeapMonitorPipelineTest {
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        HeapStats alert1 = testStats(0.42);
-        HeapStats regular1 = testStats(0.452);
-        HeapStats regular2 = testStats(0.245);
-        HeapStats alert2 = testStats(0.9423);
+        HeapMetrics alert1 = testStats(0.42);
+        HeapMetrics regular1 = testStats(0.452);
+        HeapMetrics regular2 = testStats(0.245);
+        HeapMetrics alert2 = testStats(0.9423);
 
-        DataStreamSource<HeapStats> testInput = env.fromElements(alert1, alert2, regular1, regular2);
+        DataStreamSource<HeapMetrics> testInput = env.fromElements(alert1, alert2, regular1, regular2);
         HeapMonitorPipeline.computeHeapAlerts(testInput, ParameterTool.fromArgs(new String[]{"--alertMask", alertMask}))
                 .addSink(new SinkFunction<HeapAlert>() {
                     @Override
@@ -46,7 +46,7 @@ public class HeapMonitorPipelineTest {
                 HeapAlert.maskRatioMatch(alertMask, alert2)), testOutput);
     }
 
-    private HeapStats testStats(double ratio) {
-        return new HeapStats(HeapStats.OLD_GEN, 0, 0, ratio, 0, "testhost");
+    private HeapMetrics testStats(double ratio) {
+        return new HeapMetrics(HeapMetrics.OLD_GEN, 0, 0, ratio, 0, "testhost");
     }
 }

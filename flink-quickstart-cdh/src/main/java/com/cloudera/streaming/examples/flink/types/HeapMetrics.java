@@ -2,7 +2,7 @@ package com.cloudera.streaming.examples.flink.types;
 
 import java.util.Objects;
 
-public class HeapStats {
+public class HeapMetrics {
 
     public static final String OLD_GEN = "PS Old Gen";
     public static final String EDEN = "PS Eden Space";
@@ -32,10 +32,10 @@ public class HeapStats {
      */
     public String hostname;
 
-    public HeapStats() {
+    public HeapMetrics() {
     }
 
-    public HeapStats(String area, long used, long max, double ratio, Integer jobId, String hostname) {
+    public HeapMetrics(String area, long used, long max, double ratio, Integer jobId, String hostname) {
         this.area = area;
         this.used = used;
         this.max = max;
@@ -46,7 +46,7 @@ public class HeapStats {
 
     @Override
     public String toString() {
-        return "HeapStats{" +
+        return "HeapMetrics{" +
                 "area=" + area +
                 ", used=" + used +
                 ", max=" + max +
@@ -60,13 +60,13 @@ public class HeapStats {
     public boolean equals(Object o) {
         if (this == o) { return true; }
         if (o == null || getClass() != o.getClass()) { return false; }
-        HeapStats heapStats = (HeapStats) o;
-        return used == heapStats.used &&
-                max == heapStats.max &&
-                Double.compare(heapStats.ratio, ratio) == 0 &&
-                Objects.equals(area, heapStats.area) &&
-                Objects.equals(jobId, heapStats.jobId) &&
-                Objects.equals(hostname, heapStats.hostname);
+        HeapMetrics heapMetrics = (HeapMetrics) o;
+        return used == heapMetrics.used &&
+                max == heapMetrics.max &&
+                Double.compare(heapMetrics.ratio, ratio) == 0 &&
+                Objects.equals(area, heapMetrics.area) &&
+                Objects.equals(jobId, heapMetrics.jobId) &&
+                Objects.equals(hostname, heapMetrics.hostname);
     }
 
     @Override

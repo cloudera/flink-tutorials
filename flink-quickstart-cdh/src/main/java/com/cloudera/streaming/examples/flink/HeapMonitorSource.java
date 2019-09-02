@@ -1,6 +1,6 @@
 package com.cloudera.streaming.examples.flink;
 
-import com.cloudera.streaming.examples.flink.types.HeapStats;
+import com.cloudera.streaming.examples.flink.types.HeapMetrics;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
@@ -13,7 +13,7 @@ import java.lang.management.MemoryType;
 import java.lang.management.MemoryUsage;
 import java.net.InetAddress;
 
-public class HeapMonitorSource extends RichParallelSourceFunction<HeapStats> {
+public class HeapMonitorSource extends RichParallelSourceFunction<HeapMetrics> {
 
     private static final Logger LOG = LoggerFactory.getLogger(HeapMonitorSource.class);
 
@@ -28,7 +28,7 @@ public class HeapMonitorSource extends RichParallelSourceFunction<HeapStats> {
     }
 
     @Override
-    public void run(SourceFunction.SourceContext<HeapStats> sourceContext) throws Exception {
+    public void run(SourceFunction.SourceContext<HeapMetrics> sourceContext) throws Exception {
         LOG.info("starting HeapMonitorSource");
 
         ctx = this.getRuntimeContext();
@@ -44,7 +44,7 @@ public class HeapMonitorSource extends RichParallelSourceFunction<HeapStats> {
                     long used = memoryUsage.getUsed();
                     long max = memoryUsage.getMax();
 
-                    sourceContext.collect(new HeapStats(mpBean.getName(), used, max, (double) used / max, ctx.getIndexOfThisSubtask(), hostname));
+                    sourceContext.collect(new HeapMetrics(mpBean.getName(), used, max, (double) used / max, ctx.getIndexOfThisSubtask(), hostname));
                 }
             }
         }

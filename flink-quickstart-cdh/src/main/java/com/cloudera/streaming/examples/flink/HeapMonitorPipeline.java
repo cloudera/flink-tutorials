@@ -19,7 +19,7 @@
 package com.cloudera.streaming.examples.flink;
 
 import com.cloudera.streaming.examples.flink.types.HeapAlert;
-import com.cloudera.streaming.examples.flink.types.HeapStats;
+import com.cloudera.streaming.examples.flink.types.HeapMetrics;
 import org.apache.flink.api.common.serialization.SimpleStringEncoder;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.core.fs.Path;
@@ -34,14 +34,14 @@ public class HeapMonitorPipeline {
         // Read the parameters from the commandline
         ParameterTool params = ParameterTool.fromArgs(args);
         final boolean clusterExec = params.getBoolean("cluster", false);
-        final String output = params.get("output", "/tmp/flink-heap-metrics");
+        final String output = params.get("output", "hdfs:///tmp/flink-heap-stats");
 
         // Create and configure the execution environment
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.enableCheckpointing(10_000);
 
         // Define our source
-        DataStream<HeapStats> heapStats = env.addSource(new HeapMonitorSource(100))
+        DataStream<HeapMetrics> heapStats = env.addSource(new HeapMonitorSource(100))
                 .name("Heap Monitor Source");
 
         // Define the sink for the whole statistics stream
@@ -66,7 +66,7 @@ public class HeapMonitorPipeline {
         env.execute("HeapMonitor");
     }
 
-    public static DataStream<HeapAlert> computeHeapAlerts(DataStream<HeapStats> statsInput, ParameterTool params) {
+    public static DataStream<HeapAlert> computeHeapAlerts(DataStream<HeapMetrics> statsInput, ParameterTool params) {
         return statsInput.flatMap(new AlertingFunction(params)).name("Create Alerts");
     }
 }

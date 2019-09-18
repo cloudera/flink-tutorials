@@ -29,7 +29,7 @@ The quickstart demonstrates:
 Check out the repository and build the artifact:
 ```
 git clone https://github.infra.cloudera.com/morhidi/flink-ref.git
-cd flink-ref/flink-quickstart-cdh
+cd flink-ref/flink-simple-quickstart
 mvn clean package
 ```
 
@@ -189,11 +189,11 @@ We have specifically set the parallelism of our data sink to 1 to avoid any conc
 As we cannot always force strict ordering for the output elements we used a `Set` instead of a `List` to compare expected output regardless of the order. This might or might not be the correct approach depending on the application flow, but it works very well in our case.
 
 ## Running the application on a Cloudera cluster
-The Flink Quickstart Application can be deployed on a CDH cluster remotely. The actual version of the application was tested against CDH6.3.0 and FLINK-1.9.0-csa0.1.0-cdh6.3.0-dd2d2e9-el7 without any security integration on it. The Flink parcel is accessible at the [flink-temporary repo](http://support-ci.sre-dev.cloudera.com:8081/artifactory/webapp/#/artifacts/browse/tree/General/flink-temporary)
+The Flink Quickstart Application can be deployed on a CDH cluster remotely. The actual version of the application was tested against CDH6.3.0 and FLINK-1.9.0-csa0.1.1-cdh6.3.0-1420238-el7 without any security integration on it. The Flink parcel is accessible at the [flink-temporary repo](http://support-ci.sre-dev.cloudera.com:8081/artifactory/webapp/#/artifacts/browse/tree/General/flink-temporary)
 After you have [built](#Build) the project run the application from a Flink GateWay node:
 
 ```
-flink run -m yarn-cluster -d -p 2 -ynm HeapMonitor target/flink-quickstart-cdh-1.0-SNAPSHOT.jar
+flink run -m yarn-cluster -d -p 2 -ynm HeapMonitor target/flink-simple-quickstart-1.0-SNAPSHOT.jar
 ```
 
 After launching the application Flink will create a YARN session and launch a dashboard where the application can be monitored. The Flink dashbord can be reached from CM through the following path:
@@ -214,16 +214,6 @@ Log messages from a Flink application can be also collected and forwarded to a K
 -yD log4j.configuration.file=kafka-appender/log4j.properties
 ```
 
-The KafkaLog4jAppender requires its dependencies to be loaded early with the system jars, to achieve this we can use the `--yarnship` parameter pointing to a local folder.
-```
---yarnship kafka-appender
-
-# tree kafka-appender
-kafka-appender
-├── kafka-clients-2.2.1-cdh6.3.0.jar
-└── kafka-log4j-appender-0.9.0.0.jar
-```
-
 By default we are using the `flink-heap-alerts` Kafka topic for tracking the alerts. You can create this topic as follows:
 ```
 kafka-topics --create --partitions 16 --replication-factor 1 --zookeeper <your_zookeeper>:2181 --topic flink-heap-alerts```
@@ -231,7 +221,7 @@ kafka-topics --create --partitions 16 --replication-factor 1 --zookeeper <your_z
 
 An example for the full command with Kafka logging:
 ```
-flink run -m yarn-cluster --yarnship kafka-appender -yD log4j.configuration.file=kafka-appender/log4j.properties -d -p 2 -ynm HeapMonitor target/flink-quickstart-cdh-1.0-SNAPSHOT.jar
+flink run -m yarn-cluster -yD log4j.configuration.file=kafka-appender/log4j.properties -d -p 2 -ynm HeapMonitor target/flink-simple-quickstart-1.0-SNAPSHOT.jar
 ```
 
 Accessing the logs from the Kafka topic is possible then with:
@@ -261,7 +251,7 @@ By default the output files will be stored under `hdfs:///tmp/flink-heap-stats`,
 logging to Kafka is:
 
 ```
-flink run -m yarn-cluster --yarnship kafka-appender -yD log4j.configuration.file=kafka-appender/log4j.properties -d -p 2 -ynm HeapMonitor target/flink-quickstart-cdh-1.0-SNAPSHOT.jar --cluster true
+flink run -m yarn-cluster -yD log4j.configuration.file=kafka-appender/log4j.properties -d -p 2 -ynm HeapMonitor target/flink-simple-quickstart-1.0-SNAPSHOT.jar --cluster true
 ``` 
 
 To inspect the output we can call `hdfs` directly:

@@ -12,14 +12,12 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class ItemTransactionGeneratorSource implements ParallelSourceFunction<ItemTransaction> {
 
-	private static final Logger LOG = LoggerFactory.getLogger(ItemTransactionGeneratorSource.class);
-
 	public static final String NUM_ITEMS_KEY = "num.items";
 	public static final String SLEEP_KEY = "sleep";
 	public static final String PARETO_SHAPE_KEY = "pareto.shape";
 	public static final int DEFAULT_NUM_ITEMS = 1_000;
 	public static final int DEFAULT_SHAPE = 15;
-
+	private static final Logger LOG = LoggerFactory.getLogger(ItemTransactionGeneratorSource.class);
 	private final int numItems;
 	private final long sleep;
 	private final int shape;

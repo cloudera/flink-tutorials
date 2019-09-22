@@ -11,6 +11,6 @@ public interface ManualSource<T> {
 	void sendWatermark(long ts);
 
 	void markFinished();
-	
+
 	DataStream<T> getDataStream();
 }

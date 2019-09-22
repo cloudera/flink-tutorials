@@ -15,41 +15,41 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class CollectingSink<T> extends RichSinkFunction<T> {
 
-    private static final long serialVersionUID = 1L;
-    private static final List<BlockingQueue<Object>> queues = Collections.synchronizedList(new ArrayList<>());
-    private static final AtomicInteger numSinks = new AtomicInteger(-1);
-    private final int index;
+	private static final long serialVersionUID = 1L;
+	private static final List<BlockingQueue<Object>> queues = Collections.synchronizedList(new ArrayList<>());
+	private static final AtomicInteger numSinks = new AtomicInteger(-1);
+	private final int index;
 
-    public CollectingSink() {
-        index = numSinks.incrementAndGet();
-        queues.add(new LinkedBlockingQueue<>());
-    }
+	public CollectingSink() {
+		index = numSinks.incrementAndGet();
+		queues.add(new LinkedBlockingQueue<>());
+	}
 
-    @Override
-    public void invoke(T event, SinkFunction.Context context) throws Exception {
-        queues.get(index).add(event);
-    }
+	@Override
+	public void invoke(T event, SinkFunction.Context context) throws Exception {
+		queues.get(index).add(event);
+	}
 
-    public boolean isEmpty() {
-        return queues.get(index).isEmpty();
-    }
+	public boolean isEmpty() {
+		return queues.get(index).isEmpty();
+	}
 
-    public T poll() throws TimeoutException {
-        return poll(Duration.ofSeconds(15));
-    }
+	public T poll() throws TimeoutException {
+		return poll(Duration.ofSeconds(15));
+	}
 
-    public T poll(Duration duration) throws TimeoutException {
-        T e = null;
-        try {
-            e = (T) queues.get(index).poll(duration.toMillis(), TimeUnit.MILLISECONDS);
-        } catch (InterruptedException ex) {
-            throw new RuntimeException(ex);
-        }
+	public T poll(Duration duration) throws TimeoutException {
+		T e = null;
+		try {
+			e = (T) queues.get(index).poll(duration.toMillis(), TimeUnit.MILLISECONDS);
+		} catch (InterruptedException ex) {
+			throw new RuntimeException(ex);
+		}
 
-        if (e == null) {
-            throw new TimeoutException();
-        } else {
-            return e;
-        }
-    }
+		if (e == null) {
+			throw new TimeoutException();
+		} else {
+			return e;
+		}
+	}
 }

@@ -1,10 +1,5 @@
 package com.cloudera.streaming.examples.flink;
 
-import com.cloudera.streaming.examples.flink.operators.MaxWatermark;
-import com.cloudera.streaming.examples.flink.operators.SummaryAlertingCondition;
-import com.cloudera.streaming.examples.flink.operators.TransactionProcessor;
-import com.cloudera.streaming.examples.flink.operators.TransactionSummaryAggregator;
-import com.cloudera.streaming.examples.flink.types.*;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.CheckpointingMode;
@@ -16,76 +11,89 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.util.OutputTag;
 
+import com.cloudera.streaming.examples.flink.operators.MaxWatermark;
+import com.cloudera.streaming.examples.flink.operators.SummaryAlertingCondition;
+import com.cloudera.streaming.examples.flink.operators.TransactionProcessor;
+import com.cloudera.streaming.examples.flink.operators.TransactionSummaryAggregator;
+import com.cloudera.streaming.examples.flink.types.ItemTransaction;
+import com.cloudera.streaming.examples.flink.types.Query;
+import com.cloudera.streaming.examples.flink.types.QueryResult;
+import com.cloudera.streaming.examples.flink.types.TransactionResult;
+import com.cloudera.streaming.examples.flink.types.TransactionSummary;
+
 import java.util.concurrent.TimeUnit;
 
 public abstract class ItemTransactionJob {
 
-    public static final String EVENT_TIME_KEY = "event.time";
+	public static final String EVENT_TIME_KEY = "event.time";
+	public static final String ENABLE_SUMMARIES_KEY = "enable.summaries";
 
-    public static OutputTag<QueryResult> QUERY_RESULT = new OutputTag<QueryResult>("query-result", TypeInformation.of(QueryResult.class));
+	public static OutputTag<QueryResult> QUERY_RESULT = new OutputTag<QueryResult>("query-result", TypeInformation.of(QueryResult.class));
 
-    public final StreamExecutionEnvironment createApplicationPipeline(ParameterTool params) throws Exception {
-        StreamExecutionEnvironment env = createExecutionEnvironment(params);
+	public final StreamExecutionEnvironment createApplicationPipeline(ParameterTool params) throws Exception {
+		StreamExecutionEnvironment env = createExecutionEnvironment(params);
 
-        DataStream<ItemTransaction> transactionStream = readTransactionStream(params, env);
-        DataStream<Query> queryStream = readQueryStream(params, env)
-                .assignTimestampsAndWatermarks(new MaxWatermark<>())
-                .name("MaxWatermark");
+		DataStream<ItemTransaction> transactionStream = readTransactionStream(params, env);
+		DataStream<Query> queryStream = readQueryStream(params, env)
+				.assignTimestampsAndWatermarks(new MaxWatermark<>())
+				.name("MaxWatermark");
 
-        SingleOutputStreamOperator<TransactionResult> processedTransactions = transactionStream.keyBy("itemId")
-                .connect(queryStream.keyBy("itemId"))
-                .process(new TransactionProcessor())
-                .name("Transaction Processor")
-                .uid("Transaction Processor");
+		SingleOutputStreamOperator<TransactionResult> processedTransactions = transactionStream.keyBy("itemId")
+				.connect(queryStream.keyBy("itemId"))
+				.process(new TransactionProcessor())
+				.name("Transaction Processor")
+				.uid("Transaction Processor");
+		DataStream<QueryResult> queryResultStream = processedTransactions.getSideOutput(QUERY_RESULT);
 
-        DataStream<TransactionSummary> transactionSummaryStream = processedTransactions
-                .keyBy("transaction.itemId")
-                .timeWindow(Time.minutes(1))
-                .aggregate(new TransactionSummaryAggregator())
-                .name("Create Transaction Summary")
-                .uid("Create Transaction Summary")
-                .filter(new SummaryAlertingCondition(params))
-                .name("Filter High failure rate");
+		writeTransactionResults(params, processedTransactions);
+		writeQueryOutput(params, queryResultStream);
 
-        DataStream<QueryResult> queryResultStream = processedTransactions.getSideOutput(QUERY_RESULT);
+		if (params.getBoolean(ENABLE_SUMMARIES_KEY, false)) {
+			DataStream<TransactionSummary> transactionSummaryStream = processedTransactions
+					.keyBy("transaction.itemId")
+					.timeWindow(Time.minutes(10))
+					.aggregate(new TransactionSummaryAggregator())
+					.name("Create Transaction Summary")
+					.uid("Create Transaction Summary")
+					.filter(new SummaryAlertingCondition(params))
+					.name("Filter High failure rate");
 
-        writeTransactionResults(params, processedTransactions);
-        writeQueryOutput(params, queryResultStream);
-        writeTransactionSummaries(params, transactionSummaryStream);
+			writeTransactionSummaries(params, transactionSummaryStream);
+		}
 
-        return env;
-    }
+		return env;
+	}
 
-    private StreamExecutionEnvironment createExecutionEnvironment(ParameterTool params) throws Exception {
-        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+	private StreamExecutionEnvironment createExecutionEnvironment(ParameterTool params) throws Exception {
+		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        env.setMaxParallelism(128);
+		env.setMaxParallelism(128);
 
-        long cpInterval = params.getLong("checkpoint.interval.millis", TimeUnit.MINUTES.toMillis(1));
-        if (cpInterval > 0) {
-            CheckpointConfig checkpointConf = env.getCheckpointConfig();
-            checkpointConf.setCheckpointInterval(cpInterval);
-            checkpointConf.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
-            checkpointConf.setCheckpointTimeout(TimeUnit.HOURS.toMillis(1));
-            checkpointConf.enableExternalizedCheckpoints(CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
-            env.getConfig().setUseSnapshotCompression(true);
-        }
+		long cpInterval = params.getLong("checkpoint.interval.millis", TimeUnit.MINUTES.toMillis(1));
+		if (cpInterval > 0) {
+			CheckpointConfig checkpointConf = env.getCheckpointConfig();
+			checkpointConf.setCheckpointInterval(cpInterval);
+			checkpointConf.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
+			checkpointConf.setCheckpointTimeout(TimeUnit.HOURS.toMillis(1));
+			checkpointConf.enableExternalizedCheckpoints(CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
+			env.getConfig().setUseSnapshotCompression(true);
+		}
 
-        if (params.getBoolean(EVENT_TIME_KEY, false)) {
-            env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
-        }
+		if (params.getBoolean(EVENT_TIME_KEY, false)) {
+			env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+		}
 
-        return env;
-    }
+		return env;
+	}
 
-    protected abstract DataStream<Query> readQueryStream(ParameterTool params, StreamExecutionEnvironment env);
+	protected abstract DataStream<Query> readQueryStream(ParameterTool params, StreamExecutionEnvironment env);
 
-    protected abstract DataStream<ItemTransaction> readTransactionStream(ParameterTool params, StreamExecutionEnvironment env);
+	protected abstract DataStream<ItemTransaction> readTransactionStream(ParameterTool params, StreamExecutionEnvironment env);
 
-    protected abstract void writeQueryOutput(ParameterTool params, DataStream<QueryResult> queryResultStream);
+	protected abstract void writeQueryOutput(ParameterTool params, DataStream<QueryResult> queryResultStream);
 
-    protected abstract void writeTransactionResults(ParameterTool params, DataStream<TransactionResult> transactionResults);
+	protected abstract void writeTransactionResults(ParameterTool params, DataStream<TransactionResult> transactionResults);
 
-    protected abstract void writeTransactionSummaries(ParameterTool params, DataStream<TransactionSummary> transactionSummaryStream);
+	protected abstract void writeTransactionSummaries(ParameterTool params, DataStream<TransactionSummary> transactionSummaryStream);
 
 }

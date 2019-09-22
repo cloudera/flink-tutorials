@@ -13,8 +13,8 @@ public class SummaryAlertingCondition implements FilterFunction<TransactionSumma
     private final double minFailureRate;
 
     public SummaryAlertingCondition(ParameterTool params) {
-        minNum = params.getInt(REPORTING_NUMBER_KEY, 3);
-        minFailureRate = params.getDouble(REPORTING_FAILURE_RATE_KEY, 0.6);
+        minNum = params.getInt(REPORTING_NUMBER_KEY, 100);
+        minFailureRate = params.getDouble(REPORTING_FAILURE_RATE_KEY, 0.5);
     }
 
     @Override

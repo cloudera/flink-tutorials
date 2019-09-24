@@ -1,0 +1,6 @@
+.idea/
+target
+build.sh
+run.sh
+dependency-reduced-pom.xml
+*.iml

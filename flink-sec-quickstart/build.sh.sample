@@ -1,0 +1,2 @@
+mvn clean package
+scp target/`basename "$PWD"`-1.0-SNAPSHOT.jar root@morhidi-1.gce.cloudera.com:.

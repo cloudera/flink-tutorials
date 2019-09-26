@@ -214,7 +214,7 @@ Principal "test@GCE.CLOUDERA.COM" created.
 kadmin.local:  quit
 ```
 
-Initializing home directory for the test user:
+Initializing the HDFS home directory for the *test* user with a superuser (In CDEP environments the superuser is the hdfs user, which should be automatically created during cluster provisioning, the password is the default CDEP password):
 ```
 > kinit hdfs
 Password for hdfs@GCE.CLOUDERA.COM:

@@ -274,7 +274,7 @@ Reading messages to the *flink* topic with **kafka-console-producer**:
 KAFKA_OPTS="-Djava.security.auth.login.config=.kafka.jaas.conf" kafka-console-consumer --bootstrap-server morhidi-1.gce.cloudera.com:9093 --consumer.config .kafka.client.properties --topic flink --from-beginning
 ```
 
-Kafka configurations are given as separate files (*.kafka.client.properties* and .kafka.jaas.conf) for **kafka-console-producer** and ****kafka-console-consumer** commands:
+Kafka configurations are given as separate files (*.kafka.client.properties* and .kafka.jaas.conf) for **kafka-console-producer** and **kafka-console-consumer** commands:
 ```
 > cat .kafka.client.properties
 security.protocol=SASL_SSL

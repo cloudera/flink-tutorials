@@ -83,7 +83,7 @@ When Flink applications are running on CDH/CDP clusters, Flink’s web dashboard
   ktutil:  wkt test.keytab
   ktutil:  quit
   ```
-* For internal TLS encryption generate a keystore file for the user inteded to run the Flink application
+* For internal TLS encryption generate a keystore file for the user inteded to run the Flink application. If the JAVA_HOME is not set globally on the host than the keytool can be accessed usually at /usr/java/default/bin/keytool.
 
   ```
   keytool -genkeypair -alias flink.internal -keystore keystore.jks -dname "CN=flink.internal" -storepass `cat pwd.txt` -keyalg RSA -keysize 4096 -storetype PKCS12

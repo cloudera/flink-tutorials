@@ -64,7 +64,7 @@ When Flink applications are running on CDH/CDP clusters, Flink’s web dashboard
 
 ## Complete Command including Security
 
-### Prerequisites
+### Preparation
 * CDH6.3+/CDP7.0+ clusters with Kerberos(MIT or AD) and TLS integration(Manual or Auto TLS) including services:
   * HDFS
   * Kafka

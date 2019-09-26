@@ -70,7 +70,7 @@ When Flink applications are running on CDH/CDP clusters, Flink’s web dashboard
   * Kafka
   * YARN
   * Flink
-* Existing test user in the Kerberos realm and as local users on each cluster nodes
+* Existing test user in the Kerberos realm and as local users on each cluster nodes. You can find some usefull commands for fulfilling the prerequisites in a dedicated chapter [here](#prerequisites)
 
 ### Steps to run the Secured Flink Quickstart Application:
 

@@ -197,8 +197,18 @@ Flink has a builtin *ParameterTool* class to handle program arguments elegantly.
   final String P_FS_OUTPUT = params.get("hdfsOutput");
 ```
 
-## Prerequisites
+## Kafka Metrics Reporter
+There is a metrics reporter implementation for writing Flink metrics to a target Kafka topic in JSON format. The corresponding security related Kafka properties can be set either in the command itself or globally via CM safety valve (Flink Client Advanced Configuration Snippet (Safety Valve) for flink-conf-xml/flink-cli-conf.xml)
+```
+-yD metrics.reporter.kafka.class=org.apache.flink.metrics.kafka.KafkaMetricsReporter \
+-yD metrics.reporter.kafka.topic=metrics-topic.log \
+-yD metrics.reporter.kafka.bootstrap.servers=morhidi-1.gce.cloudera.com:9093 \
+-yD metrics.reporter.kafka.security.protocol=SASL_SSL \
+-yD metrics.reporter.kafka.sasl.kerberos.service.name=kafka \
+-yD metrics.reporter.kafka.ssl.truststore.location=/etc/cdep-ssl-conf/CA_STANDARD/truststore.jks \
+```
 
+## Prerequisites
 Here are some sample commands which can be useful for preparing your CDH/CDP environment for running the quickstart application.
 
 ### Kerberos related commands

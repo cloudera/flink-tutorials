@@ -384,7 +384,7 @@ Starting the streaming job to generate transaction data
 kafka-topics --create --partitions 16 --replication-factor 1 --zookeeper <your_zookeeper>:2181 --topic transaction.log.1
 
 # Run the data generator job
-flink run -m yarn-cluster -d -p 2 -ys 2 -ynm DataGenerator -c com.cloudera.streaming.examples.flink.KafkaDataGeneratorJob flink-quickstart-cdh-state-1.0-SNAPSHOT.jar config/job.properties
+flink run -m yarn-cluster -d -p 2 -ys 2 -ynm DataGenerator -c com.cloudera.streaming.examples.flink.KafkaDataGeneratorJob target/flink-stateful-quickstart-1.0-SNAPSHOT.jar config/job.properties
 ```
 
 We can now check the configured kafka topic for the generated transaction data stream from the command line:

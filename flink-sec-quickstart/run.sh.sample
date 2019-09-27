@@ -1,1 +1,0 @@
-ssh -t root@morhidi-1.gce.cloudera.com flink run -sae -m yarn-cluster -p 2 -c com.cloudera.streaming.examples.flink.SecuredStreamingJob `basename "$PWD"`-1.0-SNAPSHOT.jar --output hdfs:///tmp/`basename "$PWD"`

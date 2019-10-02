@@ -1,9 +1,9 @@
 # Flink Quickstart Application for Secured CDH/CDP Clusters
 
-This application demonstrates how to enable essential Flink security features for applications intended to run on secured CDP environments. For the sake of simplicity the application logic here is kept pretty basic, it reads messages from a kafka topic and stores them as is on HDFS. 
+This application demonstrates how to enable essential Flink security features for applications intended to run on secured CDP environments. For the sake of simplicity the application logic here is kept pretty basic, it reads messages from a kafka topic and stores them as is on HDFS.
 
 ```
-public class SecuredStreamingJob {
+public class KafkaToHDFSSimpleJob {
  public static void main(String[] args) throws Exception {
   ...
   FlinkKafkaConsumer<String> consumer = new FlinkKafkaConsumer<>(P_KAFKA_TOPIC, new SimpleStringSchema(), properties);
@@ -18,7 +18,7 @@ public class SecuredStreamingJob {
  }
 }
 ```
-With this example we are focusing on how to handle authentication and encryption (TLS) in Flink applications. 
+With this example we are focusing on how to handle authentication and encryption (TLS) in Flink applications.
 
 After cloning an building the project,
 ```
@@ -41,19 +41,19 @@ As you will see enabling security features make the command a bit more complicat
 ## Flink Security in a Nutshell
 
 ### Authentication
-A Flink program may use first- or third-party connectors with required authentication methods (Kerberos, SSL/TLS, username/password, etc.). While satisfying the security requirements for various connectors is an ongoing effort, Flink provides first-class support for Kerberos authentication only. 
+A Flink program may use first- or third-party connectors with required authentication methods (Kerberos, SSL/TLS, username/password, etc.). While satisfying the security requirements for various connectors is an ongoing effort, Flink provides first-class support for Kerberos authentication only.
 
 The primary goals of the Flink Kerberos security infrastructure are:
 * to enable secure data access for jobs within a cluster via connectors (e.g. Kafka)
 * to authenticate to Hadoop components (e.g. HDFS, HBase, Zookeeper)
 
-In a production deployment scenario, streaming jobs are understood to run for long periods of time (days/weeks/months) and be able to authenticate to secure data sources throughout the life of the job. Kerberos keytabs do not expire in that timeframe, unlike a Hadoop delegation token or ticket cache entry, thus using keytabs is the recommended approach for long running production deployments. 
+In a production deployment scenario, streaming jobs are understood to run for long periods of time (days/weeks/months) and be able to authenticate to secure data sources throughout the life of the job. Kerberos keytabs do not expire in that timeframe, unlike a Hadoop delegation token or ticket cache entry, thus using keytabs is the recommended approach for long running production deployments.
 
 ### Encryption (TLS)
 
-Apache Flink differentiates between internal and external connectivity. Internal Connectivity refers to all connections made between Flink processes. External endpoints refers to all connections made from the outside to Flink processes. 
+Apache Flink differentiates between internal and external connectivity. Internal Connectivity refers to all connections made between Flink processes. External endpoints refers to all connections made from the outside to Flink processes.
 
-#### Internal Connectivity 
+#### Internal Connectivity
 
 Because internal communication is mutually authenticated, keystore and truststore typically contain the same dedicated certificate. The certificate can use wild card hostnames or addresses, because the certificate is expected to be a shared secret and host names are not verified.
 
@@ -74,7 +74,7 @@ When Flink applications are running on CDH/CDP clusters, Flink’s web dashboard
 
 ### Steps to run the Secured Flink Quickstart Application:
 
-* For Kerberos authentication generate a keytab file for the user inteded to submit the Flink job. Keytabs can be generated with ktutil, for example: 
+* For Kerberos authentication generate a keytab file for the user inteded to submit the Flink job. Keytabs can be generated with ktutil, for example:
 
   ```
   > ktutil
@@ -89,7 +89,7 @@ When Flink applications are running on CDH/CDP clusters, Flink’s web dashboard
   keytool -genkeypair -alias flink.internal -keystore keystore.jks -dname "CN=flink.internal" -storepass `cat pwd.txt` -keyalg RSA -keysize 4096 -storetype PKCS12
   ```
   The key pair acts as the shared secret for internal security, and we can directly use it as keystore and truststore.
- 
+
 * Submit Flink application as normal using additional security configuration params:
   ```
   flink run -m yarn-cluster -d -p 2 \
@@ -111,7 +111,7 @@ When Flink applications are running on CDH/CDP clusters, Flink’s web dashboard
   --kafka.ssl.truststore.location /etc/cdep-ssl-conf/CA_STANDARD/truststore.jks
   ```
 * Send some messages to the *flink* topic in Kafka and check the application logs and the HDFS output folder to verify the messages arrive there as expected.
-  
+
 ## Understanding Security Parameters:
 
 Authentication related configs are defined as Flink command line parameters(-yD):
@@ -127,7 +127,7 @@ Internal network encryption related configs are defined as Flink command line pa
 -yD security.ssl.internal.keystore=keystore.jks
 -yD security.ssl.internal.key-password=`cat pwd.txt`
 -yD security.ssl.internal.keystore-password=`cat pwd.txt`
--yD security.ssl.internal.truststore=keystore.jks 
+-yD security.ssl.internal.truststore=keystore.jks
 -yD security.ssl.internal.truststore-password=`cat pwd.txt`
 -yt keystore.jks
 ```
@@ -157,11 +157,11 @@ Please note that the trustore given for the Kafka connector is different from th
 The keytab and the keystore files that are referred as ```-yD security.kerberos.login.keytab=test.keytab``` and ```-yt keystore.jks``` respectively are distributed automatically to the YARN container's temporary folder on the remote hosts. These properties are user specific, thus usually cannot be added to default Flink configuration unless a single technical user us used to submit the flink jobs.  If there is a dedicated technical user for submitting Flink jobs on a cluster the keytab and keystore files can be provisioned to the YARN hosts in advance and related configuration params can be set globally in CM using Safety Valves.
 
 For further reading check related chapters from **Flink Security Documentation**:
-Check the [Kerberos](https://ci.apache.org/projects/flink/flink-docs-release-1.9/ops/security-kerberos.html) and [TLS](https://ci.apache.org/projects/flink/flink-docs-release-1.9/ops/security-ssl.html) topics from upstream Flink documentation for further details. Kafka connector related security settings can be also accessed [here](https://ci.apache.org/projects/flink/flink-docs-release-1.9/dev/connectors/kafka.html#enabling-kerberos-authentication-for-versions-09-and-above-only). 
+Check the [Kerberos](https://ci.apache.org/projects/flink/flink-docs-release-1.9/ops/security-kerberos.html) and [TLS](https://ci.apache.org/projects/flink/flink-docs-release-1.9/ops/security-ssl.html) topics from upstream Flink documentation for further details. Kafka connector related security settings can be also accessed [here](https://ci.apache.org/projects/flink/flink-docs-release-1.9/dev/connectors/kafka.html#enabling-kerberos-authentication-for-versions-09-and-above-only).
 
 
 ### application.properties
-As you can see the number of security related configuration options with various Flink connectors can go wild pretty quickly. Hence, it is recommended to define as much property as possible in a separate config file and submit it along other business parameters. 
+As you can see the number of security related configuration options with various Flink connectors can go wild pretty quickly. Hence, it is recommended to define as much property as possible in a separate config file and submit it along other business parameters.
 
 ```
 flink run -m yarn-cluster -d -p 2 \
@@ -207,6 +207,101 @@ There is a metrics reporter implementation for writing Flink metrics to a target
 -yD metrics.reporter.kafka.sasl.kerberos.service.name=kafka \
 -yD metrics.reporter.kafka.ssl.truststore.location=/etc/cdep-ssl-conf/CA_STANDARD/truststore.jks \
 ```
+
+## Schema Registry Integration
+
+Flink Kafka sources and sinks can be used together with Cloudera Schema Registry to maintain schema information about your Kafka topics. In this example the schema registry is used to provide automatic serialization/deserialization functionality for Kafka Avro messages.
+
+The ```Message``` Avro type is a Java class generated from the Avro schema ```message.avsc``` during compile time:
+```
+{"namespace": "com.cloudera.streaming.examples.flink.data",
+ "type": "record",
+ "name": "Message",
+ "fields": [
+     {"name": "id", "type": "string"},
+     {"name": "name",  "type": "string"},
+     {"name": "description", "type": "string"}
+ ]
+}
+```
+The schema of the Avro types are registered in the Cloudera Schema Registry automatically on first record serialization.
+
+The schema registry can be plugged directly into a ```FlinkKafkaConsumer``` or a ```FlinkKafkaProducer``` using the appropriate ```SchemaRegistryDeserializationSchema``` and ```SchemaRegistrySerializationSchema``` classes respectively.
+
+Two sample Jobs were written to demonstrate how to integrate with Cloudera Schema Registry from Flink in a secured way.
+
+
+The ```AvroDataGeneratorJob``` uses a Kafka sink with ```SchemaRegistrySerializationSchema``` to write ```Message``` records to a Kafka topic:
+
+```
+public class AvroDataGeneratorJob {
+
+...
+
+Map<String, String> sslClientConfig = new HashMap<>();
+sslClientConfig.put(K_TRUSTSTORE_PATH, params.get(K_SCHEMA_REG_SSL_CLIENT_KEY + "." + K_TRUSTSTORE_PATH));
+sslClientConfig.put(K_TRUSTSTORE_PASSWORD, params.get(K_SCHEMA_REG_SSL_CLIENT_KEY + "." + K_TRUSTSTORE_PASSWORD));
+sslClientConfig.put(K_KEYSTORE_PASSWORD, ""); //ugly hack needed for SchemaRegistryClient
+
+Map<String, Object> schemaRegistryConf = new HashMap<>();
+schemaRegistryConf.put(K_SCHEMA_REG_URL, params.get(K_SCHEMA_REG_URL));
+schemaRegistryConf.put(K_SCHEMA_REG_SSL_CLIENT_KEY, sslClientConfig);
+
+LOG.info("### Schema Registry parameters:");
+for (String key : schemaRegistryConf.keySet()) {
+    LOG.info("Schema Registry param: {}={}", key, schemaRegistryConf.get(key));
+}
+
+KafkaSerializationSchema<Message> schema = SchemaRegistrySerializationSchema.<Message>
+        builder(P_KAFKA_TOPIC)
+        .setConfig(schemaRegistryConf)
+        .setKey(Message::getId)
+        .build();
+
+FlinkKafkaProducer<Message> kafkaSink = new FlinkKafkaProducer<>(
+               "default", (KafkaSerializationSchema<Message>) schema,
+               properties, FlinkKafkaProducer.Semantic.AT_LEAST_ONCE);
+...
+}               
+
+```
+
+The ```KafkaToHDFSAvroJob``` uses a Kafka source with ```SchemaRegistryDeserializationSchema``` to read the Avro records. Then it saves them as CSV files onto HDFS and standard output:
+
+```
+Map<String, String> sslClientConfig = new HashMap<>();
+sslClientConfig.put(K_TRUSTSTORE_PATH, params.get(K_SCHEMA_REG_SSL_CLIENT_KEY + "." + K_TRUSTSTORE_PATH));
+sslClientConfig.put(K_TRUSTSTORE_PASSWORD, params.get(K_SCHEMA_REG_SSL_CLIENT_KEY + "." + K_TRUSTSTORE_PASSWORD));
+sslClientConfig.put(K_KEYSTORE_PASSWORD, ""); //ugly hack needed for SchemaRegistryClient
+
+Map<String, Object> schemaRegistryConf = new HashMap<>();
+schemaRegistryConf.put(K_SCHEMA_REG_URL, params.get(K_SCHEMA_REG_URL));
+schemaRegistryConf.put(K_SCHEMA_REG_SSL_CLIENT_KEY, sslClientConfig);
+
+LOG.info("### Schema Registry parameters:");
+for (String key : schemaRegistryConf.keySet()) {
+   LOG.info("Schema Registry param: {}={}", key, schemaRegistryConf.get(key));
+}
+
+KafkaDeserializationSchema<Message> schema = SchemaRegistryDeserializationSchema
+       .builder(Message.class)
+       .setConfig(schemaRegistryConf)
+       .build();
+
+FlinkKafkaConsumer<Message> consumer = new FlinkKafkaConsumer<Message>(P_KAFKA_TOPIC, schema, properties);
+DataStream<String> source = env.addSource(consumer).name("Kafka Source")
+       .map(record -> record.getId() + "," + record.getName() + "," + record.getDescription());
+source.print();
+```
+
+The ```SchemaRegistrySerializationSchema/SchemaRegistryDeserializationSchema``` related configuration params are shipped in the application.properties file too:
+```
+schema.registry.url=https://morhidi-sec-1.gce.cloudera.com:7790/api/v1
+schema.registry.client.ssl.trustStorePath=/home/test/truststore.jks
+schema.registry.client.ssl.trustStorePassword=changeit
+```
+For Kerberos authentication Flink provides seamless integration for Cloudera Schema Registry via the ```security.kerberos.login.contexts``` property. After defining an additional ```RegistryClient``` context here Flink can maintain authentication and ticket renewal automatically. It is recommended to define these contexts in Cloudera Manager globally:
+```security.kerberos.login.contexts=Client,KafkaClient,RegistryClient```
 
 ## Prerequisites
 Here are some sample commands which can be useful for preparing your CDH/CDP environment for running the quickstart application.

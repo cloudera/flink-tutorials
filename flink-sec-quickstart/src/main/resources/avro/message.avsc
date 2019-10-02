@@ -1,0 +1,9 @@
+{"namespace": "com.cloudera.streaming.examples.flink.data",
+ "type": "record",
+ "name": "Message",
+ "fields": [
+     {"name": "id", "type": "string"},
+     {"name": "name",  "type": "string"},
+     {"name": "description", "type": "string"}
+ ]
+}

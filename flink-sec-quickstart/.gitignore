@@ -4,3 +4,4 @@ build.sh
 run.sh
 dependency-reduced-pom.xml
 *.iml
+src/main/java/com/cloudera/streaming/examples/flink/data/

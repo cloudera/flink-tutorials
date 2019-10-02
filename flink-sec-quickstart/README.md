@@ -241,16 +241,10 @@ public class AvroDataGeneratorJob {
 Map<String, String> sslClientConfig = new HashMap<>();
 sslClientConfig.put(K_TRUSTSTORE_PATH, params.get(K_SCHEMA_REG_SSL_CLIENT_KEY + "." + K_TRUSTSTORE_PATH));
 sslClientConfig.put(K_TRUSTSTORE_PASSWORD, params.get(K_SCHEMA_REG_SSL_CLIENT_KEY + "." + K_TRUSTSTORE_PASSWORD));
-sslClientConfig.put(K_KEYSTORE_PASSWORD, ""); //ugly hack needed for SchemaRegistryClient
 
 Map<String, Object> schemaRegistryConf = new HashMap<>();
 schemaRegistryConf.put(K_SCHEMA_REG_URL, params.get(K_SCHEMA_REG_URL));
 schemaRegistryConf.put(K_SCHEMA_REG_SSL_CLIENT_KEY, sslClientConfig);
-
-LOG.info("### Schema Registry parameters:");
-for (String key : schemaRegistryConf.keySet()) {
-    LOG.info("Schema Registry param: {}={}", key, schemaRegistryConf.get(key));
-}
 
 KafkaSerializationSchema<Message> schema = SchemaRegistrySerializationSchema.<Message>
         builder(P_KAFKA_TOPIC)
@@ -272,16 +266,10 @@ The ```KafkaToHDFSAvroJob``` uses a Kafka source with ```SchemaRegistryDeseriali
 Map<String, String> sslClientConfig = new HashMap<>();
 sslClientConfig.put(K_TRUSTSTORE_PATH, params.get(K_SCHEMA_REG_SSL_CLIENT_KEY + "." + K_TRUSTSTORE_PATH));
 sslClientConfig.put(K_TRUSTSTORE_PASSWORD, params.get(K_SCHEMA_REG_SSL_CLIENT_KEY + "." + K_TRUSTSTORE_PASSWORD));
-sslClientConfig.put(K_KEYSTORE_PASSWORD, ""); //ugly hack needed for SchemaRegistryClient
 
 Map<String, Object> schemaRegistryConf = new HashMap<>();
 schemaRegistryConf.put(K_SCHEMA_REG_URL, params.get(K_SCHEMA_REG_URL));
 schemaRegistryConf.put(K_SCHEMA_REG_SSL_CLIENT_KEY, sslClientConfig);
-
-LOG.info("### Schema Registry parameters:");
-for (String key : schemaRegistryConf.keySet()) {
-   LOG.info("Schema Registry param: {}={}", key, schemaRegistryConf.get(key));
-}
 
 KafkaDeserializationSchema<Message> schema = SchemaRegistryDeserializationSchema
        .builder(Message.class)

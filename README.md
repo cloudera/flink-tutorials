@@ -4,16 +4,16 @@ This repo contains reference Flink Streaming applications for a few example use-
 
 ## Stateless Monitoring Application
 
-[This application (flink-simple-quickstart)](flink-simple-quickstart) demonstrates some basic capabilities of the DataStream API to build a simple JVM heap monitor pipeline with alerting capabilities. It shows the essentials of simple flink applications together with some useful tricks to set up a robust logging configuration using Kafka.
+[The (flink-simple-quickstart)](flink-simple-quickstart) application demonstrates some basic capabilities of the DataStream API to build a simple JVM heap monitor pipeline with alerting capabilities. It shows the essentials of simple flink applications together with some useful tricks to set up a robust logging configuration using Kafka.
 
 ## Stateful Transaction and Query Processor Service
 
-[This application (flink-stateful-quickstart)](flink-stateful-quickstart) implements a production grade stateful service for handling incoming item transactions together with some querying capabilities.
+[The (flink-stateful-quickstart)](flink-stateful-quickstart) application implements a production grade stateful service for handling incoming item transactions together with some querying capabilities.
 
 We dive deeper into structuring streaming application code, state handling and resource configuration. We also show how to set up our Kafka data sources and sink for scalability and how to properly validate our pipeline before deployment.
 
 ##  Flink Security Showcase Application
-[This application (flink-sec-quickstart) ](flink-sec-quickstart) demonstrates how to enable essential Flink security features for applications intended to run on secured CDH/CDP environments. It covers Kerberos authentication and TLS encryption for HDFS and Kafka connectors.
+[The (flink-sec-quickstart) ](flink-sec-quickstart) application demonstrates how to enable essential Flink security features for applications intended to run on secured CDH/CDP environments. It covers Kerberos authentication and TLS encryption for HDFS and Kafka connectors.
 
 ## Cluster setup
 

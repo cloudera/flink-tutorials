@@ -302,7 +302,7 @@ All production jobs should set an explicit maximum job parallelism by calling `s
  2. If `P` is the selected parallelism for our job, the max parallelism should be divisible by `P` to get even state distribution (`maxP % P == 0`)
  3. Larger max parallelism settings come at a greater cost on the state backend side so we shouldn't be overly pessimistic with out load estimates
 
-From these criteria we suggest using either powers of 2 (128, 256, 1024, ...) or factorials (120, 720, 5040) as those have many divisors making parallelism tuning easier in the future.   
+From these criteria we suggest using factorials or numbers with a large number of divisors (120, 180, 240, 360, 720, 840, 1260) making parallelism tuning easier in the future.   
 
 #### Checkpointing settings
 
@@ -340,7 +340,7 @@ State(Window, Key -> TransactionSummary) < 320B
 
 For window state sizing we have to estimate the number if in-flight windows per key. For our application let's say we have max 2 windows active for any key.
 
-For 1 million items a generous estimate would be:
+For 1 million items a very generous estimate would be:
 
 ```
 1.000.000 * 160B + 2 * 1_000_000 * 320B ~ 800MB

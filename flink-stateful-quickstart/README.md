@@ -124,7 +124,7 @@ As we have seen earlier the `KafkaItemTransactionJob` extends our abstract `Item
 
 It expects the following parameters configured in our properties file:
 ```
-kafka.brokers=gyula-1.gce.cloudera.com:9092,gyula-2.gce.cloudera.com:9092,gyula-3.gce.cloudera.com:9092
+kafka.brokers=<your_broker_1>:9092,<your_broker_2>:9092,<your_broker_3>:9092
 kafka.groupid=flink
 transaction.input.topic=transaction.log.1
 query.input.topic=query.input.log.1

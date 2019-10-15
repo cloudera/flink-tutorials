@@ -32,7 +32,7 @@ on **non-secured** CDH/CDP clusters the quick start application would be submitt
 ```
 flink run -m yarn-cluster -d -p 2 \
 flink-sec-quickstart-1.0-SNAPSHOT.jar \
---kafka.bootstrap.servers morhidi-1.gce.cloudera.com:9093 \
+--kafka.bootstrap.servers <hostname>:9093 \
 --kafkaTopic flink \
 --hdfsOutput hdfs:///tmp/flink-sec-quickstart
 ```
@@ -79,7 +79,7 @@ When Flink applications are running on CDH/CDP clusters, Flink’s web dashboard
   ```
   > ktutil
   ktutil: add_entry -password -p test -k 1 -e des3-cbc-sha1
-  Password for test@GCE.CLOUDERA.COM:
+  Password for test@:
   ktutil:  wkt test.keytab
   ktutil:  quit
   ```
@@ -105,7 +105,7 @@ When Flink applications are running on CDH/CDP clusters, Flink’s web dashboard
   flink-sec-quickstart-1.0-SNAPSHOT.jar \
   --kafkaTopic flink \
   --hdfsOutput hdfs:///tmp/flink-sec-quickstart \
-  --kafka.bootstrap.servers morhidi-1.gce.cloudera.com:9093 \
+  --kafka.bootstrap.servers <hostname>:9093 \
   --kafka.security.protocol SASL_SSL \
   --kafka.sasl.kerberos.service.name kafka \
   --kafka.ssl.truststore.location /etc/cdep-ssl-conf/CA_STANDARD/truststore.jks
@@ -301,16 +301,16 @@ Creating a *test* user for submitting flink jobs using **kadmin.local** in the l
 ```
 > kadmin.local
 kadmin.local:  addprinc test
-Enter password for principal "test@GCE.CLOUDERA.COM":
-Re-enter password for principal "test@GCE.CLOUDERA.COM":
-Principal "test@GCE.CLOUDERA.COM" created.
+Enter password for principal "test@<hostname>":
+Re-enter password for principal "test@<hostname>":
+Principal "test@<hostname>" created.
 kadmin.local:  quit
 ```
 
 Initializing the HDFS home directory for the *test* user with a superuser (In CDEP environments the superuser is the hdfs user, which should be automatically created during cluster provisioning, the password is the default CDEP password):
 ```
 > kinit hdfs
-Password for hdfs@GCE.CLOUDERA.COM:
+Password for hdfs@<hostname>:
 > hdfs dfs -mkdir /user/test
 > hdfs dfs -chown test:test /user/test
 ```
@@ -324,7 +324,7 @@ Creating a keytab for the test user with **ktutil**
 ```
 > ktutil
 ktutil: add_entry -password -p test -k 1 -e des3-cbc-sha1
-Password for test@GCE.CLOUDERA.COM:
+Password for test@<hostname>:
 ktutil:  wkt test.keytab
 ktutil:  quit
 ```
@@ -334,17 +334,17 @@ Listing the stored principal(s) from the keytab:
 Keytab name: FILE:test.keytab
 KVNO Timestamp           Principal
 ---- ------------------- ------------------------------------------------------
-   1 09/19/2019 02:12:18 test@GCE.CLOUDERA.COM (des3-cbc-sha1)
+   1 09/19/2019 02:12:18 test@<hostname> (des3-cbc-sha1)
 ```
 
 Verifying with **kinit** and **klist** if authentication works properly with the keytab:
 ```
 [root@morhidi-1 ~]# klist -e
 Ticket cache: FILE:/tmp/krb5cc_0
-Default principal: test@GCE.CLOUDERA.COM
+Default principal: test@<hostname>
 
 Valid starting       Expires              Service principal
-09/24/2019 03:49:09  09/24/2019 04:14:09  krbtgt/GCE.CLOUDERA.COM@GCE.CLOUDERA.COM
+09/24/2019 03:49:09  09/24/2019 04:14:09  krbtgt/<hostname@<hostname
 	renew until 09/24/2019 05:19:09, Etype (skey, tkt): des3-cbc-sha1, des3-cbc-sha1
 ```
 
@@ -352,19 +352,19 @@ Valid starting       Expires              Service principal
 
 Creating the *flink* topic in Kafka for testing
 ```
-> kafka-topics --create  --zookeeper morhidi-1.gce.cloudera.com:2181/kafka --replication-factor 3 --partitions 3 --topic flink
-> kafka-topics --zookeeper morhidi-1.gce.cloudera.com:2181/kafka --list
+> kafka-topics --create  --zookeeper <hostname>:2181/kafka --replication-factor 3 --partitions 3 --topic flink
+> kafka-topics --zookeeper <hostname>:2181/kafka --list
 ```
 
 Sending messages to the *flink* topic with **kafka-console-producer**:
 
 ```
-KAFKA_OPTS="-Djava.security.auth.login.config=.kafka.jaas.conf" kafka-console-producer --broker-list morhidi-1.gce.cloudera.com:9093 --producer.config .kafka.client.properties --topic flink
+KAFKA_OPTS="-Djava.security.auth.login.config=.kafka.jaas.conf" kafka-console-producer --broker-list <hostname>:9093 --producer.config .kafka.client.properties --topic flink
 ```
 
 Reading messages to the *flink* topic with **kafka-console-producer**:
 ```
-KAFKA_OPTS="-Djava.security.auth.login.config=.kafka.jaas.conf" kafka-console-consumer --bootstrap-server morhidi-1.gce.cloudera.com:9093 --consumer.config .kafka.client.properties --topic flink --from-beginning
+KAFKA_OPTS="-Djava.security.auth.login.config=.kafka.jaas.conf" kafka-console-consumer --bootstrap-server <hostname>:9093 --consumer.config .kafka.client.properties --topic flink --from-beginning
 ```
 
 Kafka configurations are given as separate files (*.kafka.client.properties* and .kafka.jaas.conf) for **kafka-console-producer** and **kafka-console-consumer** commands:

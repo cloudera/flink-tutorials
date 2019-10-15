@@ -68,7 +68,7 @@ final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEn
 env.enableCheckpointing(10_000);
 ```
 
-The `getExecutionEnvironment()` static call guarantees that our pipeline will always be using the correct environment based on the location it is executed. When running from our IDE this means a local execution environment, and when running from the client for cluster submission it will return the yarn execution environment. 
+The `getExecutionEnvironment()` static call guarantees that our pipeline will always be using the correct environment based on the location it is executed. When running from our IDE this means a local execution environment, and when running from the client for cluster submission it will return the yarn execution environment.
 
 Even though this application doesn't rely on user defined state we enable checkpointing every 10 seconds to allow the datasinks to produce consistent output to HDFS.
 
@@ -228,15 +228,15 @@ Accessing the logs from the Kafka topic is possible then with:
 ```
 kafka-console-consumer --bootstrap-server <your_broker>:9092 --topic flink-heap-alerts
 ...
-00:17:53,398 INFO  com.cloudera.streaming.examples.flink.LogSink                 - HeapAlert{message='42 was found in the HeapMetrics ratio.', triggeringStats=HeapMetrics{area=PS Eden Space, used=54560840, max=94371840, ratio=0.578147464328342, jobId=0, hostname='mbalassi-2.gce.cloudera.com'}}
+00:17:53,398 INFO  com.cloudera.streaming.examples.flink.LogSink                 - HeapAlert{message='42 was found in the HeapMetrics ratio.', triggeringStats=HeapMetrics{area=PS Eden Space, used=54560840, max=94371840, ratio=0.578147464328342, jobId=0, hostname='<yourhostname>'}}
 
-00:17:53,498 INFO  com.cloudera.streaming.examples.flink.LogSink                 - HeapAlert{message='42 was found in the HeapMetrics ratio.', triggeringStats=HeapMetrics{area=PS Eden Space, used=54560840, max=94371840, ratio=0.578147464328342, jobId=0, hostname='mbalassi-2.gce.cloudera.com'}}
+00:17:53,498 INFO  com.cloudera.streaming.examples.flink.LogSink                 - HeapAlert{message='42 was found in the HeapMetrics ratio.', triggeringStats=HeapMetrics{area=PS Eden Space, used=54560840, max=94371840, ratio=0.578147464328342, jobId=0, hostname='<yourhostname>'}}
 
-00:17:53,599 INFO  com.cloudera.streaming.examples.flink.LogSink                 - HeapAlert{message='42 was found in the HeapMetrics ratio.', triggeringStats=HeapMetrics{area=PS Eden Space, used=54560840, max=94371840, ratio=0.578147464328342, jobId=0, hostname='mbalassi-2.gce.cloudera.com'}}
+00:17:53,599 INFO  com.cloudera.streaming.examples.flink.LogSink                 - HeapAlert{message='42 was found in the HeapMetrics ratio.', triggeringStats=HeapMetrics{area=PS Eden Space, used=54560840, max=94371840, ratio=0.578147464328342, jobId=0, hostname='<yourhostname>'}}
 
-00:17:53,700 INFO  com.cloudera.streaming.examples.flink.LogSink                 - HeapAlert{message='42 was found in the HeapMetrics ratio.', triggeringStats=HeapMetrics{area=PS Eden Space, used=54560840, max=94371840, ratio=0.578147464328342, jobId=0, hostname='mbalassi-2.gce.cloudera.com'}}
+00:17:53,700 INFO  com.cloudera.streaming.examples.flink.LogSink                 - HeapAlert{message='42 was found in the HeapMetrics ratio.', triggeringStats=HeapMetrics{area=PS Eden Space, used=54560840, max=94371840, ratio=0.578147464328342, jobId=0, hostname='<yourhostname>'}}
 
-00:17:53,800 INFO  com.cloudera.streaming.examples.flink.LogSink                 - HeapAlert{message='42 was found in the HeapMetrics ratio.', triggeringStats=HeapMetrics{area=PS Eden Space, used=54560840, max=94371840, ratio=0.578147464328342, jobId=0, hostname='mbalassi-2.gce.cloudera.com'}}
+00:17:53,800 INFO  com.cloudera.streaming.examples.flink.LogSink                 - HeapAlert{message='42 was found in the HeapMetrics ratio.', triggeringStats=HeapMetrics{area=PS Eden Space, used=54560840, max=94371840, ratio=0.578147464328342, jobId=0, hostname='<yourhostname>'}}
 ```
 ### Writing output to HDFS
 
@@ -247,19 +247,19 @@ stdout writer with the following parameter:
 --cluster true
 ```
 
-By default the output files will be stored under `hdfs:///tmp/flink-heap-stats`, but this location is configurable via the `--output` parameter. The complete command saving the HDFS and 
+By default the output files will be stored under `hdfs:///tmp/flink-heap-stats`, but this location is configurable via the `--output` parameter. The complete command saving the HDFS and
 logging to Kafka is:
 
 ```
 flink run -m yarn-cluster -yD log4j.configuration.file=kafka-appender/log4j.properties -d -p 2 -ynm HeapMonitor target/flink-simple-quickstart-1.0-SNAPSHOT.jar --cluster true
-``` 
+```
 
 To inspect the output we can call `hdfs` directly:
 
 ```
 hdfs dfs -cat /tmp/flink-heap-stats/*/*
 ...
-HeapMetrics{area=PS Eden Space, used=50399064, max=90701824, ratio=0.5556565654071081, jobId=1, hostname='mbalassi-2.gce.cloudera.com'}
-HeapMetrics{area=PS Survivor Space, used=903448, max=15728640, ratio=0.05743967692057292, jobId=1, hostname='mbalassi-2.gce.cloudera.com'}
-HeapMetrics{area=PS Old Gen, used=19907144, max=251658240, ratio=0.07910388310750326, jobId=1, hostname='mbalassi-2.gce.cloudera.com'}
+HeapMetrics{area=PS Eden Space, used=50399064, max=90701824, ratio=0.5556565654071081, jobId=1, hostname='<yourhostname>'}
+HeapMetrics{area=PS Survivor Space, used=903448, max=15728640, ratio=0.05743967692057292, jobId=1, hostname='<yourhostname>'}
+HeapMetrics{area=PS Old Gen, used=19907144, max=251658240, ratio=0.07910388310750326, jobId=1, hostname='<yourhostname>'}
 ```

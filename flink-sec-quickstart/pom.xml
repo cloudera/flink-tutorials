@@ -40,31 +40,12 @@ under the License.
 
 	<repositories>
 		<repository>
-			<id>apache.snapshots</id>
-			<name>Apache Development Snapshot Repository</name>
-			<url>https://repository.apache.org/content/repositories/snapshots/</url>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-		<repository>
 			<id>cloudera</id>
 			<url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
 		</repository>
 	</repositories>
 
 	<dependencies>
-		<!-- Apache Flink dependencies -->
-		<!-- These dependencies are provided, because they should not be packaged into the JAR file. -->
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-java</artifactId>
-			<version>${flink.version}</version>
-			<scope>provided</scope>
-		</dependency>
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
@@ -105,7 +86,7 @@ under the License.
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
 			<version>1.7.7</version>
-			<scope>runtime</scope>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>

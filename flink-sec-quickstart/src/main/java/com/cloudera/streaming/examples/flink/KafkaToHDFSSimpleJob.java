@@ -26,61 +26,29 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Properties;
-
-
 public class KafkaToHDFSSimpleJob {
 
-    private static Logger LOG = LoggerFactory.getLogger(KafkaToHDFSSimpleJob.class);
-    private static final String KAFKA_PREFIX = "kafka.";
+	private static Logger LOG = LoggerFactory.getLogger(KafkaToHDFSSimpleJob.class);
 
-    public static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws Exception {
 
-        ParameterTool params = ParameterTool.fromArgs(args);
-        final String P_PROPERTIES_FILE = params.get("properties.file");
+		ParameterTool params = Utils.parseArgs(args);
+		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        if (P_PROPERTIES_FILE != null) {
-            params = ParameterTool.fromPropertiesFile(P_PROPERTIES_FILE).mergeWith(params);
-        }
+		FlinkKafkaConsumer<String> consumer = new FlinkKafkaConsumer<>(params.getRequired("kafkaTopic"), new SimpleStringSchema(), Utils.readKafkaProperties(params));
+		DataStream<String> source = env.addSource(consumer).name("Kafka Source").uid("Kafka Source");
 
-        LOG.info("### Job parameters:");
-        for (String key : params.getProperties().stringPropertyNames()) {
-            LOG.info("Job param {}={}", key, params.get(key));
-        }
+		StreamingFileSink<String> sink = StreamingFileSink
+				.forRowFormat(new Path(params.getRequired("hdfsOutput")), new SimpleStringEncoder<String>("UTF-8"))
+				.build();
 
-        final String P_KAFKA_TOPIC = params.get("kafkaTopic");
-        final String P_FS_OUTPUT = params.get("hdfsOutput");
+		source.addSink(sink).name("FS Sink").uid("FS Sink");
+		source.print();
 
-        // set up the streaming execution environment
-        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-
-        Properties properties = new Properties();
-        for (String key : params.getProperties().stringPropertyNames()) {
-            if (key.startsWith(KAFKA_PREFIX)) {
-                properties.setProperty(key.substring(KAFKA_PREFIX.length()), params.get(key));
-            }
-        }
-
-        LOG.info("### Kafka parameters:");
-        for (String key : properties.stringPropertyNames()) {
-            LOG.info("Kafka param {}={}", key, params.get(key));
-        }
-
-        FlinkKafkaConsumer<String> consumer = new FlinkKafkaConsumer<>(P_KAFKA_TOPIC, new SimpleStringSchema(), properties);
-        DataStream<String> source = env.addSource(consumer).name("Kafka Source");
-
-        source.print();
-
-        final StreamingFileSink<String> sink = StreamingFileSink
-                .forRowFormat(new Path(P_FS_OUTPUT), new SimpleStringEncoder<String>("UTF-8"))
-                .build();
-
-        source.addSink(sink).name("FS Sink");
-
-
-        env.execute("Flink Streaming Secured Job Sample");
-    }
+		env.execute("Flink Streaming Secured Job Sample");
+	}
 }

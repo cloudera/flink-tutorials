@@ -73,9 +73,11 @@ public class AvroDataGeneratorJob {
 		public void run(SourceContext<Message> ctx) throws Exception {
 			ThreadLocalRandom rnd = ThreadLocalRandom.current();
 			while (isRunning) {
-				ctx.collect(new Message(UUID.randomUUID().toString() + " - " + LocalDateTime.now().toString(),
-						RandomStringUtils.randomAlphabetic(10),
-						RandomStringUtils.randomAlphabetic(100)));
+				synchronized (ctx.getCheckpointLock()) {
+					ctx.collect(new Message(UUID.randomUUID().toString() + " - " + LocalDateTime.now().toString(),
+							RandomStringUtils.randomAlphabetic(10),
+							RandomStringUtils.randomAlphabetic(100)));
+				}
 
 				Thread.sleep(Math.abs(rnd.nextInt()) % 1000);
 			}

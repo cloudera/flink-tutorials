@@ -46,4 +46,12 @@ public class Query {
 	public int hashCode() {
 		return Objects.hash(queryId, itemId);
 	}
+
+	@Override
+	public String toString() {
+		return "Query{" +
+				"queryId=" + queryId +
+				", itemId='" + itemId + '\'' +
+				'}';
+	}
 }

@@ -20,6 +20,9 @@ package com.cloudera.streaming.examples.flink.utils.testing;
 
 import org.apache.flink.streaming.api.datastream.DataStream;
 
+/**
+ * Manual data source for sending records and watermarks in pipeline tests.
+ */
 public interface ManualSource<T> {
 
 	void sendRecord(T event);

@@ -23,6 +23,9 @@ import org.apache.flink.streaming.connectors.kafka.partitioner.FlinkKafkaPartiti
 import java.util.Arrays;
 import java.util.Random;
 
+/**
+ * Partitioner that simply hashes the key if it exists otherwise assigns a random partition.
+ */
 public class HashingKafkaPartitioner<T> extends FlinkKafkaPartitioner<T> {
 
 	private final Random rnd = new Random();

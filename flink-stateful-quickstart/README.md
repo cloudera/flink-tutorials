@@ -124,8 +124,8 @@ As we have seen earlier the `KafkaItemTransactionJob` extends our abstract `Item
 
 It expects the following parameters configured in our properties file:
 ```
-kafka.brokers=<your_broker_1>:9092,<your_broker_2>:9092,<your_broker_3>:9092
-kafka.groupid=flink
+kafka.bootstrap.servers=<your_broker_1>:9092,<your_broker_2>:9092,<your_broker_3>:9092
+kafka.group.id=flink
 transaction.input.topic=transaction.log.1
 query.input.topic=query.input.log.1
 query.output.topic=query.output.log.1
@@ -161,7 +161,7 @@ For ItemTransactions we use the custom `TransactionSchema` implementation that s
 
 For Query inputs we use the built in `SimpleStringSchema` that can be used to read String data from kafka.
 
-We created a simple utility class to generate the consumer properties that sets:
+We created a simple utility class to generate the consumer properties based on our input properties (it extracts props with kafka. prefix):
  - `group.id=...` : *REQUIRED*
  - `bootstrap.servers=...` : *REQUIRED*
  - `flink.partition-discovery.interval-millis=60000` : Used by flink to control how often the consumed topics are checked for new partitions. (Disabled by default)
@@ -276,6 +276,24 @@ Once the test is started, we can send records using our `ManualSources` and use 
 
 After running our test logic we call `JobTester.stopTest()` to shut down all the manual sources and let the pipeline finish completely. At the end we assert that no more output was received before the job completely shut down as expected.
 
+### Socket Transaction Processor Job
+
+We can also do a more interactive local testrun of our application by executing the `com.cloudera.streaming.examples.flink.SocketTransactionProcessorJob` class. It is contained in the test package to bundle all the necessary runtime deployments.
+
+This job will take it's input from a local text socket and will run in our IDE, producing the output to the console.
+Before we execute the code we should start the local socket at port `9999`:
+
+```
+nc -lk 9999
+```
+
+Now the job starts up with the built in data generator and we can start sending our queries and look at the output:
+
+ - input (socket): `123 item_2`
+ - output (IDE console): `QueryResult{queryId=123, itemInfo=ItemInfo{itemId='item_2', quantity=10665}}`
+
+By modifying this application we can easily experiment with different aspects of our pipeline locally.
+
 ### Testing input and output connectors
 
 It is possible to bootstrap test environments for our connectors such as Kafka and test the full production pipeline locally but in this case we chose to only test the correct application behaviour and assume that the connectors work as expected.
@@ -296,7 +314,7 @@ We will only configure things in the StreamExecutionEnvironment that are essenti
 
 #### Max parallelism
 
-All production jobs should set an explicit maximum job parallelism by calling `setMaxParallelism(128)` which controls the number of key-groups the state backends create. We should consider 3 things when setting the max parallelism
+All production jobs should set an explicit maximum job parallelism by calling `setMaxParallelism(???)` which controls the number of key-groups the state backends create. We should consider 3 things when setting the max parallelism
 
  1. The number should be large enough to accommodate expected future load increases as this setting cannot be changed now without starting from empty state
  2. If `P` is the selected parallelism for our job, the max parallelism should be divisible by `P` to get even state distribution (`maxP % P == 0`)
@@ -348,11 +366,26 @@ For 1 million items a very generous estimate would be:
 
 We can round this up to 1GB to be on the even safer side. This means if we split the state on 2 TaskManagers we need to give them an extra 500MB memory on top of the default 1000MB associated to them -> `-ytm 1500`
 
+#### RocksDB state backend for larger state
+
+By default flink jobs use the Heap state backend to store key-value states. This means all data will be stored in deserialized form on the java heap. If memory permits this is very efficient but in many cases the state won't fit in main memory and we need to spill to disk.
+
+The RocksDB statebackend stores key-value states in embedded RocksDB instances, seamlessly spilling from memory to disk when necessary. In contrast with the Heap statebackend, RocksDB doesn't use the java heap but keeps data in native memory. This is important when configuring the memory settings for our taskmanagers:
+
+`TaskManager container size = TaskManager heap size + Containerized heap cutoff`
+
+The default value for `containerized.heap-cutoff-ratio` is 0.25 which means that only 25% of the container memory is allocated for non-heap usage. While for regular flink apps this is plenty, once we enable rocks db we have to increase this ratio to 0.5 - 0.9 depending on our total container size (and heap usage) to give enough memory for RocksDB.
+
+To enable RocksDB we should set the following flink config parameters:
+```
+state.backend = ROCKSDB
+containerized.heap-cutoff-ratio = 0.5 - 0.9
+state.backend.rocksdb.disk-type = SSD / SPINNING
+```
+
 ### Kafka topic configuration <a name="kafka-config"></a>
 
 We should ensure that our high-throughput topics such as the transaction input and output topics have enough partitions. The good number depends on the estimated peak throughput. In our example we will go with 16.
-
-...
 
 ## Deploying the application <a name="deploy"></a>
 

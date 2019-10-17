@@ -41,6 +41,11 @@ import com.cloudera.streaming.examples.flink.types.TransactionSummary;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Base class for out item transaction and query processor pipeline. The core processing functionality is encapsulated here while
+ * subclasses have to implement input and output methods. Check the {@link KafkaItemTransactionJob} for a Kafka input/output based
+ * implementation of the pipeline.
+ */
 public abstract class ItemTransactionJob {
 
 	public static final String EVENT_TIME_KEY = "event.time";
@@ -49,23 +54,34 @@ public abstract class ItemTransactionJob {
 	public static OutputTag<QueryResult> QUERY_RESULT = new OutputTag<QueryResult>("query-result", TypeInformation.of(QueryResult.class));
 
 	public final StreamExecutionEnvironment createApplicationPipeline(ParameterTool params) throws Exception {
+
+		// Create and configure the StreamExecutionEnvironment
 		StreamExecutionEnvironment env = createExecutionEnvironment(params);
 
+		// Read transaction stream
 		DataStream<ItemTransaction> transactionStream = readTransactionStream(params, env);
+
+		// We read the query stream and exclude it from watermark tracking by assigning Long.MAX_VALUE watermark
 		DataStream<Query> queryStream = readQueryStream(params, env)
 				.assignTimestampsAndWatermarks(new MaxWatermark<>())
 				.name("MaxWatermark");
 
+		// Connect transactions with queries using the same itemId key and apply our transaction processor
+		// The main output is the transaction result, query results are accessed as a side output.
 		SingleOutputStreamOperator<TransactionResult> processedTransactions = transactionStream.keyBy("itemId")
 				.connect(queryStream.keyBy("itemId"))
 				.process(new TransactionProcessor())
 				.name("Transaction Processor")
 				.uid("Transaction Processor");
+
+		// Query results are accessed as a sideoutput of the transaction processor
 		DataStream<QueryResult> queryResultStream = processedTransactions.getSideOutput(QUERY_RESULT);
 
+		// Handle the output of transaction and query results separately
 		writeTransactionResults(params, processedTransactions);
 		writeQueryOutput(params, queryResultStream);
 
+		// If needed we create a window computation of the transaction summaries by item and time window
 		if (params.getBoolean(ENABLE_SUMMARIES_KEY, false)) {
 			DataStream<TransactionSummary> transactionSummaryStream = processedTransactions
 					.keyBy("transaction.itemId")
@@ -85,8 +101,10 @@ public abstract class ItemTransactionJob {
 	private StreamExecutionEnvironment createExecutionEnvironment(ParameterTool params) throws Exception {
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-		env.setMaxParallelism(128);
+		// We set max parallelism to a number with a lot of divisors
+		env.setMaxParallelism(360);
 
+		// Configure checkpointing if interval is set
 		long cpInterval = params.getLong("checkpoint.interval.millis", TimeUnit.MINUTES.toMillis(1));
 		if (cpInterval > 0) {
 			CheckpointConfig checkpointConf = env.getCheckpointConfig();

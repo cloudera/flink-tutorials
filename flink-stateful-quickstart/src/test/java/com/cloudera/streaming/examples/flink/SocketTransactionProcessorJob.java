@@ -30,6 +30,19 @@ import com.cloudera.streaming.examples.flink.types.QueryResult;
 import com.cloudera.streaming.examples.flink.types.TransactionResult;
 import com.cloudera.streaming.examples.flink.types.TransactionSummary;
 
+/**
+ * Simple socket based pipeline for testing the application locally. Before running start a socket connection:
+ * <p>
+ * nc -lk 9999
+ * <p>
+ * Once the job started you can send queries in the form:
+ * <p>
+ * queryId itemId
+ * <p>
+ * For example:
+ * <p>
+ * 123 item_2
+ */
 public class SocketTransactionProcessorJob extends ItemTransactionJob {
 
 	public static void main(String[] args) throws Exception {
@@ -50,7 +63,7 @@ public class SocketTransactionProcessorJob extends ItemTransactionJob {
 
 	@Override
 	protected void writeTransactionSummaries(ParameterTool params, DataStream<TransactionSummary> transactionSummaryStream) {
-		transactionSummaryStream.print();
+		// transactionSummaryStream.print();
 	}
 
 	@Override

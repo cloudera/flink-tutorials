@@ -31,6 +31,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Sink implementation that collects elements into {@link BlockingQueue}s so it can be polled
+ * efficiently in tests.
+ * <p>
+ * The logic relies on static fields so it can be only used in unit tests where the flink pipeline
+ * runs in the same JVM.
+ */
 public class CollectingSink<T> extends RichSinkFunction<T> {
 
 	private static final long serialVersionUID = 1L;

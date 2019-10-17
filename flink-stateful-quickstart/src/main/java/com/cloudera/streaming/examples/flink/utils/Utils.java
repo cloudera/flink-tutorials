@@ -18,31 +18,32 @@
 
 package com.cloudera.streaming.examples.flink.utils;
 
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.flink.api.java.utils.ParameterTool;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
 
-import static org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumerBase.KEY_PARTITION_DISCOVERY_INTERVAL_MILLIS;
-
 public class Utils {
 
-	public static Properties createKafkaProducerProps(String broker) {
+	private static Logger LOG = LoggerFactory.getLogger(Utils.class);
+
+	public static final String KAFKA_PREFIX = "kafka.";
+
+	public static Properties readKafkaProperties(ParameterTool params) {
 		Properties properties = new Properties();
 
-		properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, broker);
-		properties.setProperty(ProducerConfig.RETRIES_CONFIG, "3");
+		for (String key : params.getProperties().stringPropertyNames()) {
+			if (key.startsWith(KAFKA_PREFIX)) {
+				properties.setProperty(key.substring(KAFKA_PREFIX.length()), params.get(key));
+			}
+		}
 
-		return properties;
-	}
-
-	public static Properties createKafkaConsumerProps(String broker, String groupId) {
-		Properties properties = new Properties();
-
-		properties.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, broker);
-		properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-		properties.setProperty(KEY_PARTITION_DISCOVERY_INTERVAL_MILLIS, "60000");
-
+		LOG.info("### Kafka parameters:");
+		for (String key : properties.stringPropertyNames()) {
+			LOG.info("Kafka param: {}={}", key, properties.get(key));
+		}
 		return properties;
 	}
 }

@@ -26,6 +26,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
+/**
+ * Helper class for executing Flink streaming unit-test style pipeline tests.
+ * The {@link #createManualSource(StreamExecutionEnvironment, TypeInformation)} method can be used
+ * to create data sources that we can use to send elements one by one after starting the pipeline and
+ * the {@link CollectingSink} can be used to retrieve output and make assertions.
+ * <p>
+ * The {@link #startTest(StreamExecutionEnvironment)} method triggers job execution in a background thread so
+ * we can add our testing logic, which should be followed by {@link #stopTest()} that shuts down the job after
+ * which we can make our final output checks.
+ */
 public class JobTester {
 
 	private static final Semaphore finished = new Semaphore(1);

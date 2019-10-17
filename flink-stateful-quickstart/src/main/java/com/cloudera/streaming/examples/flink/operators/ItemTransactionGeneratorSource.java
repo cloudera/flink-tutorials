@@ -28,6 +28,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * A simple data generator that generates {@link ItemTransaction} data with a skewed itemId distribution
+ * to better simulate real world access patterns with hot items.
+ */
 public class ItemTransactionGeneratorSource implements ParallelSourceFunction<ItemTransaction> {
 
 	public static final String NUM_ITEMS_KEY = "num.items";

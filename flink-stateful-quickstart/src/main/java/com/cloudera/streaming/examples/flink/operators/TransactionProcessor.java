@@ -33,6 +33,17 @@ import com.cloudera.streaming.examples.flink.types.QueryResult;
 import com.cloudera.streaming.examples.flink.types.TransactionResult;
 import com.cloudera.streaming.examples.flink.utils.ExponentialHistogram;
 
+/**
+ * Core transaction and query processing logic. {@link #processElement1(ItemTransaction, Context, Collector)} receives
+ * transactions and executes them if there is sufficient quantity already stored in the state.
+ * <p>
+ * {@link #processElement2(Query, Context, Collector)} receives item queries that just returns the current info for the
+ * queried item.
+ * <p>
+ * Both processing functions are keyed by the itemId field.
+ * <p>
+ * In addition to the core logic we added custom histogram metrics to track state access time for future optimizations.
+ */
 public class TransactionProcessor extends KeyedCoProcessFunction<String, ItemTransaction, Query, TransactionResult> {
 
 	private transient ValueState<ItemInfo> itemState;
@@ -67,6 +78,7 @@ public class TransactionProcessor extends KeyedCoProcessFunction<String, ItemTra
 
 	@Override
 	public void open(Configuration parameters) {
+		// We create state read/write time metrics for later performance tuning
 		itemRead = getRuntimeContext().getMetricGroup().histogram("ItemRead", new ExponentialHistogram());
 		itemWrite = getRuntimeContext().getMetricGroup().histogram("ItemWrite", new ExponentialHistogram());
 

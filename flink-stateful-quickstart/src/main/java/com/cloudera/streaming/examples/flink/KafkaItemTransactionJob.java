@@ -40,17 +40,16 @@ import com.cloudera.streaming.examples.flink.utils.Utils;
 
 import java.util.Optional;
 
+/**
+ * {@link ItemTransactionJob} implementation that reads and writes data using Kafka.
+ */
 public class KafkaItemTransactionJob extends ItemTransactionJob {
-
-	public static String KAFKA_BROKERS_KEY = "kafka.brokers";
-	public static String KAFKA_GROUPID_KEY = "kafka.groupid";
 
 	public static String TRANSACTION_INPUT_TOPIC_KEY = "transaction.input.topic";
 	public static String QUERY_INPUT_TOPIC_KEY = "query.input.topic";
 	public static String QUERY_OUTPUT_TOPIC_KEY = "query.output.topic";
 
 	public static void main(String[] args) throws Exception {
-
 		if (args.length != 1) {
 			throw new RuntimeException("Path to the properties file is expected as the only argument.");
 		}
@@ -61,11 +60,14 @@ public class KafkaItemTransactionJob extends ItemTransactionJob {
 	}
 
 	public DataStream<Query> readQueryStream(ParameterTool params, StreamExecutionEnvironment env) {
+		// We read queries in a simple String format and parse it to our Query object
 		FlinkKafkaConsumer<String> rawQuerySource = new FlinkKafkaConsumer<>(
 				params.getRequired(QUERY_INPUT_TOPIC_KEY), new SimpleStringSchema(),
-				Utils.createKafkaConsumerProps(params.get(KAFKA_BROKERS_KEY), params.getRequired(KAFKA_GROUPID_KEY)));
+				Utils.readKafkaProperties(params));
 
 		rawQuerySource.setCommitOffsetsOnCheckpoints(true);
+
+		// The first time the job is started we start from the end of the queue, ignoring earlier queries
 		rawQuerySource.setStartFromLatest();
 
 		return env.addSource(rawQuerySource)
@@ -75,12 +77,15 @@ public class KafkaItemTransactionJob extends ItemTransactionJob {
 	}
 
 	public DataStream<ItemTransaction> readTransactionStream(ParameterTool params, StreamExecutionEnvironment env) {
+		// We read the ItemTransaction objects directly using the schema
 		FlinkKafkaConsumer<ItemTransaction> transactionSource = new FlinkKafkaConsumer<>(
 				params.getRequired(TRANSACTION_INPUT_TOPIC_KEY), new TransactionSchema(),
-				Utils.createKafkaConsumerProps(params.get(KAFKA_BROKERS_KEY), params.getRequired(KAFKA_GROUPID_KEY)));
+				Utils.readKafkaProperties(params));
 
 		transactionSource.setCommitOffsetsOnCheckpoints(true);
 		transactionSource.setStartFromEarliest();
+
+		// In case event time processing is enabled we assign trailing watermarks for each partition
 		transactionSource.assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<ItemTransaction>(Time.minutes(1)) {
 			@Override
 			public long extractTimestamp(ItemTransaction transaction) {
@@ -94,9 +99,10 @@ public class KafkaItemTransactionJob extends ItemTransactionJob {
 	}
 
 	public void writeQueryOutput(ParameterTool params, DataStream<QueryResult> queryResultStream) {
+		// Query output is written back to kafka in a tab delimited format for readability
 		FlinkKafkaProducer<QueryResult> queryOutputSink = new FlinkKafkaProducer<>(
 				params.getRequired(QUERY_OUTPUT_TOPIC_KEY), new QueryResultSchema(),
-				Utils.createKafkaProducerProps(params.getRequired(KAFKA_BROKERS_KEY)),
+				Utils.readKafkaProperties(params),
 				Optional.of(new HashingKafkaPartitioner<>()));
 
 		queryResultStream
@@ -107,7 +113,7 @@ public class KafkaItemTransactionJob extends ItemTransactionJob {
 
 	@Override
 	protected void writeTransactionResults(ParameterTool params, DataStream<TransactionResult> transactionresults) {
-		// Ignore them for now
+		// Ignore for now
 	}
 
 	@Override

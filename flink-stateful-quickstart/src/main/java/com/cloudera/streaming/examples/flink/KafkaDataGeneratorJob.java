@@ -32,6 +32,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
+/**
+ * Simple Flink job that generates {@link ItemTransaction} data to Kafka.
+ */
 public class KafkaDataGeneratorJob {
 
 	private static final Logger LOG = LoggerFactory.getLogger(KafkaDataGeneratorJob.class);
@@ -50,7 +53,7 @@ public class KafkaDataGeneratorJob {
 		FlinkKafkaProducer<ItemTransaction> kafkaSink = new FlinkKafkaProducer<>(
 				params.getRequired(KafkaItemTransactionJob.TRANSACTION_INPUT_TOPIC_KEY),
 				new TransactionSchema(),
-				Utils.createKafkaProducerProps(params.get(KafkaItemTransactionJob.KAFKA_BROKERS_KEY)),
+				Utils.readKafkaProperties(params),
 				Optional.empty());
 
 		generatedInput.keyBy("itemId").addSink(kafkaSink).name("Transaction Kafka Sink");

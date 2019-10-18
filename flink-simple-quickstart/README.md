@@ -48,7 +48,7 @@ HeapAlert{message='42 was found in the HeapMetrics ratio.', triggeringStats=Heap
 
 In this example we are demonstrating how you can direct these alerts to sinks like stderr or Kafka via the logging framework.
 
-Every Flink application is built from 4 main components:
+Our Heap monitoring appliction will have 4 structural components:
 
 1. **Application main class:** Defines the `StreamExecutionEnvironment` and creates the pipeline.
 2. **Data Sources:** Access the heap information and make it available for processing.
@@ -61,7 +61,7 @@ A Flink application has to define a main class that will be executed on the clie
 
 Our main class is the `HeapMonitorPipeline` which contains a main method like any standard Java application. The arguments passed to our main method will be determined by us when we use the flink client. We use the  `ParameterTool` utility to conveniently pass parameters to our job that we can use in our operator implementations.
 
-At first we create the `StreamExecutionEnvironment` which can be used to define DataStreams and data processing logic as we will se below. It is also used to configure important job parameters such as checkpointing behaviour to guarantee data consistency for our application.
+At first we create the `StreamExecutionEnvironment` which can be used to create DataStreams and to configure important job parameters such as checkpointing behaviour to guarantee data consistency for our application.
 
 ```
 final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -86,7 +86,8 @@ The `HeapMetrics` class has a few key properties that make it efficiently serial
 
 These classes are called POJOs in the Flink community. It is possible to structure the class differently by keeping the same serialization properties, for the exact rules please refer to the docs: https://ci.apache.org/projects/flink/flink-docs-stable/dev/types_serialization.html#rules-for-pojo-types
 
-Now that we have our record class we need to produce a `DataStream<HeapMetrics>` of the heap information, which can be done by adding a data source in our application. The `HeapMonitorSource` class extends the `RichParallelSourceFunction<HeapMetrics>` abstract class which allows us to use it as a data source.
+Now that we have our record class we need to produce a `DataStream<HeapMetrics>` of the heap information by adding a source to our StreamExecutionEnvironment. Flink comes with a wide variety of built-in sources for different input connectors, but in our case we will build a custom source that collects heap statistics from the host JVM.
+The `HeapMonitorSource` class extends the `RichParallelSourceFunction<HeapMetrics>` abstract class which allows us to use it as a data source.
 
 Let's take a closer look at this class:
 
@@ -102,16 +103,18 @@ Our source will continuously poll the heap memory usage of this application and 
 
 ### Computing GC warnings and heap alerts
 
-The core data processing logic is encapsulated in the `HeapMonitorPipeline.computeHeapAlerts(DataStream<HeapMetrics> statsInput, ParameterTool params)` method that takes as input the DataStream of heap information and should produce a datastream of alerts when the conditions are met.
+The core data processing logic is encapsulated in the `HeapMonitorPipeline.computeHeapAlerts(DataStream<HeapMetrics> statsInput, ParameterTool params)` method that takes as input the strean of heap information and should produce a stream of alerts when the conditions are met.
 
 The reason for structuring the code this way is to make our pipeline easily testable later by replacing our production data source with the test data stream.
 
-The core alerting logic is implemented in the `AlertingFunction` class. It is a `FlatMapFunction` that filters out incoming heap stats objects according to the configured thresholds and converts them to `HeapAlerts`. We levarage the `ParameterTool` object coming from our main progrem entry point to make these alerting thresholds configurable when using the flink client later.
+The core alerting logic is implemented in the `AlertingFunction` class. It is a `FlatMapFunction` that filters out incoming heap stats objects according to the configured thresholds and converts them to `HeapAlerts`. We leverage the `ParameterTool` object coming from our main program entry point to make these alerting thresholds configurable when using the Flink client later.
 
 ## Running the application from IntelliJ
 
 The quickstart application is based on the upstream Flink quickstart maven archetype. The project can be imported into IntelliJ by following the instructions from the public Flink documentation:
 https://ci.apache.org/projects/flink/flink-docs-stable/dev/projectsetup/java_api_quickstart.html#maven
+
+In order to run applications directly from the IDE you must enable the `add-dependencies-for-IDEA` profile, to ensure that provided dependencies that would be otherwise supplied by the runtime environment are available here.
 
 Simply run the class `HeapMonitorPipeline` from the IDE which should print one or multiple lines to the console (depending on the number of cores of your machine chosen as default parallelism):
 ```

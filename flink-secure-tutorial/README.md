@@ -2,7 +2,26 @@
 
 This application demonstrates how to enable essential Flink security features for applications intended to run on secured CDP environments. For the sake of simplicity the application logic here is kept pretty basic, it reads messages from a kafka topic and stores them as is on HDFS.
 
-```
+## Table of Contents
+- [Flink Tutorial Application for Secured CDH/CDP Clusters](#flink-tutorial-application-for-secured-cdh-cdp-clusters)
+  * [Flink Security in a Nutshell](#flink-security-in-a-nutshell)
+    + [Authentication](#authentication)
+    + [Encryption (TLS)](#encryption--tls-)
+      - [Internal Connectivity](#internal-connectivity)
+      - [External Connectivity (REST Endpoints)](#external-connectivity--rest-endpoints-)
+  * [Complete Command including Security](#complete-command-including-security)
+    + [Preparation](#preparation)
+    + [Steps to run the Secured Flink Quickstart Application:](#steps-to-run-the-secured-flink-quickstart-application-)
+  * [Understanding Security Parameters:](#understanding-security-parameters-)
+    + [application.properties](#applicationproperties)
+  * [Kafka Metrics Reporter](#kafka-metrics-reporter)
+  * [Schema Registry Integration](#schema-registry-integration)
+  * [Prerequisites](#prerequisites)
+    + [Kerberos related commands](#kerberos-related-commands)
+    + [Kafka related commands](#kafka-related-commands)
+
+
+```java
 public class KafkaToHDFSSimpleJob {
  public static void main(String[] args) throws Exception {
   ...
@@ -141,8 +160,7 @@ Kafka connector properties defined as normal job arguments (since there are no b
 ```
 
 Any number of kafka connector properties can be added to the command dynamically using the *"kafka."* prefix. These properties are forwarded to the kafka consumer after trimming the *"kafka."* prefix from them:
-```
-  ...
+```java
   Properties properties = new Properties();
         for (String key : params.getProperties().stringPropertyNames()) {
             if (key.startsWith(KAFKA_PREFIX)) {
@@ -150,7 +168,6 @@ Any number of kafka connector properties can be added to the command dynamically
             }
         }
   FlinkKafkaConsumer<String> consumer = new FlinkKafkaConsumer<>(P_KAFKA_TOPIC, new SimpleStringSchema(), properties);
-  ...
 ```
 Please note that the trustore given for the Kafka connector is different from the one we generated for Flink internal encryption above. This is the truststore we need to access the TLS protected Kafka endpoint.
 
@@ -180,7 +197,7 @@ flink-sec-tutorial-1.0-SNAPSHOT.jar \
 ```
 
 Flink has a builtin *ParameterTool* class to handle program arguments elegantly. You can merge the arguments given in the command line and configuration file for example:
-```
+```java
   ParameterTool params = ParameterTool.fromArgs(args);
   final String P_PROPERTIES_FILE = params.get("properties.file");
 
@@ -233,10 +250,8 @@ Two sample Jobs were written to demonstrate how to integrate with Cloudera Schem
 
 The ```AvroDataGeneratorJob``` uses a Kafka sink with ```SchemaRegistrySerializationSchema``` to write ```Message``` records to a Kafka topic:
 
-```
+```java
 public class AvroDataGeneratorJob {
-
-...
 
 Map<String, String> sslClientConfig = new HashMap<>();
 sslClientConfig.put(K_TRUSTSTORE_PATH, params.get(K_SCHEMA_REG_SSL_CLIENT_KEY + "." + K_TRUSTSTORE_PATH));
@@ -255,14 +270,14 @@ KafkaSerializationSchema<Message> schema = SchemaRegistrySerializationSchema.<Me
 FlinkKafkaProducer<Message> kafkaSink = new FlinkKafkaProducer<>(
                "default", (KafkaSerializationSchema<Message>) schema,
                properties, FlinkKafkaProducer.Semantic.AT_LEAST_ONCE);
-...
+
 }               
 
 ```
 
 The ```KafkaToHDFSAvroJob``` uses a Kafka source with ```SchemaRegistryDeserializationSchema``` to read the Avro records. Then it saves them as CSV files onto HDFS and standard output:
 
-```
+```java
 Map<String, String> sslClientConfig = new HashMap<>();
 sslClientConfig.put(K_TRUSTSTORE_PATH, params.get(K_SCHEMA_REG_SSL_CLIENT_KEY + "." + K_TRUSTSTORE_PATH));
 sslClientConfig.put(K_TRUSTSTORE_PASSWORD, params.get(K_SCHEMA_REG_SSL_CLIENT_KEY + "." + K_TRUSTSTORE_PASSWORD));

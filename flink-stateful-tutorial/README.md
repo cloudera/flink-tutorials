@@ -1,6 +1,6 @@
 # Real-time item management service
 
-# Table of contents
+## Table of contents
 1. [Overview](#overview)
 2. [Flink Streaming Application](#app)
     1. [Application structure](#structure)
@@ -54,7 +54,7 @@ With production applications it's very important that we structure them in a way
 
 To achieve this we implemented our core logic in the `ItemTransactionJob` abstract class. Subclasses only need to provide the input and output logic by implementing the following methods:
 
-```
+```java
 // ...
 abstract DataStream<Query> readQueryStream(...);
 abstract DataStream<ItemTransaction> readTransactionStream(...);
@@ -69,7 +69,7 @@ To run the actual application we need to call the `createApplicationPipeline(par
 
 The main method (entrypoint for the Flink client) in the `KafkaItemTransactionJob` is implemented to leverage this simple pattern:
 
-```
+```java
 public static void main(String[] args) throws Exception {
        // ...
        ParameterTool params = ParameterTool.fromPropertiesFile(args[0]);
@@ -141,7 +141,7 @@ The `FlinkKafkaConsumer` class is used to consume the input records.
 
 Let's look at one of the consumers:
 
-```
+```java
 transactionSource = new FlinkKafkaConsumer<>(
                 params.getRequired(TRANSACTION_INPUT_TOPIC_KEY),
                 new TransactionSchema(),
@@ -174,7 +174,7 @@ Finally we set the consumer start offset that takes effect when the job is start
 
 Let's look at the Kafka sink used to write query results:
 
-```
+```java
 FlinkKafkaProducer<QueryResult> queryOutputSink = new FlinkKafkaProducer<>(
                 params.getRequired(QUERY_OUTPUT_TOPIC_KEY),
                 new QueryResultSchema(),
@@ -201,7 +201,7 @@ We use a custom Kafka partitioner that will ensure that queryResult messages are
 
 An interesting thing to compute would be the number of failed and successful transactions together with the total volume for each item over a given time frame. If we notice that some items have exceptionally transaction failure rates for instance that might indicate some problem with other systems.
 
-```
+```java
 processedTransactions
          .keyBy("transaction.itemId")
          .timeWindow(Time.minutes(1))
@@ -227,7 +227,7 @@ Let's look at the `TransactionProcessorTest` to understand the testing behaviour
 
 This test validates the transaction processing and querying behaviour. To control the inputs both query and transaction input streams are created from manual sources:
 
-```
+```java
 @Override
 public DataStream<Query> readQueryStream(ParameterTool params, StreamExecutionEnvironment env) {
     querySource = JobTester.createManualSource(env, TypeInformation.of(Query.class));
@@ -238,7 +238,7 @@ Note that we just create the source store a reference to it but do not yet speci
 
 We will be validating query and transaction output so we create `CollectingSink`s:
 
-```
+```java
 private CollectingSink<QueryResult> queryResultSink = new CollectingSink<>();
 
 //...
@@ -251,7 +251,7 @@ public void writeQueryOutput(ParameterTool params, DataStream<QueryResult> query
 
 Now that we have wired together our data inputs and outputs, we will run our test pipeline in the `runTest` method:
 
-```
+```java
 @Test
 public void runTest() throws Exception {
    JobTester.startTest(createApplicationPipeline(ParameterTool.fromArgs(new String[]{})));

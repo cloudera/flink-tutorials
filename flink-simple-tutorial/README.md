@@ -1,7 +1,7 @@
 # Stateless Monitoring Application
 The purpose of the Flink tutorial Application is to provide a self-contained boilerplate code example for a Flink application.
 
-# Table of contents
+## Table of contents
 1. [Overview](#overview)
 2. [Build](#build)
 3. [Application logic](#application-logic)
@@ -63,7 +63,7 @@ Our main class is the `HeapMonitorPipeline` which contains a main method like an
 
 At first we create the `StreamExecutionEnvironment` which can be used to create DataStreams and to configure important job parameters such as checkpointing behaviour to guarantee data consistency for our application.
 
-```
+```java
 final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 env.enableCheckpointing(10_000);
 ```

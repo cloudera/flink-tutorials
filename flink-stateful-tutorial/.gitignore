@@ -1,5 +1,5 @@
 .idea/
 target/
 dependency-reduced-pom.xml
-flink-quickstart-cdh-state.iml
+flink-tutorial-cdh-state.iml
 .DS_Store

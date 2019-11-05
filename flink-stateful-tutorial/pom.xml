@@ -21,7 +21,7 @@ under the License.
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.cloudera.flink</groupId>
-	<artifactId>flink-stateful-quickstart</artifactId>
+	<artifactId>flink-stateful-tutorial</artifactId>
 	<version>1.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 

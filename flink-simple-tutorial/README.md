@@ -1,5 +1,5 @@
 # Stateless Monitoring Application
-The purpose of the Flink Quickstart Application is to provide a self-contained boilerplate code example for a Flink application.
+The purpose of the Flink tutorial Application is to provide a self-contained boilerplate code example for a Flink application.
 
 # Table of contents
 1. [Overview](#overview)
@@ -20,7 +20,7 @@ The purpose of the Flink Quickstart Application is to provide a self-contained b
 ## Overview
 The application demonstrates basic capabilities of the DataStream API and shares best practices for testing and logging.
 
-The quickstart demonstrates:
+The tutorial demonstrates:
 1. Writing and deploying a Flink application
 2. Interacting with the Flink logging framework
 3. Testing a Flink application
@@ -29,7 +29,7 @@ The quickstart demonstrates:
 Check out the repository and build the artifact:
 ```
 git clone https://github.infra.cloudera.com/morhidi/flink-ref.git
-cd flink-ref/flink-simple-quickstart
+cd flink-ref/flink-simple-tutorial
 mvn clean package
 ```
 
@@ -111,7 +111,7 @@ The core alerting logic is implemented in the `AlertingFunction` class. It is a 
 
 ## Running the application from IntelliJ
 
-The quickstart application is based on the upstream Flink quickstart maven archetype. The project can be imported into IntelliJ by following the instructions from the public Flink documentation:
+The tutorial application is based on the upstream Flink quickstart maven archetype. The project can be imported into IntelliJ by following the instructions from the public Flink documentation:
 https://ci.apache.org/projects/flink/flink-docs-stable/dev/projectsetup/java_api_quickstart.html#maven
 
 In order to run applications directly from the IDE you must enable the `add-dependencies-for-IDEA` profile, to ensure that provided dependencies that would be otherwise supplied by the runtime environment are available here.
@@ -192,11 +192,11 @@ We have specifically set the parallelism of our data sink to 1 to avoid any conc
 As we cannot always force strict ordering for the output elements we used a `Set` instead of a `List` to compare expected output regardless of the order. This might or might not be the correct approach depending on the application flow, but it works very well in our case.
 
 ## Running the application on a Cloudera cluster
-The Flink Quickstart Application can be deployed on a CDH cluster remotely. The actual version of the application was tested against CDH6.3.0 and FLINK-1.9.0-csa0.1.1-cdh6.3.0-1420238-el7 without any security integration on it. The Flink parcel is accessible at the [flink-temporary repo](http://support-ci.sre-dev.cloudera.com:8081/artifactory/webapp/#/artifacts/browse/tree/General/flink-temporary)
+The Flink tutorial Application can be deployed on a CDH cluster remotely. The actual version of the application was tested against CDH6.3.0 and FLINK-1.9.0-csa0.1.1-cdh6.3.0-1420238-el7 without any security integration on it. The Flink parcel is accessible at the [flink-temporary repo](http://support-ci.sre-dev.cloudera.com:8081/artifactory/webapp/#/artifacts/browse/tree/General/flink-temporary)
 After you have [built](#Build) the project run the application from a Flink GateWay node:
 
 ```
-flink run -m yarn-cluster -d -p 2 -ynm HeapMonitor target/flink-simple-quickstart-1.0-SNAPSHOT.jar
+flink run -m yarn-cluster -d -p 2 -ynm HeapMonitor target/flink-simple-tutorial-1.0-SNAPSHOT.jar
 ```
 
 After launching the application Flink will create a YARN session and launch a dashboard where the application can be monitored. The Flink dashbord can be reached from CM through the following path:
@@ -224,7 +224,7 @@ kafka-topics --create --partitions 16 --replication-factor 1 --zookeeper <your_z
 
 An example for the full command with Kafka logging:
 ```
-flink run -m yarn-cluster -yD log4j.configuration.file=kafka-appender/log4j.properties -d -p 2 -ynm HeapMonitor target/flink-simple-quickstart-1.0-SNAPSHOT.jar
+flink run -m yarn-cluster -yD log4j.configuration.file=kafka-appender/log4j.properties -d -p 2 -ynm HeapMonitor target/flink-simple-tutorial-1.0-SNAPSHOT.jar
 ```
 
 Accessing the logs from the Kafka topic is possible then with:
@@ -254,7 +254,7 @@ By default the output files will be stored under `hdfs:///tmp/flink-heap-stats`,
 logging to Kafka is:
 
 ```
-flink run -m yarn-cluster -yD log4j.configuration.file=kafka-appender/log4j.properties -d -p 2 -ynm HeapMonitor target/flink-simple-quickstart-1.0-SNAPSHOT.jar --cluster true
+flink run -m yarn-cluster -yD log4j.configuration.file=kafka-appender/log4j.properties -d -p 2 -ynm HeapMonitor target/flink-simple-tutorial-1.0-SNAPSHOT.jar --cluster true
 ```
 
 To inspect the output we can call `hdfs` directly:

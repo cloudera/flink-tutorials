@@ -1,4 +1,4 @@
-# Flink Quickstart Application for Secured CDH/CDP Clusters
+# Flink tutorial Application for Secured CDH/CDP Clusters
 
 This application demonstrates how to enable essential Flink security features for applications intended to run on secured CDP environments. For the sake of simplicity the application logic here is kept pretty basic, it reads messages from a kafka topic and stores them as is on HDFS.
 
@@ -23,7 +23,7 @@ With this example we are focusing on how to handle authentication and encryption
 After cloning an building the project,
 ```
 > git clone https://github.infra.cloudera.com/morhidi/flink-ref.git
-> cd flink-sec-quickstart
+> cd flink-sec-tutorial
 > mvn clean package
 > cd target
 ```
@@ -31,10 +31,10 @@ on **non-secured** CDH/CDP clusters the quick start application would be submitt
 
 ```
 flink run -m yarn-cluster -d -p 2 \
-flink-sec-quickstart-1.0-SNAPSHOT.jar \
+flink-sec-tutorial-1.0-SNAPSHOT.jar \
 --kafka.bootstrap.servers <hostname>:9093 \
 --kafkaTopic flink \
---hdfsOutput hdfs:///tmp/flink-sec-quickstart
+--hdfsOutput hdfs:///tmp/flink-sec-tutorial
 ```
 As you will see enabling security features make the command a bit more complicated, hence we are trying clarify things with this example.
 
@@ -72,7 +72,7 @@ When Flink applications are running on CDH/CDP clusters, Flink’s web dashboard
   * Flink
 * Existing test user in the Kerberos realm and as local users on each cluster nodes. You can find some usefull commands for fulfilling the prerequisites in a dedicated chapter [here](#prerequisites)
 
-### Steps to run the Secured Flink Quickstart Application:
+### Steps to run the Secured Flink tutorial Application:
 
 * For Kerberos authentication generate a keytab file for the user inteded to submit the Flink job. Keytabs can be generated with ktutil, for example:
 
@@ -102,9 +102,9 @@ When Flink applications are running on CDH/CDP clusters, Flink’s web dashboard
   -yD security.ssl.internal.truststore=keystore.jks \
   -yD security.ssl.internal.truststore-password=`cat pwd.txt` \
   -yt keystore.jks \
-  flink-sec-quickstart-1.0-SNAPSHOT.jar \
+  flink-sec-tutorial-1.0-SNAPSHOT.jar \
   --kafkaTopic flink \
-  --hdfsOutput hdfs:///tmp/flink-sec-quickstart \
+  --hdfsOutput hdfs:///tmp/flink-sec-tutorial \
   --kafka.bootstrap.servers <hostname>:9093 \
   --kafka.security.protocol SASL_SSL \
   --kafka.sasl.kerberos.service.name kafka \
@@ -175,7 +175,7 @@ flink run -m yarn-cluster -d -p 2 \
 -yD security.ssl.internal.truststore-password=`cat pwd.txt` \
 -yt keystore.jks \
 -yt application.properties \
-flink-sec-quickstart-1.0-SNAPSHOT.jar \
+flink-sec-tutorial-1.0-SNAPSHOT.jar \
 --properties.file application.properties
 ```
 
@@ -292,7 +292,7 @@ For Kerberos authentication Flink provides seamless integration for Cloudera Sch
 ```security.kerberos.login.contexts=Client,KafkaClient,RegistryClient```
 
 ## Prerequisites
-Here are some sample commands which can be useful for preparing your CDH/CDP environment for running the quickstart application.
+Here are some sample commands which can be useful for preparing your CDH/CDP environment for running the tutorial application.
 
 ### Kerberos related commands
 

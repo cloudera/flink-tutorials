@@ -32,10 +32,13 @@ public class Utils {
 
 	public static final String KAFKA_PREFIX = "kafka.";
 
-	public static Properties readKafkaProperties(ParameterTool params) {
+	public static Properties readKafkaProperties(ParameterTool params, boolean consumer) {
 		Properties properties = new Properties();
-		properties.put(ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG,
-				"com.hortonworks.smm.kafka.monitoring.interceptors.MonitoringConsumerInterceptor");
+
+		if (consumer) {
+			properties.put(ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG,
+					"com.hortonworks.smm.kafka.monitoring.interceptors.MonitoringConsumerInterceptor");
+		}
 
 		for (String key : params.getProperties().stringPropertyNames()) {
 			if (key.startsWith(KAFKA_PREFIX)) {

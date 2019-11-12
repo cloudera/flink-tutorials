@@ -53,7 +53,7 @@ public class KafkaDataGeneratorJob {
 		FlinkKafkaProducer<ItemTransaction> kafkaSink = new FlinkKafkaProducer<>(
 				params.getRequired(KafkaItemTransactionJob.TRANSACTION_INPUT_TOPIC_KEY),
 				new TransactionSchema(),
-				Utils.readKafkaProperties(params),
+				Utils.readKafkaProperties(params, false),
 				Optional.empty());
 
 		generatedInput.keyBy("itemId").addSink(kafkaSink).name("Transaction Kafka Sink");

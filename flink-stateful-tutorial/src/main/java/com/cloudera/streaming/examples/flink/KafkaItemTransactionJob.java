@@ -63,7 +63,7 @@ public class KafkaItemTransactionJob extends ItemTransactionJob {
 		// We read queries in a simple String format and parse it to our Query object
 		FlinkKafkaConsumer<String> rawQuerySource = new FlinkKafkaConsumer<>(
 				params.getRequired(QUERY_INPUT_TOPIC_KEY), new SimpleStringSchema(),
-				Utils.readKafkaProperties(params));
+				Utils.readKafkaProperties(params, true));
 
 		rawQuerySource.setCommitOffsetsOnCheckpoints(true);
 
@@ -80,7 +80,7 @@ public class KafkaItemTransactionJob extends ItemTransactionJob {
 		// We read the ItemTransaction objects directly using the schema
 		FlinkKafkaConsumer<ItemTransaction> transactionSource = new FlinkKafkaConsumer<>(
 				params.getRequired(TRANSACTION_INPUT_TOPIC_KEY), new TransactionSchema(),
-				Utils.readKafkaProperties(params));
+				Utils.readKafkaProperties(params, true));
 
 		transactionSource.setCommitOffsetsOnCheckpoints(true);
 		transactionSource.setStartFromEarliest();
@@ -102,7 +102,7 @@ public class KafkaItemTransactionJob extends ItemTransactionJob {
 		// Query output is written back to kafka in a tab delimited format for readability
 		FlinkKafkaProducer<QueryResult> queryOutputSink = new FlinkKafkaProducer<>(
 				params.getRequired(QUERY_OUTPUT_TOPIC_KEY), new QueryResultSchema(),
-				Utils.readKafkaProperties(params),
+				Utils.readKafkaProperties(params, false),
 				Optional.of(new HashingKafkaPartitioner<>()));
 
 		queryResultStream

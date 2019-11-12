@@ -38,6 +38,9 @@ public class Utils {
 		if (consumer) {
 			properties.put(ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG,
 					"com.hortonworks.smm.kafka.monitoring.interceptors.MonitoringConsumerInterceptor");
+		} else {
+			properties.put(ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG,
+					"com.hortonworks.smm.kafka.monitoring.interceptors.MonitoringProducerInterceptor");
 		}
 
 		for (String key : params.getProperties().stringPropertyNames()) {

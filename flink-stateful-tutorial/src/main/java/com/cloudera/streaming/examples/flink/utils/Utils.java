@@ -20,6 +20,7 @@ package com.cloudera.streaming.examples.flink.utils;
 
 import org.apache.flink.api.java.utils.ParameterTool;
 
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +34,8 @@ public class Utils {
 
 	public static Properties readKafkaProperties(ParameterTool params) {
 		Properties properties = new Properties();
+		properties.put(ConsumerConfig.INTERCEPTOR_CLASSES_CONFIG,
+				"com.hortonworks.smm.kafka.monitoring.interceptors.MonitoringConsumerInterceptor");
 
 		for (String key : params.getProperties().stringPropertyNames()) {
 			if (key.startsWith(KAFKA_PREFIX)) {

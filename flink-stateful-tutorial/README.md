@@ -60,6 +60,7 @@ abstract DataStream<Query> readQueryStream(...);
 abstract DataStream<ItemTransaction> readTransactionStream(...);
 abstract void writeQueryOutput(...);
 abstract void writeTransactionResults(...);
+abstract void writeTransactionSummaries(...);
 // ...
 ```
 
@@ -67,7 +68,7 @@ This way our production job will simply be a subclass of `ItemTransactionJob` an
 
 To run the actual application we need to call the `createApplicationPipeline(parameters)` which will return an instance of `StreamExecutionEnvironment` that we can `.execute(...)`.
 
-The main method (entrypoint for the Flink client) in the `KafkaItemTransactionJob` is implemented to leverage this simple pattern:
+The `main` method (entrypoint for the Flink client) in the `KafkaItemTransactionJob` is implemented to leverage this simple pattern:
 
 ```java
 public static void main(String[] args) throws Exception {
@@ -83,7 +84,7 @@ In addition to factoring the core logic into its own class we also use the `Para
 
 `ParameterTool params = ParameterTool.fromPropertiesFile(args[0]);`
 
-As we can see here we parse the properties file under the provided path into the ParameterTool object. This object can now be safely used by our function implementations.
+As we can see here we parse the properties file under the provided path into the `ParameterTool` object. This object can now be safely used by our function implementations.
 
 ### Inventory management and query logic <a name="mgmt-logic"></a>
 
@@ -100,17 +101,17 @@ We use the following simple POJO types to capture our data structure. Notice tha
  - `TransactionResult` : (ItemTransaction transaction, boolean success)
  - `QueryResult` : (long queryId, ItemInfo itemInfo)
 
-Both `ItemTransaction` and `ItemQuery` requests need access to the current item state so we need to process them in a single operator as we cannot share the state between multiple operators in Flink.
+Both `ItemTransaction` and `Query` requests need access to the current item state so we need to process them in a single operator as we cannot share the state between multiple operators in Flink.
 
 To process multiple input streams in a single operator we can either `union` them if they are the same data type or `connect` them to create `ConnectedStream` which allows us to handle the input of the connected streams independently of each other. In our case we have 2 different types and we want to separate the transaction and querying logic so we use `connect`.
 
-We connect the `ItemTransaction` and `ItemQuery` streams after applying `.keyBy("itemId")` on both of them which partitions the streams according to their itemId and allows us to use keyed states in our processing operator. We implement the operator logic in a `CoProcessFunction` which allows us to access state and also exposes some lower level functionality like side-outputs to let us send 2 output streams to separete transaction and query results nicely.
+We connect the `ItemTransaction` and `Query` streams after applying `.keyBy("itemId")` on both of them which partitions the streams according to their `itemId` and allows us to use keyed states in our processing operator. We implement the operator logic in a `KeyedCoProcessFunction` (implemented by `TransactionProcessor`), which allows us to access state and also exposes some lower level functionality like side-outputs to let us send 2 output streams to separete transaction and query results nicely.
 
-Note that we assigned a uid to the operator by calling `.uid("Transaction Processor")`. This is makes it possible for Flink to restore the state of the operator from the checkpoint even if the processing pipeline changes. It is very important to always assign unique uids to stateful operators.
+Note that we assigned a uid to the operator by calling `.uid("Transaction Processor")`. This makes it possible for Flink to restore the state of the operator from the checkpoint even if the processing pipeline changes. It is very important to always assign unique uids to stateful operators.
 
 #### TransactionProcessor
 
-In our `CoProcessFunction` the `processElement1` method takes care of applying or rejecting new transactions on our inventory state and `processElement2` simply reads this state to serve queries.
+In our `KeyedCoProcessFunction` the `processElement1` method takes care of applying or rejecting new transactions on our inventory state and `processElement2` simply reads this state to serve queries.
 
 The main output type of the function is `TransactionResult` which will populate the output `DataStream` of our operator (named `processedTransactions` in our pipeline) and we use `QUERY_RESULT` OutputTag to produce a side output stream of the query results. The side output is later accessible by calling `.getSideOutput(QUERY_RESULT)` on the operator.
 
@@ -122,7 +123,7 @@ The `ItemInfo` state is created during the operator initializaiton step in the `
 
 As we have seen earlier the `KafkaItemTransactionJob` extends our abstract `ItemTransactionJob` and implements the Kafka wiring logic to read the query and transactions streams and to write the outputs at the end.
 
-It expects the following parameters configured in our properties file:
+It expects the following parameters configured in our properties file (`config/job.properties`):
 ```
 kafka.bootstrap.servers=<your_broker_1>:9092,<your_broker_2>:9092,<your_broker_3>:9092
 kafka.group.id=flink
@@ -152,21 +153,21 @@ transactionSource.setCommitOffsetsOnCheckpoints(true);
 transactionSource.setStartFromEarliest();
 ```
 
-The FlinkKafkaConsumer can be created with a few different constructors, in our case we provide:
+The `FlinkKafkaConsumer` can be created with a few different constructors, in our case we provide:
  1. Topic to consume
  2. Schema implementation that provides the message deserialization format
  3. Consumer properties
 
-For ItemTransactions we use the custom `TransactionSchema` implementation that serializers the records in a tab delimited text format for readability. We will use the same schema in our data generator job later to write to the kafka topic.
+For `ItemTransactions` we use the custom `TransactionSchema` implementation that serializers the records in a tab delimited text format for readability. We will use the same schema in our data generator job later to write to the kafka topic.
 
-For Query inputs we use the built in `SimpleStringSchema` that can be used to read String data from kafka.
+For `Query` inputs we use the built in `SimpleStringSchema` that can be used to read String data from Kafka.
 
-We created a simple utility class to generate the consumer properties based on our input properties (it extracts props with kafka. prefix):
+We created a simple utility class to generate the consumer properties based on our input properties (it extracts props with `kafka.` prefix):
  - `group.id=...` : *REQUIRED*
  - `bootstrap.servers=...` : *REQUIRED*
- - `flink.partition-discovery.interval-millis=60000` : Used by flink to control how often the consumed topics are checked for new partitions. (Disabled by default)
+ - `flink.partition-discovery.interval-millis=60000` : Used by Flink to control how often the consumed topics are checked for new partitions. (Disabled by default)
 
-Flink relies on its own consumer offset management when consuming kafka messages. The `.setCommitOffsetsOnCheckpoints(true)` tells the consumer to commit offsets on Flink checkpoints so other tools can track the consumed messages.
+Flink relies on its own consumer offset management when consuming Kafka messages. The `.setCommitOffsetsOnCheckpoints(true)` tells the consumer to commit offsets on Flink checkpoints so other tools can track the consumed messages.
 
 Finally we set the consumer start offset that takes effect when the job is started for the first time (no checkpoint present). When a job is restored from a checkpoints or recovers after a failure it will always continue exactly where it left off.
 
@@ -185,17 +186,17 @@ FlinkKafkaProducer<QueryResult> queryOutputSink = new FlinkKafkaProducer<>(
 We specify the following constructor parameters:
 
  1. Default producer topic (can be set dynamically from the schema if needed)
- 2. Serialization schema for the QueryResults objects
+ 2. Serialization schema for the `QueryResults` objects
  3. Producer properties
  4. Partitioner for the kafka messages
 
-The `QueryResultSchemae` provides simple tab delimited format for the messages and we use the queryId as the key for the kafka records.
+The `QueryResultSchema` provides simple tab delimited format for the messages and we use the queryId as the key for the kafka records.
 
 For the producer properties we set the following 2 parameters:
  - `bootstrap.servers=...` : *REQUIRED*
  - `retries=3` : Let the producer retry failed messages up to 3 times before failing the job. This is useful in production environment where broker changes are expected.
 
-We use a custom Kafka partitioner that will ensure that queryResult messages are partitioned according to their queryIds which would allow us to create a nicely scalable querying service.
+We use a custom Kafka partitioner that will ensure that `QueryResult` messages are partitioned according to their `queryId`s which would allow us to create a nicely scalable querying service.
 
 ### Windowed transaction summaries <a name="windowing"></a>
 
@@ -209,7 +210,7 @@ processedTransactions
          .filter(new SummaryAlertingCondition(params));
 ```
 
-By using the standard windowing API we can transparently switch between event and processing time by setting the TimeCharacteristics on the StreamExecutionEnvironment.
+By using the standard windowing API we can transparently switch between event and processing time by setting the `TimeCharacteristics` on the `StreamExecutionEnvironment`.
 
 ## Testing and validating our pipeline <a name="testing"></a>
 
@@ -278,7 +279,7 @@ After running our test logic we call `JobTester.stopTest()` to shut down all the
 
 ### Socket Transaction Processor Job
 
-We can also do a more interactive local testrun of our application by executing the `com.cloudera.streaming.examples.flink.SocketTransactionProcessorJob` class. It is contained in the test package to bundle all the necessary runtime deployments.
+We can also do a more interactive local test run of our application by executing the `com.cloudera.streaming.examples.flink.SocketTransactionProcessorJob` class. It is contained in the test package to bundle all the necessary runtime deployments.
 
 This job will take it's input from a local text socket and will run in our IDE, producing the output to the console.
 Before we execute the code we should start the local socket at port `9999`:
@@ -368,15 +369,15 @@ We can round this up to 1GB to be on the even safer side. This means if we split
 
 #### RocksDB state backend for larger state
 
-By default flink jobs use the Heap state backend to store key-value states. This means all data will be stored in deserialized form on the java heap. If memory permits this is very efficient but in many cases the state won't fit in main memory and we need to spill to disk.
+By default Flink jobs use the Heap state backend to store key-value states. This means all data will be stored in deserialized form on the java heap. If memory permits this is very efficient but in many cases the state won't fit in main memory and we need to spill to disk.
 
 The RocksDB statebackend stores key-value states in embedded RocksDB instances, seamlessly spilling from memory to disk when necessary. In contrast with the Heap statebackend, RocksDB doesn't use the java heap but keeps data in native memory. This is important when configuring the memory settings for our taskmanagers:
 
 `TaskManager container size = TaskManager heap size + Containerized heap cutoff`
 
-The default value for `containerized.heap-cutoff-ratio` is 0.25 which means that only 25% of the container memory is allocated for non-heap usage. While for regular flink apps this is plenty, once we enable rocks db we have to increase this ratio to 0.5 - 0.9 depending on our total container size (and heap usage) to give enough memory for RocksDB.
+The default value for `containerized.heap-cutoff-ratio` is 0.25 which means that only 25% of the container memory is allocated for non-heap usage. While for regular Flink apps this is plenty, once we enable rocks db we have to increase this ratio to 0.5 - 0.9 depending on our total container size (and heap usage) to give enough memory for RocksDB.
 
-To enable RocksDB we should set the following flink config parameters:
+To enable RocksDB we should set the following Flink config parameters:
 ```
 state.backend = ROCKSDB
 containerized.heap-cutoff-ratio = 0.5 - 0.9

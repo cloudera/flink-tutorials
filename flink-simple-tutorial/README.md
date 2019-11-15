@@ -28,8 +28,8 @@ The tutorial demonstrates:
 ## Build
 Check out the repository and build the artifact:
 ```
-git clone https://github.infra.cloudera.com/morhidi/flink-ref.git
-cd flink-ref/flink-simple-tutorial
+git clone https://github.com/cloudera/flink-tutorials.git
+cd flink-tutorials/flink-simple-tutorial
 mvn clean package
 ```
 
@@ -59,7 +59,7 @@ Our Heap monitoring appliction will have 4 structural components:
 
 A Flink application has to define a main class that will be executed on the client side on job submission. The main class will define the application pipeline that is going to be executed on the cluster.
 
-Our main class is the `HeapMonitorPipeline` which contains a main method like any standard Java application. The arguments passed to our main method will be determined by us when we use the flink client. We use the  `ParameterTool` utility to conveniently pass parameters to our job that we can use in our operator implementations.
+Our main class is the `HeapMonitorPipeline` which contains a main method like any standard Java application. The arguments passed to our main method will be determined by us when we use the Flink client. We use the  `ParameterTool` utility to conveniently pass parameters to our job that we can use in our operator implementations.
 
 At first we create the `StreamExecutionEnvironment` which can be used to create DataStreams and to configure important job parameters such as checkpointing behaviour to guarantee data consistency for our application.
 
@@ -82,28 +82,28 @@ The `HeapMetrics` class has a few key properties that make it efficiently serial
 
 1. It is public and standalone class (no non-static inner class)
 2. It has a public empty constructor
-3. All fields are public non final
+3. All fields are public non-final
 
-These classes are called POJOs in the Flink community. It is possible to structure the class differently by keeping the same serialization properties, for the exact rules please refer to the docs: https://ci.apache.org/projects/flink/flink-docs-stable/dev/types_serialization.html#rules-for-pojo-types
+These classes are called POJOs (Plain Old Java Objects) in the Flink community. It is possible to structure the class differently by keeping the same serialization properties, for the exact rules please refer to the docs: https://ci.apache.org/projects/flink/flink-docs-stable/dev/types_serialization.html#rules-for-pojo-types
 
-Now that we have our record class we need to produce a `DataStream<HeapMetrics>` of the heap information by adding a source to our StreamExecutionEnvironment. Flink comes with a wide variety of built-in sources for different input connectors, but in our case we will build a custom source that collects heap statistics from the host JVM.
+Now that we have our record class we need to produce a `DataStream<HeapMetrics>` of the heap information by adding a source to our `StreamExecutionEnvironment`. Flink comes with a wide variety of built-in sources for different input connectors, but in our case we will build a custom source that collects heap statistics from the host JVM.
 The `HeapMonitorSource` class extends the `RichParallelSourceFunction<HeapMetrics>` abstract class which allows us to use it as a data source.
 
 Let's take a closer look at this class:
 
-- Every Flink source must implement the `SourceFunction` interface which at it's core provides 2 methods that will be called by the Flink runtime during cluster execution:
- - `run(SourceContext)`: This method should contain the data producer loop. Once it finishes the source shuts down.
- - `cancel()`: This method is called if the source should terminate before it is finished, i.e. break out early from the `run` method
+- Every Flink source must implement the `SourceFunction` interface, which, at it's core, provides 2 methods that will be called by the Flink runtime during cluster execution:
+  - `run(SourceContext)`: This method should contain the data producer loop. Once it finishes the source shuts down.
+  - `cancel()`: This method is called if the source should terminate before it is finished, i.e. break out early from the `run` method
 
 - The `RichParallelSourceFunction` extends the basic `SourceFunction` behaviour in 2 important ways:
- - It extends the `ParallelSourceFunction`, allowing Flink to create multiple instances of the source logic. One per parallel task instance.
- - It extends the `RichFunction` abstract class which allows the implementation to access runtime information such as parallelism and subtask index that we will leverage in our source implementation.
+  - It extends the `ParallelSourceFunction`, allowing Flink to create multiple instances of the source logic. One per parallel task instance.
+  - It extends the `RichFunction` abstract class which allows the implementation to access runtime information such as parallelism and subtask index that we will leverage in our source implementation.
 
 Our source will continuously poll the heap memory usage of this application and output it along with some task related information producing the datastream.
 
 ### Computing GC warnings and heap alerts
 
-The core data processing logic is encapsulated in the `HeapMonitorPipeline.computeHeapAlerts(DataStream<HeapMetrics> statsInput, ParameterTool params)` method that takes as input the strean of heap information and should produce a stream of alerts when the conditions are met.
+The core data processing logic is encapsulated in the `HeapMonitorPipeline.computeHeapAlerts(DataStream<HeapMetrics> statsInput, ParameterTool params)` method that takes as input the stream of heap information and should produce a stream of alerts when the conditions are met.
 
 The reason for structuring the code this way is to make our pipeline easily testable later by replacing our production data source with the test data stream.
 
@@ -111,7 +111,7 @@ The core alerting logic is implemented in the `AlertingFunction` class. It is a 
 
 ## Running the application from IntelliJ
 
-The tutorial application is based on the upstream Flink quickstart maven archetype. The project can be imported into IntelliJ by following the instructions from the public Flink documentation:
+The tutorial application is based on the upstream Flink quickstart Maven archetype. The project can be imported into IntelliJ by following the instructions from the public Flink documentation:
 https://ci.apache.org/projects/flink/flink-docs-stable/dev/projectsetup/java_api_quickstart.html#maven
 
 In order to run applications directly from the IDE you must enable the `add-dependencies-for-IDEA` profile, to ensure that provided dependencies that would be otherwise supplied by the runtime environment are available here.
@@ -174,7 +174,7 @@ The business logic of a Flink application consists of one or more operators chai
 A simple JUnit test was written to verify our core application logic. The test is implemented in the `HeapMonitorPipelineTest` and should be regarded as an integration test of the application flow. Even though this pipeline is very simple we can later use the same idea to test more complex application flows.
 
 Our test mimics our application main class with only minor differences:
-1. We create the `StreamExecutionEnvironment` the same ways
+1. We create the `StreamExecutionEnvironment` in the same way
 2. Instead of using our source implementation we will use the `env.fromElements(..)` method to pre-populate a `DataStream` with some testing data.
 3. We feed this data to our static data processing logic like before.
 4. Instead of writing the output anywhere we verify the correctness once the pipeline finished.
@@ -202,11 +202,11 @@ flink run -m yarn-cluster -d -p 2 -ynm HeapMonitor target/flink-simple-tutorial-
 After launching the application Flink will create a YARN session and launch a dashboard where the application can be monitored. The Flink dashbord can be reached from CM through the following path:
 `Cluster->Yarn->Applications->application_<ID>->Tracking URL:ApplicationMaster`.
 
-![YarnApp](images/YarnApp.png "The Flink application webdashboard is accessible from YARN.")
+![YarnApp](images/YarnApp.png "The Flink application web dashboard is accessible from YARN.")
 
-Following through this link we can access the Flink application master webdashboard. On the dashboard we can choose the TaskManagers tab on the left navigation pane to gain access to the logs.
+Following through this link we can access the Flink application master web dashboard. On the dashboard we can choose the TaskManagers tab on the left navigation pane to gain access to the logs.
 
-![TaskLogs](images/TaskLogs.png "The logs are accesible on the TaskManager pane of the webdashboard.")
+![TaskLogs](images/TaskLogs.png "The logs are accesible on the TaskManager pane of the web dashboard.")
 
 In this case we have actually run the application with the default `log4j.configuration` controlled by CM and not with the one we have used locally in our IDE.
 
@@ -217,9 +217,15 @@ Log messages from a Flink application can be also collected and forwarded to a K
 -yD log4j.configuration.file=kafka-appender/log4j.properties
 ```
 
+You'll need to edit the `kafka-appender/log4j.properties` file and replace the placeholders in the line below with the details of your Kafka brokers:
+
+```
+log4j.appender.kafka.brokerList=<your_broker_1>:9092,<your_broker_2>:9092,<your_broker_3>:9092
+```
+
 By default we are using the `flink-heap-alerts` Kafka topic for tracking the alerts. You can create this topic as follows:
 ```
-kafka-topics --create --partitions 16 --replication-factor 1 --zookeeper <your_zookeeper>:2181 --topic flink-heap-alerts```
+kafka-topics --create --partitions 16 --replication-factor 1 --zookeeper <your_zookeeper>:2181 --topic flink-heap-alerts
 ```
 
 An example for the full command with Kafka logging:

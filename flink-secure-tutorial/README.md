@@ -41,8 +41,8 @@ With this example we are focusing on how to handle authentication and encryption
 
 After cloning an building the project,
 ```
-> git clone https://github.infra.cloudera.com/morhidi/flink-ref.git
-> cd flink-sec-tutorial
+> git clone https://github.com/cloudera/flink-tutorials.git
+> cd flink-tutorials/flink-secure-tutorial
 > mvn clean package
 > cd target
 ```
@@ -171,7 +171,7 @@ Any number of kafka connector properties can be added to the command dynamically
 ```
 Please note that the trustore given for the Kafka connector is different from the one we generated for Flink internal encryption above. This is the truststore we need to access the TLS protected Kafka endpoint.
 
-The keytab and the keystore files that are referred as ```-yD security.kerberos.login.keytab=test.keytab``` and ```-yt keystore.jks``` respectively are distributed automatically to the YARN container's temporary folder on the remote hosts. These properties are user specific, thus usually cannot be added to default Flink configuration unless a single technical user us used to submit the flink jobs.  If there is a dedicated technical user for submitting Flink jobs on a cluster the keytab and keystore files can be provisioned to the YARN hosts in advance and related configuration params can be set globally in CM using Safety Valves.
+The keytab and the keystore files that are referred as ```-yD security.kerberos.login.keytab=test.keytab``` and ```-yt keystore.jks``` respectively are distributed automatically to the YARN container's temporary folder on the remote hosts. These properties are user specific, thus usually cannot be added to default Flink configuration unless a single technical user us used to submit the Flink jobs.  If there is a dedicated technical user for submitting Flink jobs on a cluster the keytab and keystore files can be provisioned to the YARN hosts in advance and related configuration params can be set globally in CM using Safety Valves.
 
 For further reading check related chapters from **Flink Security Documentation**:
 Check the [Kerberos](https://ci.apache.org/projects/flink/flink-docs-release-1.9/ops/security-kerberos.html) and [TLS](https://ci.apache.org/projects/flink/flink-docs-release-1.9/ops/security-ssl.html) topics from upstream Flink documentation for further details. Kafka connector related security settings can be also accessed [here](https://ci.apache.org/projects/flink/flink-docs-release-1.9/dev/connectors/kafka.html#enabling-kerberos-authentication-for-versions-09-and-above-only).
@@ -311,7 +311,7 @@ Here are some sample commands which can be useful for preparing your CDH/CDP env
 
 ### Kerberos related commands
 
-Creating a *test* user for submitting flink jobs using **kadmin.local** in the local Kerberos server:
+Creating a *test* user for submitting Flink jobs using **kadmin.local** in the local Kerberos server:
 
 ```
 > kadmin.local

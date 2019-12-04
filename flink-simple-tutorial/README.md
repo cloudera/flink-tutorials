@@ -196,7 +196,7 @@ The Flink tutorial Application can be deployed on a CDH cluster remotely. The ac
 After you have [built](#Build) the project run the application from a Flink GateWay node:
 
 ```
-flink run -m yarn-cluster -d -p 2 -ynm HeapMonitor target/flink-simple-tutorial-1.0-SNAPSHOT.jar
+flink run -m yarn-cluster -d -p 2 -ynm HeapMonitor target/flink-simple-tutorial-1.0-beta.jar
 ```
 
 After launching the application Flink will create a YARN session and launch a dashboard where the application can be monitored. The Flink dashbord can be reached from CM through the following path:
@@ -230,7 +230,7 @@ kafka-topics --create --partitions 16 --replication-factor 1 --zookeeper <your_z
 
 An example for the full command with Kafka logging:
 ```
-flink run -m yarn-cluster -yD log4j.configuration.file=kafka-appender/log4j.properties -d -p 2 -ynm HeapMonitor target/flink-simple-tutorial-1.0-SNAPSHOT.jar
+flink run -m yarn-cluster -yD log4j.configuration.file=kafka-appender/log4j.properties -d -p 2 -ynm HeapMonitor target/flink-simple-tutorial-1.0-beta.jar
 ```
 
 Accessing the logs from the Kafka topic is possible then with:
@@ -260,7 +260,7 @@ By default the output files will be stored under `hdfs:///tmp/flink-heap-stats`,
 logging to Kafka is:
 
 ```
-flink run -m yarn-cluster -yD log4j.configuration.file=kafka-appender/log4j.properties -d -p 2 -ynm HeapMonitor target/flink-simple-tutorial-1.0-SNAPSHOT.jar --cluster true
+flink run -m yarn-cluster -yD log4j.configuration.file=kafka-appender/log4j.properties -d -p 2 -ynm HeapMonitor target/flink-simple-tutorial-1.0-beta.jar --cluster true
 ```
 
 To inspect the output we can call `hdfs` directly:

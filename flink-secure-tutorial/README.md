@@ -50,7 +50,7 @@ on **non-secured** CDH/CDP clusters the quick start application would be submitt
 
 ```
 flink run -m yarn-cluster -d -p 2 \
-flink-sec-tutorial-1.0-SNAPSHOT.jar \
+flink-sec-tutorial-1.0-beta.jar \
 --kafka.bootstrap.servers <hostname>:9093 \
 --kafkaTopic flink \
 --hdfsOutput hdfs:///tmp/flink-sec-tutorial
@@ -121,7 +121,7 @@ When Flink applications are running on CDH/CDP clusters, Flink’s web dashboard
   -yD security.ssl.internal.truststore=keystore.jks \
   -yD security.ssl.internal.truststore-password=`cat pwd.txt` \
   -yt keystore.jks \
-  flink-sec-tutorial-1.0-SNAPSHOT.jar \
+  flink-sec-tutorial-1.0-beta.jar \
   --kafkaTopic flink \
   --hdfsOutput hdfs:///tmp/flink-sec-tutorial \
   --kafka.bootstrap.servers <hostname>:9093 \
@@ -192,7 +192,7 @@ flink run -m yarn-cluster -d -p 2 \
 -yD security.ssl.internal.truststore-password=`cat pwd.txt` \
 -yt keystore.jks \
 -yt application.properties \
-flink-sec-tutorial-1.0-SNAPSHOT.jar \
+flink-sec-tutorial-1.0-beta.jar \
 --properties.file application.properties
 ```
 

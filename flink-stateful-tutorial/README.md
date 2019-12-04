@@ -396,7 +396,7 @@ We first need to build a fatjar of our application by using:
 mvn clean package
 ```
 
-If all run correctly the jar is located under `target/flink-stateful-tutorial-1.0-beta.jar`.
+If all run correctly the jar is located under `target/flink-stateful-tutorial-1.1-SNAPSHOT.jar`.
 
 Now it's time to copy our jar and job configuration located under `config/job.properties` to our cluster.
 
@@ -418,7 +418,7 @@ Starting the streaming job to generate transaction data
 kafka-topics --create --partitions 16 --replication-factor 1 --zookeeper <your_zookeeper>:2181 --topic transaction.log.1
 
 # Run the data generator job
-flink run -m yarn-cluster -d -p 2 -ys 2 -ynm DataGenerator -c com.cloudera.streaming.examples.flink.KafkaDataGeneratorJob target/flink-stateful-tutorial-1.0-beta.jar config/job.properties
+flink run -m yarn-cluster -d -p 2 -ys 2 -ynm DataGenerator -c com.cloudera.streaming.examples.flink.KafkaDataGeneratorJob target/flink-stateful-tutorial-1.1-SNAPSHOT.jar config/job.properties
 ```
 
 We can now check the configured kafka topic for the generated transaction data stream from the command line:
@@ -432,7 +432,7 @@ kafka-console-consumer --bootstrap-server <your_broker_1>:9092 --topic transacti
 Now that we have a transaction input stream in the `transaction.log.1` topic we can deploy our transaction processor job.
 
 ```
-flink run -m yarn-cluster -d -p 8 -ys 4 -ytm 1500 -ynm TransactionProcessor target/flink-stateful-tutorial-1.0-beta.jar config/job.properties
+flink run -m yarn-cluster -d -p 8 -ys 4 -ytm 1500 -ynm TransactionProcessor target/flink-stateful-tutorial-1.1-SNAPSHOT.jar config/job.properties
 ```
 
 *If the deployment hangs, make sure that **yarn.scheduler.maximum-allocation-vcores** is set to at least 4 in the YARN configuration for the cluster*
@@ -470,5 +470,5 @@ flink savepoint -m yarn-cluster -yid yarnAppID flinkJobId
 *Restoring from a savepoint*
 
 ```
-flink run -m yarn-cluster -d -p 8 -ys 4 -ytm 1500 -ynm TransactionProcessor -s hdfs://savepointpath target/flink-stateful-tutorial-1.0-beta.jar config/job.properties
+flink run -m yarn-cluster -d -p 8 -ys 4 -ytm 1500 -ynm TransactionProcessor -s hdfs://savepointpath target/flink-stateful-tutorial-1.1-SNAPSHOT.jar config/job.properties
 ```

@@ -34,7 +34,6 @@ under the License.
 		<scala.binary.version>2.11</scala.binary.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
-		<smm.version>2.1.0.2.0.0.0-135</smm.version>
 	</properties>
 
 	<repositories>
@@ -49,11 +48,6 @@ under the License.
 	</repositories>
 
 	<dependencies>
-		<dependency>
-			<groupId>com.hortonworks.smm</groupId>
-			<artifactId>monitoring-interceptors</artifactId>
-			<version>${smm.version}</version>
-		</dependency>
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-java</artifactId>

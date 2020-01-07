@@ -225,13 +225,17 @@ log4j.appender.kafka.brokerList=<your_broker_1>:9092,<your_broker_2>:9092,<your_
 
 By default we are using the `flink-heap-alerts` Kafka topic for tracking the alerts. You can create this topic as follows:
 ```
-kafka-topics --create --partitions 16 --replication-factor 1 --zookeeper <your_zookeeper>:2181 --topic flink-heap-alerts
+kafka-topics --create --partitions 16 --replication-factor 1 --zookeeper $(hostname -f):2181/kafka --topic flink-heap-alerts
 ```
+Note: In the above command `$(hostname -f)` assumes that you are running Zookeeper on the Flink Gateway node. If you are running it on a different node, simply replace it with your Zookeeper's hostname.
 
 An example for the full command with Kafka logging:
 ```
 flink run -m yarn-cluster -yD log4j.configuration.file=kafka-appender/log4j.properties -d -p 2 -ynm HeapMonitor target/flink-simple-tutorial-1.1-SNAPSHOT.jar
 ```
+Note: in the CSA 1.1.0.0 release the `org.apache.kafka.log4jappender.KafkaLog4jAppender` class is not present on the TaskManagers' classpath. As a workaround in the [log4j.properties](kafka-appender/log4j.properties) file we referenced the `com.cloudera.kafka.log4jappender.KafkaLog4jAppender` class which is being shipped with CDPD.
+
+As referencing a custom jar in Flink is a common use-case, it's worth mentioning that alternatively we could append `--yarnship /opt/cloudera/parcels/CDH/jars/kafka-log4j-appender-2.3.0.7.0.3.0-86.jar` to shade the Apache version of kafka-log4j-appender with Cloudera's version on each Taskmanagers' classpath.
 
 Accessing the logs from the Kafka topic is possible then with:
 ```

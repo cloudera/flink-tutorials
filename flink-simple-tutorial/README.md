@@ -196,7 +196,7 @@ The Flink tutorial Application can be deployed on a CDPD cluster remotely. The a
 After you have [built](#Build) the project run the application from a Flink GateWay node:
 
 ```
-flink run -m yarn-cluster -d -p 2 -ynm HeapMonitor target/flink-simple-tutorial-1.1-SNAPSHOT.jar
+flink run --jobmanager yarn-cluster --detached --parallelism 2 --yarnname HeapMonitor target/flink-simple-tutorial-1.1-SNAPSHOT.jar
 ```
 
 After launching the application Flink will create a YARN session and launch a dashboard where the application can be monitored. The Flink dashboard can be reached from CM through the following path:
@@ -214,7 +214,7 @@ In this case we have actually run the application with the default `log4j.config
 Log messages from a Flink application can be also collected and forwarded to a Kafka topic for convenience. This requires only a few extra configuration steps and dependencies in Flink. The default log4j config can be overridden with a command parameter:
 
 ```
--yD log4j.configuration.file=kafka-appender/log4j.properties
+--yarnconf log4j.configuration.file=kafka-appender/log4j.properties
 ```
 
 You'll need to edit the `kafka-appender/log4j.properties` file and replace the placeholders in the line below with the details of your Kafka brokers:
@@ -231,7 +231,12 @@ Note: In the above command `$(hostname -f)` assumes that you are running Zookeep
 
 An example for the full command with Kafka logging:
 ```
-flink run -m yarn-cluster -yD log4j.configuration.file=kafka-appender/log4j.properties -d -p 2 -ynm HeapMonitor target/flink-simple-tutorial-1.1-SNAPSHOT.jar
+flink run --jobmanager yarn-cluster \
+          --yarnconf log4j.configuration.file=kafka-appender/log4j.properties \
+          --detached  \
+          --parallelism 2 \
+          --yarnname HeapMonitor \
+          target/flink-simple-tutorial-1.1-SNAPSHOT.jar
 ```
 Note: in the CSA 1.1.0.0 release the `org.apache.kafka.log4jappender.KafkaLog4jAppender` class is not present on the TaskManagers' classpath. As a workaround in the [log4j.properties](kafka-appender/log4j.properties) file we referenced the `com.cloudera.kafka.log4jappender.KafkaLog4jAppender` class which is being shipped with CDPD.
 
@@ -264,7 +269,13 @@ By default the output files will be stored under `hdfs:///tmp/flink-heap-stats`,
 logging to Kafka is:
 
 ```
-flink run -m yarn-cluster -yD log4j.configuration.file=kafka-appender/log4j.properties -d -p 2 -ynm HeapMonitor target/flink-simple-tutorial-1.1-SNAPSHOT.jar --cluster true
+flink run --jobmanager yarn-cluster \
+          --yarnconf log4j.configuration.file=kafka-appender/log4j.properties \
+          --detached  \
+          --parallelism 2 \
+          --yarnname HeapMonitor \
+          --cluster true \
+           target/flink-simple-tutorial-1.1-SNAPSHOT.jar
 ```
 
 To inspect the output we can call `hdfs` directly:
@@ -276,3 +287,8 @@ HeapMetrics{area=PS Eden Space, used=50399064, max=90701824, ratio=0.55565656540
 HeapMetrics{area=PS Survivor Space, used=903448, max=15728640, ratio=0.05743967692057292, jobId=1, hostname='<yourhostname>'}
 HeapMetrics{area=PS Old Gen, used=19907144, max=251658240, ratio=0.07910388310750326, jobId=1, hostname='<yourhostname>'}
 ```
+
+## Notes
+For the sake of readability and brevity the rest of the tutorial uses short command line parameters, i.e.
+* we write `flink run -m yarn-cluster -d -p 2 -ynm HeapMonitor target/flink-simple-tutorial-1.1-SNAPSHOT.jar`
+* instead of ``` flink run --jobmanager yarn-cluster --detached --parallelism 2 --yarnname HeapMonitor target/flink-simple-tutorial-1.1-SNAPSHOT.jar```

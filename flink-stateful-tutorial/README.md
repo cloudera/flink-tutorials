@@ -105,7 +105,7 @@ Both `ItemTransaction` and `Query` requests need access to the current item stat
 
 To process multiple input streams in a single operator we can either `union` them if they are the same data type or `connect` them to create `ConnectedStream` which allows us to handle the input of the connected streams independently of each other. In our case we have 2 different types and we want to separate the transaction and querying logic so we use `connect`.
 
-We connect the `ItemTransaction` and `Query` streams after applying `.keyBy("itemId")` on both of them which partitions the streams according to their `itemId` and allows us to use keyed states in our processing operator. We implement the operator logic in a `KeyedCoProcessFunction` (implemented by `TransactionProcessor`), which allows us to access state and also exposes some lower level functionality like side-outputs to let us send 2 output streams to separete transaction and query results nicely.
+We connect the `ItemTransaction` and `Query` streams after applying `.keyBy("itemId")` on both of them which partitions the streams according to their `itemId` and allows us to use keyed states in our processing operator. We implement the operator logic in a `KeyedCoProcessFunction` (implemented by `TransactionProcessor`), which allows us to access state and also exposes some lower level functionality like side-outputs to let us send 2 output streams to separate transaction and query results nicely.
 
 Note that we assigned a uid to the operator by calling `.uid("Transaction Processor")`. This makes it possible for Flink to restore the state of the operator from the checkpoint even if the processing pipeline changes. It is very important to always assign unique uids to stateful operators.
 
@@ -117,7 +117,7 @@ The main output type of the function is `TransactionResult` which will populate 
 
 This pattern allows us to avoid using a union output type that we have to filter out downstream such as (`Either<TransactionResult, QUERY_RESULT>`)
 
-The `ItemInfo` state is created during the operator initializaiton step in the `open(...)` method and it is a simple `ValueState` object that allows us to store an `ItemInfo` instance per key (`itemId`).
+The `ItemInfo` state is created during the operator initialization step in the `open(...)` method and it is a simple `ValueState` object that allows us to store an `ItemInfo` instance per key (`itemId`).
 
 ### Setting up Kafka inputs and outputs <a name="kafka"></a>
 

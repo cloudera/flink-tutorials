@@ -240,7 +240,7 @@ flink run --jobmanager yarn-cluster \
 ```
 Note: in the CSA 1.1.0.0 release the `org.apache.kafka.log4jappender.KafkaLog4jAppender` class is not present on the TaskManagers' classpath. As a workaround in the [log4j.properties](kafka-appender/log4j.properties) file we referenced the `com.cloudera.kafka.log4jappender.KafkaLog4jAppender` class which is being shipped with CDPD.
 
-As referencing a custom jar in Flink is a common use-case, it's worth mentioning that alternatively we could append `--yarnship /opt/cloudera/parcels/CDH/jars/kafka-log4j-appender-2.3.0.7.0.3.0-86.jar` to shade the Apache version of kafka-log4j-appender with Cloudera's version on each Taskmanagers' classpath.
+As referencing a custom jar in Flink is a common use-case, it's worth mentioning that alternatively we could append `--yarnship /opt/cloudera/parcels/CDH/jars/kafka-log4j-appender-*.jar` to shade the Apache version of kafka-log4j-appender with Cloudera's version on each Taskmanagers' classpath.
 
 Accessing the logs from the Kafka topic is possible then with:
 ```

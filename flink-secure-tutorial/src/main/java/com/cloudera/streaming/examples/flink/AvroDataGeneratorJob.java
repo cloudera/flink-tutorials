@@ -19,7 +19,7 @@
 package com.cloudera.streaming.examples.flink;
 
 import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.flink.formats.avro.registry.cloudera.SchemaRegistrySerializationSchema;
+import org.apache.flink.formats.avro.registry.cloudera.ClouderaRegistryKafkaSerializationSchema;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.ParallelSourceFunction;
@@ -45,7 +45,7 @@ public class AvroDataGeneratorJob {
 		ParameterTool params = Utils.parseArgs(args);
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-		KafkaSerializationSchema<Message> schema = SchemaRegistrySerializationSchema.<Message>
+		KafkaSerializationSchema<Message> schema = ClouderaRegistryKafkaSerializationSchema.<Message>
 				builder(params.getRequired(K_KAFKA_TOPIC))
 				.setConfig(Utils.readSchemaRegistryProperties(params))
 				.setKey(Message::getId)

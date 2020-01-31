@@ -20,6 +20,9 @@ package com.cloudera.streaming.examples.flink;
 
 import org.apache.flink.api.java.utils.ParameterTool;
 
+import org.apache.flink.client.cli.CliFrontend;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.util.Preconditions;
 import org.apache.flink.util.encrypttool.EncryptTool;
 import org.slf4j.Logger;
@@ -113,12 +116,15 @@ public class Utils {
 
     public static String decrypt(String input) {
         Preconditions.checkNotNull(input, "key is null");
-        return EncryptTool.getInstance().decrypt(input);
+        return EncryptTool.getInstance(getConfiguration()).decrypt(input);
     }
 
+    public static Configuration getConfiguration() {
+        return ConfigHolder.INSTANCE;
+    }
 
-    public static void main(String[] args) throws IOException {
-        System.out.println(parseArgs(args));
+    private static class ConfigHolder {
+        static final Configuration INSTANCE = GlobalConfiguration.loadConfiguration(CliFrontend.getConfigurationDirectoryFromEnv());
     }
 
 }

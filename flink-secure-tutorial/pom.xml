@@ -167,7 +167,7 @@ under the License.
 							</filters>
 							<transformers>
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>com.cloudera.streaming.examples.flink.KafkaToHDFSSimpleJob</mainClass>
+									<mainClass>com.cloudera.streaming.examples.flink.RandomKafkaDataGeneratorJob</mainClass>
 								</transformer>
 							</transformers>
 						</configuration>

@@ -52,7 +52,7 @@ public class HeapMonitorPipelineTest {
         HeapMonitorPipeline.computeHeapAlerts(testInput, ParameterTool.fromArgs(new String[]{"--alertMask", alertMask}))
                 .addSink(new SinkFunction<HeapAlert>() {
                     @Override
-                    public void invoke(HeapAlert value) {
+                    public void invoke(HeapAlert value, Context context) {
                         testOutput.add(value);
                     }
                 })

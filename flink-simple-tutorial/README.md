@@ -62,11 +62,11 @@ The Heap Monitoring Application has four structural components:
 
 ## Application main class
 
-A Flink application has to define a main class that will be executed on the client side on job submission. The main class will define the application pipeline that is going to be executed on the cluster.
+A Flink application as any regular Java program has to define a class that is the entry point for the execution. This entry point is executed on the client side, reads the local configuration and assembles the Flink pipeline which is then submitted to the cluster for execution.
 
-Our main class is the `HeapMonitorPipeline` which contains a main method like any standard Java application. The arguments passed to our main method will be determined by us when we use the Flink client. We use the  `ParameterTool` utility to conveniently pass parameters to our job that we can use in our operator implementations.
+In our tutorial this entry point is the `HeapMonitorPipeline` class, which contains a main function like any standard Java application. The program arguments passed to the `flink run` command are received directly by this main method. To be able to conveniently name these arguments on the command line and pass them in any order we use the `ParameterTool` utility. 
 
-The first thing you need to do is to create `StreamExecutionEnvironment`. This class can be used to create datastreams and to configure important job parameters. For example, checkpointing behavior that guarantees data consistency for the application.
+The first thing you need to do is to create a `StreamExecutionEnvironment`. This class can be used to create datastreams and to configure important job parameters. For example, checkpointing behavior that guarantees data consistency for the application.
 
 ```java
 final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -87,9 +87,9 @@ The `HeapMetrics` class has a few key properties:
 2. It has a public empty constructor
 3. All fields are public non-final
 
-With these properties, the class is made to be efficiently serializable by the Flink type system.
+These classes are called POJOs (Plain Old Java Objects) in the Flink community. They are supported out of the box by Flink for serialization. As Flink is a distributed system transferring data between machines is a fundamental functionality and a potential performance bottleneck. 
 
-These classes are called POJOs (Plain Old Java Objects) in the Flink community. It is possible to structure the class differently by keeping the same serialization properties. For the exact rules, see the [upstream documentation](https://ci.apache.org/projects/flink/flink-docs-stable/dev/types_serialization.html#rules-for-pojo-types). 
+Consequently the community offers efficient serialization support for a range of commonly used types, while preserving flexibility for the user to choose to plug in their own serialization if needed, however we recommend to stick to the battle tested defaults. For the exact rules, see the [upstream documentation](https://ci.apache.org/projects/flink/flink-docs-stable/dev/types_serialization.html#rules-for-pojo-types). 
 
 Now that we have the record class, we need to produce a `DataStream<HeapMetrics>` of the heap information by adding a source to the `StreamExecutionEnvironment`. Flink comes with a wide variety of built-in sources for different input connectors, but in this case, we built a custom source that collects heap statistics from the host JVM.
 

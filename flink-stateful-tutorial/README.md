@@ -383,7 +383,7 @@ To fully control the resource utilization of the Flink job, we set the following
 Coming up with good resource parameters is a hard and usually iterative process that largely depends on the actual job. However, you can follow these guidelines:
 
 1. Estimate memory requirements based on state size and key cardinality.
-2. Start the job at moderate parallelism. A good number starting number would be the number of Kafka partitions, or our (data rate per sec) / 10-50k depending on the complexity of the job, whichever is smaller.
+2. Start the job at moderate parallelism. A good starting number would be the number of Kafka partitions, or our (data rate per sec) / 10-50k depending on the complexity of the job, whichever is smaller.
 3. Test the job at or over peak throughput and monitor backpressure and garbage collection
 4. Increase parallelism or memory if it's not enough, then go back to 3.
 
@@ -458,8 +458,11 @@ Let's start the streaming job to generate transaction data:
 
 ```
 # First create the kafka topic with 16 partitions
-kafka-topics --create --partitions 16 --replication-factor 1 --zookeeper <your_zookeeper>:2181 --topic transaction.log.1
+kafka-topics --create --partitions 16 --replication-factor 1 --zookeeper $(hostname -f):2181/kafka --topic transaction.log.1
+```
+Note: In the above command `$(hostname -f)` assumes that you are running Zookeeper on the Flink Gateway node. If you are running it on a different node, simply replace it with your Zookeeper's hostname.
 
+```
 # Run the data generator job
 flink run -m yarn-cluster -d -p 2 -ys 2 -ynm DataGenerator -c com.cloudera.streaming.examples.flink.KafkaDataGeneratorJob target/flink-stateful-tutorial-1.1-SNAPSHOT.jar config/job.properties
 ```
@@ -483,7 +486,9 @@ If the deployment hangs, make sure that `yarn.scheduler.maximum-allocation-vcore
 
 Once the job is up and running, we can look at the Flink UI and observe that the job does not run as fast as our data generator.
 
-By looking at the `numRecordsInPerSecond` metric at one of our transaction processor subtasks, we can see that each parallel instance processes around 30 000/sec totaling to about 240 000 item transactions per sec for the job.
+By looking at the `numRecordsInPerSecond` metric at one of our transaction processor we can see that the instance processes 1-2 records/sec, as the datagenerator with the default configurations produces at the rate of 10 records/sec and Flink tries to evenly distribute this workload between the 8 parallel processor instances.
+Based on the cluster's available resources though, we can easily go up to processing hundreds of thousands records per sec with the current deployment by either lowering the `sleep` value in `config/job.properties`,
+starting multiple data generator jobs or temporarily pausing the transaction processor and then resuming it to observe the processor instances churn through the accumulated records.
 
 On the back pressure page, we cannot see high back pressure reading at the source or downstream instances, so we can say with some confidence that we are probably bottlenecked at the Kafka consumer.
 

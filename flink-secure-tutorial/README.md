@@ -52,6 +52,8 @@ flink-sec-tutorial-1.1-SNAPSHOT.jar \
 ```
 As you will later see, enabling security features make the command a bit more complicated, and thus we will show every needed step to create the secured code for the Flink application.
 
+For information about Flink Security, see the [Security Overview](https://docs.cloudera.com/csa/1.1.0/security-overview/topics/csa-security.html) section in Cloudera Streaming Analytics document.
+
 **Note**
 For the sake of readability, the rest of the tutorial uses command line parameters in short form:
 - Long form
@@ -311,9 +313,6 @@ Password for hdfs@<hostname>:
 > hdfs dfs -mkdir /user/test
 > hdfs dfs -chown test:test /user/test
 ```
-
-**Note**
-In CDEP environments the superuser is the HDFS user, which is automatically created during cluster provisioning, the password is the default CDEP password.
 
 Creating the test user locally (should be added on each node):
 ```

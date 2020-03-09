@@ -1,15 +1,15 @@
 # Flink Application Tutorial for Secured CDP Data Center Clusters
 
 ## Table of Contents
- 1. [Overview](#secure-overview)
- 2. [Understanding Security Parameters](#understanding-security-parameters-)
+ 1. [Overview](#overview)
+ 2. [Understanding Security Parameters](#understanding-security-parameters)
      + [application.properties](#applicationproperties)
  3. [Complete Command including Security](#complete-command-including-security)
      + [Preparation](#preparation)
-     + [Steps to run the Secured Flink Quickstart Application:](#steps-to-run-the-secured-flink-quickstart-application-)
+     + [Steps to run the Secured Flink Quickstart Application](#steps-to-run-the-secured-flink-quickstart-application)
  4. [Kafka Metrics Reporter](#kafka-metrics-reporter)
  5. [Schema Registry Integration](#schema-registry-integration)
- 6. [Sample commands](#sample-command)
+ 6. [Sample commands](#sample-commands)
      + [Kerberos related commands](#kerberos-related-commands)
      + [Kafka related commands](#kafka-related-commands)
 
@@ -64,7 +64,7 @@ target/flink-simple-tutorial-1.1-SNAPSHOT.jar`
 `flink run -m yarn-cluster -d -p 2 -ynm HeapMonitor
 target/flink-simple-tutorial-1.1-SNAPSHOT.jar`
 
-## Understanding Security Parameters:
+## Understanding Security Parameters
 
 Authentication related configurations are defined as Flink command line parameters (-yD):
 
@@ -158,7 +158,7 @@ Flink has a built-in `ParameterTool` class to handle program arguments elegantly
   * Flink
 * Existing test user in the Kerberos realm and as local users on each cluster nodes. You can find some useful commands for fulfilling the prerequisites in a dedicated chapter [here](#sample-command).
 
-### Steps to run the Secured Flink Application Tutorial:
+### Steps to run the Secured Flink Application Tutorial
 
 1. For Kerberos authentication, generate a keytab file for the user intended to submit the Flink job. Keytabs can be generated with `ktutil` as the following example:
 

@@ -8,7 +8,7 @@
 5. [Application main class](#application-main-class)
     + [Creating the stream of heap metrics](#creating-the-stream-of-heap-metrics)
     + [Computing GC warnings and heap alerts](#computing-gc-warnings-and-heap-alerts)
-6. [Testing our data pipeline](#testing-our-data-pipeline)
+6. [Testing the data pipeline](#testing-the-data-pipeline)
     + [Producing test input](#producing-test-input)
     + [Collecting the test output](#collecting-the-test-output)
 7. [Running the application from IntelliJ](#running-the-application-from-intellij)

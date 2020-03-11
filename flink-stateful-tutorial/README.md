@@ -2,20 +2,20 @@
 
 ## Table of contents
 1. [Overview](#overview)
-    + [Overview of the data pipeline](#overview-pipeline)
-2. [Implementing the Flink Streaming Application](#app)
-    + [Structuring the application code](#structure)
-    + [Inventory management and query logic](#mgmt-logic)
-    + [Setting up Kafka inputs and outputs](#kafka)
-    + [Windowed summaries](#windowing)
-3. [Testing and validating the pipeline](#testing)
-4. [Production configuration](#prod-config)
-    + [StreamExecutionEnvironment configuration](#streamenv)
-    + [Parallelism and resources](#resources)
-    + [Kafka configuration](#kafka-config)
-5. [Deployment](#deploy)
-    + [Transaction Generator Job](#generator-deploy)
-    + [Transaction Processor Job](#job-deploy)
+    + [Overview of the data pipeline](#overview-of-the-data-pipeline)
+2. [Implementing the Flink Streaming Application](#implementing-the-flink-streaming-application)
+    + [Structuring the application code](#structuring-the-application-code)
+    + [Inventory management and query logic](#inventory-management-and-query-logic)
+    + [Setting up Kafka inputs and outputs](#setting-up-kafka-inputs-and-outputs)
+    + [Windowed transaction summaries](#windowed-transaction-summaries)
+3. [Testing and validating the pipeline](#testing-and-validating-our-pipeline)
+4. [Production configuration](#production-configuration)
+    + [StreamExecutionEnvironment configuration](#configuring-the-streamexecutionenvironment)
+    + [Parallelism and resources](#parallelism-and-resources)
+    + [Kafka configuration](#kafka-topic-configuration)
+5. [Deployment](#deploying-the-application)
+    + [Transaction Generator Job](#kafka-data-generator)
+    + [Transaction Processor Job](#kafka-transaction-job)
 
 ## Overview
 
@@ -149,7 +149,7 @@ With this pattern, you can avoid using a union output that should be filtered ou
 
 The ItemInfo state is created during the operator initialization step in the `open(...)` method, and it is a simple `ValueState` object that allows you to store an `ItemInfo` instance per key `(itemId)`.
 
-### Setting up Kafka inputs and outputs <a name="kafka"></a>
+### Setting up Kafka inputs and outputs
 
 As you have seen earlier, the `KafkaItemTransactionJob` extends the abstract `ItemTransactionJob` and implements the Kafka wiring logic to read the query and transactions streams, and to write the outputs at the end.
 

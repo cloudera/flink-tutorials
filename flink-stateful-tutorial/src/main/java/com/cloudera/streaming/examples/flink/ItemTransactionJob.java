@@ -104,17 +104,6 @@ public abstract class ItemTransactionJob {
 		// We set max parallelism to a number with a lot of divisors
 		env.setMaxParallelism(360);
 
-		// Configure checkpointing if interval is set
-		long cpInterval = params.getLong("checkpoint.interval.millis", TimeUnit.MINUTES.toMillis(1));
-		if (cpInterval > 0) {
-			CheckpointConfig checkpointConf = env.getCheckpointConfig();
-			checkpointConf.setCheckpointInterval(cpInterval);
-			checkpointConf.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
-			checkpointConf.setCheckpointTimeout(TimeUnit.HOURS.toMillis(1));
-			checkpointConf.enableExternalizedCheckpoints(CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
-			env.getConfig().setUseSnapshotCompression(true);
-		}
-
 		if (params.getBoolean(EVENT_TIME_KEY, false)) {
 			env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 		}

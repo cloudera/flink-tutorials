@@ -24,7 +24,10 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 
 import com.cloudera.streaming.examples.flink.operators.ItemTransactionGeneratorSource;
+import com.cloudera.streaming.examples.flink.operators.QueryGeneratorSource;
 import com.cloudera.streaming.examples.flink.types.ItemTransaction;
+import com.cloudera.streaming.examples.flink.types.Query;
+import com.cloudera.streaming.examples.flink.types.QuerySchema;
 import com.cloudera.streaming.examples.flink.types.TransactionSchema;
 import com.cloudera.streaming.examples.flink.utils.Utils;
 import org.slf4j.Logger;
@@ -38,6 +41,8 @@ import java.util.Optional;
 public class KafkaDataGeneratorJob {
 
 	private static final Logger LOG = LoggerFactory.getLogger(KafkaDataGeneratorJob.class);
+
+	private static final String GENERATE_QUERIES = "generate.queries";
 
 	public static void main(String[] args) throws Exception {
 		if (args.length != 1) {
@@ -57,6 +62,20 @@ public class KafkaDataGeneratorJob {
 				Optional.empty());
 
 		generatedInput.keyBy("itemId").addSink(kafkaSink).name("Transaction Kafka Sink");
+
+		if (params.getBoolean(GENERATE_QUERIES, false)) {
+			DataStream<Query> queries = env.addSource(new QueryGeneratorSource(params))
+					.name("Query Generator");
+
+			FlinkKafkaProducer<Query> querySink = new FlinkKafkaProducer<>(
+					params.getRequired(KafkaItemTransactionJob.QUERY_INPUT_TOPIC_KEY),
+					new QuerySchema(),
+					Utils.readKafkaProperties(params, false),
+					Optional.empty());
+
+			queries.keyBy("itemId").addSink(querySink).name("Query Kafka Sink");
+		}
+
 		env.execute("Kafka Data generator");
 	}
 

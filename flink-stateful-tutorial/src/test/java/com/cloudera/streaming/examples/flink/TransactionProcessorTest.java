@@ -57,7 +57,7 @@ public class TransactionProcessorTest extends ItemTransactionJob {
 		assertEquals(new QueryResult(0, new ItemInfo("item_1", 100)), queryResultSink.poll());
 
 		querySource.sendRecord(new Query(3, "item_2"));
-		assertEquals(new QueryResult(3, null), queryResultSink.poll());
+		assertEquals(new QueryResult(3, new ItemInfo("item_2", 0)), queryResultSink.poll());
 
 		JobTester.stopTest();
 

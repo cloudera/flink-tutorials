@@ -20,9 +20,14 @@ package com.cloudera.streaming.examples.flink.types;
 
 import org.apache.flink.streaming.util.serialization.KeyedSerializationSchema;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.nio.charset.StandardCharsets;
 
 public class QueryResultSchema implements KeyedSerializationSchema<QueryResult> {
+
+	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
 	@Override
 	public byte[] serializeKey(QueryResult res) {
@@ -31,10 +36,10 @@ public class QueryResultSchema implements KeyedSerializationSchema<QueryResult> 
 
 	@Override
 	public byte[] serializeValue(QueryResult res) {
-		if (res.itemInfo != null) {
-			return (res.queryId + "\t" + res.itemInfo.itemId + "\t" + res.itemInfo.quantity).getBytes(StandardCharsets.UTF_8);
-		} else {
-			return (res.queryId + "\tMISSING").getBytes(StandardCharsets.UTF_8);
+		try {
+			return OBJECT_MAPPER.writeValueAsBytes(res);
+		} catch (JsonProcessingException e) {
+			throw new RuntimeException(e);
 		}
 	}
 

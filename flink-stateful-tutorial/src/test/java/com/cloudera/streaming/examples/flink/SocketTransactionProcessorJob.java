@@ -18,17 +18,19 @@
 
 package com.cloudera.streaming.examples.flink;
 
+import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.util.Collector;
 
 import com.cloudera.streaming.examples.flink.operators.ItemTransactionGeneratorSource;
-import com.cloudera.streaming.examples.flink.operators.QueryStringParser;
 import com.cloudera.streaming.examples.flink.types.ItemTransaction;
 import com.cloudera.streaming.examples.flink.types.Query;
 import com.cloudera.streaming.examples.flink.types.QueryResult;
 import com.cloudera.streaming.examples.flink.types.TransactionResult;
 import com.cloudera.streaming.examples.flink.types.TransactionSummary;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Simple socket based pipeline for testing the application locally. Before running start a socket connection:
@@ -68,7 +70,16 @@ public class SocketTransactionProcessorJob extends ItemTransactionJob {
 
 	@Override
 	public DataStream<Query> readQueryStream(ParameterTool params, StreamExecutionEnvironment env) {
-		return env.socketTextStream("localhost", 9999).flatMap(new QueryStringParser());
+		return env.socketTextStream("localhost", 9999).flatMap(new FlatMapFunction<String, Query>() {
+			private ObjectMapper om = new ObjectMapper();
+
+			@Override
+			public void flatMap(String s, Collector<Query> out) throws Exception {
+				try {
+					out.collect(om.readValue(s, Query.class));
+				} catch (Throwable t) {}
+			}
+		});
 	}
 
 	@Override

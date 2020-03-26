@@ -24,33 +24,44 @@ public class Query {
 
 	public long queryId;
 
+	public long ts = System.currentTimeMillis();
+
 	public String itemId;
 
 	public Query() {}
 
 	public Query(long queryId, String itemId) {
+		this(queryId, null, itemId);
+	}
+
+	public Query(long queryId, Long ts, String itemId) {
 		this.queryId = queryId;
 		this.itemId = itemId;
+		if (ts != null) {
+			this.ts = ts;
+		}
 	}
 
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) { return true; }
 		if (o == null || getClass() != o.getClass()) { return false; }
-		Query itemQuery = (Query) o;
-		return queryId == itemQuery.queryId &&
-				Objects.equals(itemId, itemQuery.itemId);
+		Query query = (Query) o;
+		return queryId == query.queryId &&
+				ts == query.ts &&
+				Objects.equals(itemId, query.itemId);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(queryId, itemId);
+		return Objects.hash(queryId, ts, itemId);
 	}
 
 	@Override
 	public String toString() {
 		return "Query{" +
 				"queryId=" + queryId +
+				", ts=" + ts +
 				", itemId='" + itemId + '\'' +
 				'}';
 	}

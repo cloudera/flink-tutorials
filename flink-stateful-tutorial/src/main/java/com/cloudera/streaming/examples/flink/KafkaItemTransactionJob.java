@@ -18,7 +18,6 @@
 
 package com.cloudera.streaming.examples.flink;
 
-import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -28,11 +27,11 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 
 import com.cloudera.streaming.examples.flink.operators.HashingKafkaPartitioner;
-import com.cloudera.streaming.examples.flink.operators.QueryStringParser;
 import com.cloudera.streaming.examples.flink.types.ItemTransaction;
 import com.cloudera.streaming.examples.flink.types.Query;
 import com.cloudera.streaming.examples.flink.types.QueryResult;
 import com.cloudera.streaming.examples.flink.types.QueryResultSchema;
+import com.cloudera.streaming.examples.flink.types.QuerySchema;
 import com.cloudera.streaming.examples.flink.types.TransactionResult;
 import com.cloudera.streaming.examples.flink.types.TransactionSchema;
 import com.cloudera.streaming.examples.flink.types.TransactionSummary;
@@ -61,8 +60,8 @@ public class KafkaItemTransactionJob extends ItemTransactionJob {
 
 	public DataStream<Query> readQueryStream(ParameterTool params, StreamExecutionEnvironment env) {
 		// We read queries in a simple String format and parse it to our Query object
-		FlinkKafkaConsumer<String> rawQuerySource = new FlinkKafkaConsumer<>(
-				params.getRequired(QUERY_INPUT_TOPIC_KEY), new SimpleStringSchema(),
+		FlinkKafkaConsumer<Query> rawQuerySource = new FlinkKafkaConsumer<>(
+				params.getRequired(QUERY_INPUT_TOPIC_KEY), new QuerySchema(),
 				Utils.readKafkaProperties(params, true));
 
 		rawQuerySource.setCommitOffsetsOnCheckpoints(true);
@@ -72,8 +71,7 @@ public class KafkaItemTransactionJob extends ItemTransactionJob {
 
 		return env.addSource(rawQuerySource)
 				.name("Kafka Query Source")
-				.uid("Kafka Query Source")
-				.flatMap(new QueryStringParser()).name("Query parser");
+				.uid("Kafka Query Source");
 	}
 
 	public DataStream<ItemTransaction> readTransactionStream(ParameterTool params, StreamExecutionEnvironment env) {

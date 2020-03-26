@@ -73,7 +73,8 @@ public class TransactionProcessor extends KeyedCoProcessFunction<String, ItemTra
 
 	@Override
 	public void processElement2(Query query, Context ctx, Collector<TransactionResult> out) throws Exception {
-		ctx.output(KafkaItemTransactionJob.QUERY_RESULT, new QueryResult(query.queryId, itemState.value()));
+		ItemInfo info = itemState.value();
+		ctx.output(KafkaItemTransactionJob.QUERY_RESULT, new QueryResult(query.queryId, info != null ? info : new ItemInfo(query.itemId, 0)));
 	}
 
 	@Override

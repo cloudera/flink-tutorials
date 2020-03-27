@@ -30,11 +30,11 @@ The service should have the following capabilities:
 
 Keeping in mind the purpose of the application, we designed it to scale to very large transaction and query rates, up to millions of transactions/queries per second. And also to be able to handle very large inventories, hundreds of millions or more items. As always the scale at which the application can perform well will depend on the available resources, but we will provide you the configuration guidelines to achieve good performance on the desired scale.
 
-**Note** 
+**Note**
 For the sake of readability, the rest of the tutorial uses command line parameters in short form:
-+ Long form: 
++ Long form:
 `flink run --jobmanager yarn-cluster --detached --parallelism 2 --yarnname HeapMonitor target/flink-simple-tutorial-1.1-SNAPSHOT.jar`
-+ Short form: 
++ Short form:
 `flink run -m yarn-cluster -d -p 2 -ynm HeapMonitor target/flink-simple-tutorial-1.1-SNAPSHOT.jar`
 
 ### Overview of the data pipeline
@@ -122,14 +122,14 @@ Item transaction stream is for updating, and item query stream is for reading th
 
 These two functionalities are implemented as a single stateful operator, where the state is the inventory status of the different items. Also, you interact with the state according to the type of the incoming message (transaction or query). The exactly-once processing semantics of Flink provide all the guarantees expected from an inventory management service.
 
-Given the above context, now you can implement the core business logic using a stateful operator that has both the query and transaction streams as inputs. 
+Given the above context, now you can implement the core business logic using a stateful operator that has both the query and transaction streams as inputs.
 
 #### Input streams
 
 To process multiple input streams in a single operator, you can either `union` them if they are the same data type or `connect` them to create `ConnectedStream`, which allows you to handle the input of the connected streams independently of each other. In this use case, there are two different types and to separate the transaction and querying logic, you need to use `connect`.
 
-The `ItemTransaction` and `ItemQuery` streams are connected after applying `.keyBy("itemId")` on both of them. This results in partitioning the streams according to their `itemId` and using keyed states in the processing operator. 
-The operator logic is implemented in a `CoProcessFunction`, which allows you to access state and also exposes some lower level functionality like side-outputs. 
+The `ItemTransaction` and `ItemQuery` streams are connected after applying `.keyBy("itemId")` on both of them. This results in partitioning the streams according to their `itemId` and using keyed states in the processing operator.
+The operator logic is implemented in a `CoProcessFunction`, which allows you to access state and also exposes some lower level functionality like side-outputs.
 
 This lets you send two output streams to separate transaction and query results.
 
@@ -157,11 +157,11 @@ As the core item management logic is in place, the next step is to connect the a
 - Create input sources for incoming transactions and queries
 - Create output sinks for query and transaction results
 
-In the e-commerce scenario, as users interact with the site, they trigger a continuous stream of transactions and inventory queries for the backend. To send the incoming requests to the backend, a suitable communication channel is needed that scales to the size of your application. 
+In the e-commerce scenario, as users interact with the site, they trigger a continuous stream of transactions and inventory queries for the backend. To send the incoming requests to the backend, a suitable communication channel is needed that scales to the size of your application.
 
 An industry standard solution to this problem is to use Kafka as a communication channel between your application frontend (e-commerce site) and backend (Flink application). Kafka provides scalability for your application and it is very easy to integrate with other services in the future.
 
-As discussed in the beginning, the design decision is to make the `ItemTransactionJob` abstract and delegate the implementation of the input and output logic to the subclasses. This makes setting up the job with different input and output connectors easy. 
+As discussed in the beginning, the design decision is to make the `ItemTransactionJob` abstract and delegate the implementation of the input and output logic to the subclasses. This makes setting up the job with different input and output connectors easy.
 You need to configure the following parameters in the properties file (`config/job.properties`):
 ```
 kafka.bootstrap.servers=<your_broker_1>:9092,<your_broker_2>:9092,<your_broker_3>:9092
@@ -343,42 +343,13 @@ In general, it is enough to unit test the custom schema and the partitioning con
 
 ## Production configuration
 
-### Configuring the StreamExecutionEnvironment
-
-The `ItemTransactionJob.createExecutionEnvironment(...)` method is responsible for configuring the `StreamExecutionEnvironment`. We will use the same settings for both the production and the testing to ensure that we test as close to the cluster behaviour as possible.
-
-We will only configure parameters in the `StreamExecutionEnvironment` that are essential to the application logic or cannot be configured from the Flink configuration otherwise. For example, we will not set parallelism and state backend configuration here as those come from the Flink configuration.
-
-#### Max parallelism
-
-All production jobs should set an explicit maximum job parallelism by calling `setMaxParallelism()` which controls the number of key-groups the state backends create.
-
-Consider the following aspects when setting the max parallelism:
-
-- The number should be large enough to accommodate expected future load increases as this setting cannot be changed without starting from empty state.
-- If `P` is the selected parallelism for the job, the max parallelism should be divisible by `P` to get even state distribution.
-- As larger max parallelism settings have greater cost on the state backend side, load estimates are necessary.
-
-From these criteria, we suggest using factorials or numbers with a large number of divisors (120, 180, 240, 360, 720, 840, 1260). This will make parallelism tuning easier in the future.   
-
-#### Checkpointing settings
-
-Certain checkpointing configurations can only be set in the `StreamExecutionEnvironment` at this point, so we configure these now. Most of these are accessible through the `env.getCheckpointConfig()` configuration object.
-
-The following parameters are set:
- - Default checkpoint interval is set to `1 minute`.
- - Checkpointing mode is set to `EXACTLY_ONCE` (this is also the Flink default mode).
- - Checkpoint timeout is set to `1 hour`. In case some checkpoint would take longer than expected to complete.
- - Externalized checkpoints are enabled. Job can be restored from checkpoints in addition to savepoints when needed.
- - Checkpoint compression is enabled to reduce the overall state size and speed up recovery.
-
 ### Parallelism and resources
 
 To fully control the resource utilization of the Flink job, we set the following CLI parameters:
 
 - `-p 8` : Parallelism of your pipeline. Controls the number of parallel instances of each operator.
 - `-ys 4` : Number of task slots in each `TaskManager`. It also determines the number of `TaskManagers` as the result of dividing the parallelism by the number of task slots.
-- `-ytm 1500` : `TaskManager` container memory size. Together with the `containerized.heap-cutoff-ratio` controls the heap size that is available to each task manager.
+- `-ytm 1500` : `TaskManager` container memory size that ultimately defines how much memory can be used for heap, network buffers and local state management.
 
 Coming up with good resource parameters is a hard and usually iterative process that largely depends on the actual job. However, you can follow these guidelines:
 
@@ -405,23 +376,20 @@ For one million items a very generous estimate would be:
 
 The result can be rounded up to 1 GB to be on the safer side. This means if you split the state on two `TaskManagers`, you need to give them an extra 500 MB memory on top of the default 1000 MB associated to them leading to the `-ytm 1500` setting.
 
+These are just rough estimates that you might need to adjust later, for more detailed information about Flink memory configuration please check the [documentation](https://ci.apache.org/projects/flink/flink-docs-release-1.10/ops/memory/mem_setup.html).
+
 #### RocksDB state backend for larger state
 
 By default Flink jobs use the Heap state backend to store key-value states. This means all data is stored in deserialized form on the java heap. If memory permits, this is very efficient but in many cases the state does not fit in the main memory and spilling to disk is inevitable.
 
-The RocksDB statebackend stores key-value states in embedded RocksDB instances, seamlessly spilling from memory to disk when necessary. In contrast with the Heap statebackend, RocksDB does not use the java heap but keeps data in native memory. This is important when configuring the memory settings for your TaskManagers:
+The RocksDB statebackend stores key-value states in embedded RocksDB instances, seamlessly spilling from memory to disk when necessary. In contrast with the Heap statebackend, RocksDB does not use the java heap but keeps data in managed memory. Flink by default reserves roughly one third of all the available memory as managed memory. Increasing the amount of managed memory available to RocksDB can greatly increase performance of the state backend.
 
-
-`TaskManager container size = TaskManager heap size + Containerized heap cutoff`
-
-The default value for `containerized.heap-cutoff-ratio `is 0.25. This means that only 25% of the container memory is allocated for non-heap usage. For regular Flink applications this is enough. However, when RocksDB is enabled, you have to increase this ratio to 0.5 - 0.9 depending on the total container size (and heap usage) to give enough memory for RocksDB.
+This can be controlled by the `taskmanager.memory.managed.fraction` option.
 
 To enable RocksDB, set the following Flink configuration parameters:
 
 ```
 state.backend = ROCKSDB
-containerized.heap-cutoff-ratio = 0.5 - 0.9
-state.backend.rocksdb.disk-type = SSD / SPINNING
 ```
 
 Note

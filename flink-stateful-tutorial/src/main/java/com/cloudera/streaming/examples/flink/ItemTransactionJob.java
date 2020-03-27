@@ -20,11 +20,9 @@ package com.cloudera.streaming.examples.flink;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.flink.streaming.api.CheckpointingMode;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
-import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.util.OutputTag;
@@ -38,8 +36,6 @@ import com.cloudera.streaming.examples.flink.types.Query;
 import com.cloudera.streaming.examples.flink.types.QueryResult;
 import com.cloudera.streaming.examples.flink.types.TransactionResult;
 import com.cloudera.streaming.examples.flink.types.TransactionSummary;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * Base class for out item transaction and query processor pipeline. The core processing functionality is encapsulated here while
@@ -100,9 +96,6 @@ public abstract class ItemTransactionJob {
 
 	private StreamExecutionEnvironment createExecutionEnvironment(ParameterTool params) throws Exception {
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-
-		// We set max parallelism to a number with a lot of divisors
-		env.setMaxParallelism(360);
 
 		if (params.getBoolean(EVENT_TIME_KEY, false)) {
 			env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);

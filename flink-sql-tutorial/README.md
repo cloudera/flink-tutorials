@@ -1,10 +1,20 @@
 # Flink SQL Tutorial
 
+## Table of contents
+1. [Introduction](#introduction)
+2. [SQL Client Configuration](#sql-client-configuration)
+    + [Configuring the SQL client for session mode](#configuring-the-sql-client-for-session-mode)
+3. [Using Flink SQL to query streams](#using-flink-sql-to-query-streams)
+    + [Generating input data](#generating-input-data)
+    + [Streams and Tables](#streams-and-tables)
+    + [Basic Flink SQL queries](#basic-flink-sql-queries)
+    + [Handling ItemTransactions and Queries](#handling-itemtransactions-and-queries)
+
 ## Introduction
 
-This tutorial builds on the [stateful-tutorial](../flink-stateful-tutorial) and re-uses concepts and data generators for simplicity.
+This tutorial builds on the [stateful-tutorial](../flink-stateful-tutorial) and re-uses concepts and data generators for simplicity. Before you proceed here please read the introductory section of the stateful tutorial to familiarise yourself with the Item Warehouse use case.
 
-## Configuring the SQL client
+## SQL Client Configuration
 
 The Flink SQL client behaviour is controlled by 3 layers of configuration.
 
@@ -52,15 +62,30 @@ flink-sql-client embedded -e sql-env.yaml
 
 ## Using Flink SQL to query streams
 
-Now with the configs sorted, we can go ahead and start the client
+### Generating input data
+
+Our Flink SQL queries will run against the same Kafka topics as our `ItemTransactionJob` would, so make sure that the `KafkaDataGeneratorJob` is running in the background with `generate.queries=true` parameter set to generate a stream of item queries as well.
+
+Later parts of this tutorial assume that the transactions and queries are generated with the following generator configs:
+
+```
+transaction.input.topic=transaction.log.1
+query.input.topic=query.input.log.1
+
+generate.queries=true
+```
+
+Detailed instructions for the generator can be found [here](../flink-stateful-tutorial#kafka-data-generator).
+
+### Streams and Tables
+
+Now with the configs and input data sorted, we can go ahead and start the client
 
 ```
 flink-sql-client embedded (-e sql-env.yaml)
 ```
 
 If everything is set up correctly we will get a SQL prompt where we can execute a simple `SHOW TABLES;` statement to test how commands work.
-
-Our Flink SQL queries will run against the same Kafka topics as our `ItemTransactionJob` would, so make sure that the `KafkaDataGeneratorJob` is running in the background with `generate.queries=true` parameter set to generate a stream of item queries as well.
 
 Before we can dive into writing and running SQL queries, we have to define our source tables corresponding to our `ItemTransactions`.
 We will expose all the json fields as columns with their respective data types and we define an extra `event_time` column derived from the epoch ts with the corresponding WATERMARK definition. The WATERMARK definition is necessary for event time windowed processing as we will see later.
@@ -80,7 +105,7 @@ CREATE TABLE ItemTransactions (
 ) WITH (
 	'connector.type'    	 = 'kafka',
 	'connector.version' 	 = 'universal',
-	'connector.topic'   	 = 'transaction.log',
+	'connector.topic'   	 = 'transaction.log.1',
 	'connector.startup-mode' = 'earliest-offset',
 	'connector.properties.bootstrap.servers' = '<broker_address>',
 	'format.type' = 'json'
@@ -194,7 +219,7 @@ CREATE TABLE Queries (
 ) WITH (
 	'connector.type'    	 = 'kafka',
 	'connector.version' 	 = 'universal',
-	'connector.topic'   	 = 'query.input.log',
+	'connector.topic'   	 = 'query.input.log.1',
 	'connector.startup-mode' = 'earliest-offset',
 	'connector.properties.bootstrap.servers' = '<broker_address>',
 	'format.type' = 'json'

@@ -141,7 +141,7 @@ A uid is assigned to the operator by calling uid("Transaction Processor") that e
 
 The `TransactionProcessor` class itself implements the `CoProcessFunction` interface, where the `processElement1` method takes care of applying or rejecting new transactions on the inventory state. The `processElement2` simply reads this state to serve queries. The functionality is illustrated on the figure below:
 
-![Inventory Logic](images/InventoryLogic "Inventory Logic")
+![Inventory Logic](images/InventoryLogic.png "Inventory Logic")
 
 The main output type of the function is `TransactionResult`, which populates the output DataStream of the operator (named `processedTransactions` in your pipeline). The `QUERY_RESULT` OutputTag is used to produce a side output stream of the query results. The side output is later accessible by calling `getSideOutput(QUERY_RESULT)` on the operator.
 

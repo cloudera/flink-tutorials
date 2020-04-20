@@ -21,77 +21,46 @@ under the License.
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.cloudera.flink</groupId>
-	<artifactId>flink-secure-tutorial</artifactId>
+	<artifactId>flink-sql-tutorial</artifactId>
 	<version>1.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>Flink Secure Tutorial</name>
+	<name>Flink SQL Tutorial</name>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <flink.version>1.10.0-csa1.2.0.0</flink.version>
-        <java.version>1.8</java.version>
-        <scala.binary.version>2.11</scala.binary.version>
-        <maven.compiler.source>${java.version}</maven.compiler.source>
-        <maven.compiler.target>${java.version}</maven.compiler.target>
-        <avro.version>1.8.2</avro.version>
-    </properties>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<flink.version>1.10.0-csa1.2.0.0</flink.version>
+		<java.version>1.8</java.version>
+		<scala.binary.version>2.11</scala.binary.version>
+		<maven.compiler.source>${java.version}</maven.compiler.source>
+		<maven.compiler.target>${java.version}</maven.compiler.target>
+	</properties>
 
-    <repositories>
-        <repository>
-            <id>cloudera</id>
-            <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
-        </repository>
-    </repositories>
+	<repositories>
+		<repository>
+			<id>cloudera</id>
+			<url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+		</repository>
+		<!-- Temporary solution, do not release -->
+		<repository>
+			<id>cloudera-builds</id>
+			<url>http://cloudera-build-us-west-1.vpc.cloudera.com/s3/build/2739713/csa/1.2.0.0/maven-repository/</url>
+		</repository>
+	</repositories>
 
 	<dependencies>
 
 		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-core</artifactId>
-			<version>${flink.version}</version>
-			<scope>provided</scope>
+		  <groupId>org.apache.flink</groupId>
+		  <artifactId>flink-table-api-java-bridge_${scala.binary.version}</artifactId>
+		  <version>${flink.version}</version>
+		  <scope>provided</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-java</artifactId>
+			<artifactId>flink-sql-connector-kafka_${scala.binary.version}</artifactId>
 			<version>${flink.version}</version>
-			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
-			<version>${flink.version}</version>
-			<scope>provided</scope>
-		</dependency>
-
-		<!-- Add connector dependencies here. They must be in the default scope (compile). -->
-
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-connector-kafka_2.11</artifactId>
-			<version>${flink.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-avro-cloudera-registry</artifactId>
-			<version>${flink.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.avro</groupId>
-			<artifactId>avro-compiler</artifactId>
-			<version>${avro.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.avro</groupId>
-			<artifactId>avro-maven-plugin</artifactId>
-			<version>${avro.version}</version>
-			<scope>provided</scope>
 		</dependency>
 
 		<!-- Add logging framework, to produce console output when running in the IDE. -->
@@ -102,6 +71,7 @@ under the License.
 			<version>1.7.7</version>
 			<scope>compile</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
@@ -115,6 +85,7 @@ under the License.
 			<version>4.12</version>
 			<scope>test</scope>
 		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -167,36 +138,13 @@ under the License.
 							</filters>
 							<transformers>
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>com.cloudera.streaming.examples.flink.RandomKafkaDataGeneratorJob</mainClass>
+									<mainClass>com.cloudera.streaming.examples.flink.HeapMonitorPipeline</mainClass>
 								</transformer>
 							</transformers>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
-
-			<plugin>
-				<groupId>org.apache.avro</groupId>
-				<artifactId>avro-maven-plugin</artifactId>
-				<version>${avro.version}</version>
-				<executions>
-					<execution>
-						<id>schemas</id>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>schema</goal>
-							<goal>protocol</goal>
-							<goal>idl-protocol</goal>
-						</goals>
-						<configuration>
-							<sourceDirectory>${project.basedir}/src/main/resources/avro</sourceDirectory>
-							<outputDirectory>${project.basedir}/src/main/java</outputDirectory>
-							<stringType>String</stringType>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
 		</plugins>
 
 		<pluginManagement>
@@ -244,48 +192,5 @@ under the License.
 			</plugins>
 		</pluginManagement>
 	</build>
-
-	<!-- This profile helps to make things run out of the box in IntelliJ -->
-	<!-- Its adds Flink's core classes to the runtime class path. -->
-	<!-- Otherwise they are missing in IntelliJ, because the dependency is 'provided' -->
-	<profiles>
-		<profile>
-			<id>add-dependencies-for-IDEA</id>
-
-			<activation>
-				<property>
-					<name>idea.version</name>
-				</property>
-			</activation>
-
-			<dependencies>
-				<dependency>
-					<groupId>org.apache.flink</groupId>
-					<artifactId>flink-core</artifactId>
-					<version>${flink.version}</version>
-				</dependency>
-				<dependency>
-					<groupId>org.apache.flink</groupId>
-					<artifactId>flink-java</artifactId>
-					<version>${flink.version}</version>
-				</dependency>
-				<dependency>
-					<groupId>org.apache.flink</groupId>
-					<artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
-					<version>${flink.version}</version>
-				</dependency>
-				<dependency>
-					<groupId>org.apache.flink</groupId>
-					<artifactId>flink-connector-kafka_2.11</artifactId>
-					<version>${flink.version}</version>
-				</dependency>
-				<dependency>
-					<groupId>org.apache.flink</groupId>
-					<artifactId>flink-avro-cloudera-registry</artifactId>
-					<version>${flink.version}</version>
-				</dependency>
-			</dependencies>
-		</profile>
-	</profiles>
 
 </project>

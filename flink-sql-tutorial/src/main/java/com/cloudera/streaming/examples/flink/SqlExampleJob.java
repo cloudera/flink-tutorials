@@ -19,7 +19,6 @@
 package com.cloudera.streaming.examples.flink;
 
 import org.apache.flink.table.api.EnvironmentSettings;
-import org.apache.flink.table.api.TableConfig;
 import org.apache.flink.table.api.TableEnvironment;
 
 public class SqlExampleJob {
@@ -72,7 +71,6 @@ public class SqlExampleJob {
 				.build();
 
 		TableEnvironment tableEnv = TableEnvironment.create(settings);
-		TableConfig config = tableEnv.getConfig();
 
 		return tableEnv;
 	}

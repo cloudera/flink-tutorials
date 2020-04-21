@@ -18,38 +18,37 @@
 
 package com.cloudera.streaming.examples.flink;
 
+import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.EnvironmentSettings;
+import org.apache.flink.table.api.Table;
 import org.apache.flink.table.api.java.StreamTableEnvironment;
-import org.apache.flink.util.FileUtils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.junit.Test;
 
-import java.io.File;
+public class SqlTest {
 
-public class SqlScriptExecutor {
+	@Test
+	public void test() throws Exception {
+		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+		StreamTableEnvironment tableEnv = createTableEnv(env);
 
-	private static final Logger LOG = LoggerFactory.getLogger(SqlScriptExecutor.class);
+		DataStream<Tuple2<Long, String>> ds = env.fromElements(
+				Tuple2.of(1l, "a"),
+				Tuple2.of(2l, "b"),
+				Tuple2.of(3l, "c")
+		);
 
-	public static void main(String[] args) throws Exception {
-		StreamTableEnvironment env = createTableEnv();
-		File script = new File(args[0]);
-		String[] commands = FileUtils.readFileUtf8(script).split(";");
+		Table table = tableEnv.fromDataStream(ds, "id, name");
 
-		for (String command : commands) {
-			if (command.trim().isEmpty()) {
-				continue;
-			}
+		Table result = tableEnv.sqlQuery("SELECT * from " + table);
 
-			LOG.info("Executing SQL statement: {}", command.trim());
-			env.sqlUpdate(command.trim());
-		}
-
-		env.execute("SQL Script: " + script.getName());
+		tableEnv.toAppendStream(result, ds.getType()).print();
+		env.execute("test");
 	}
 
-	public static StreamTableEnvironment createTableEnv() {
+	public static StreamTableEnvironment createTableEnv(StreamExecutionEnvironment env) {
 		EnvironmentSettings settings = EnvironmentSettings
 				.newInstance()
 				.useBlinkPlanner()
@@ -57,7 +56,7 @@ public class SqlScriptExecutor {
 				.build();
 
 		StreamTableEnvironment tableEnv = StreamTableEnvironment
-				.create(StreamExecutionEnvironment.getExecutionEnvironment(), settings);
+				.create(env, settings);
 
 		return tableEnv;
 	}

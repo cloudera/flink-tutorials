@@ -42,6 +42,11 @@ under the License.
             <id>cloudera</id>
             <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
         </repository>
+		<!-- Temporary solution, do not release -->
+		<repository>
+			<id>cloudera-builds</id>
+			<url>http://cloudera-build-us-west-1.vpc.cloudera.com/s3/build/2739713/csa/1.2.0.0/maven-repository/</url>
+		</repository>
     </repositories>
 
 	<dependencies>

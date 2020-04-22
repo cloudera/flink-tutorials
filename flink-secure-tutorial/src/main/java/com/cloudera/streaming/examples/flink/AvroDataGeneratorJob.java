@@ -27,7 +27,7 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.connectors.kafka.KafkaSerializationSchema;
 
 import com.cloudera.streaming.examples.flink.data.Message;
-import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,9 +74,9 @@ public class AvroDataGeneratorJob {
 			ThreadLocalRandom rnd = ThreadLocalRandom.current();
 			while (isRunning) {
 				synchronized (ctx.getCheckpointLock()) {
-					ctx.collect(new Message(UUID.randomUUID().toString() + " - " + LocalDateTime.now().toString(),
+					ctx.collect(new Message(System.currentTimeMillis(),
 							RandomStringUtils.randomAlphabetic(10),
-							RandomStringUtils.randomAlphabetic(100)));
+							RandomStringUtils.randomAlphanumeric(20)));
 				}
 
 				Thread.sleep(Math.abs(rnd.nextInt()) % 1000);

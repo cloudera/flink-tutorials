@@ -2,7 +2,7 @@
  "type": "record",
  "name": "Message",
  "fields": [
-     {"name": "id", "type": "string"},
+     {"name": "id", "type": "long"},
      {"name": "name",  "type": "string"},
      {"name": "description", "type": "string"}
  ]

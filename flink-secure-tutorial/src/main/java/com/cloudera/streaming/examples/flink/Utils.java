@@ -25,10 +25,13 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.util.Preconditions;
 import org.apache.flink.util.encrypttool.EncryptTool;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -45,86 +48,90 @@ import static com.cloudera.streaming.examples.flink.Constants.SENSITIVE_KEYS_KEY
 
 public class Utils {
 
-    private static Logger LOG = LoggerFactory.getLogger(Utils.class);
+	private static Logger LOG = LoggerFactory.getLogger(Utils.class);
 
+	public static ParameterTool parseArgs(String[] args) throws IOException {
 
-    public static ParameterTool parseArgs(String[] args) throws IOException {
+		// Processing job properties
+		ParameterTool params = ParameterTool.fromArgs(args);
+		if (params.has(K_PROPERTIES_FILE)) {
+			params = ParameterTool.fromPropertiesFile(params.getRequired(K_PROPERTIES_FILE)).mergeWith(params);
+		}
 
-        // Processing job properties
-        ParameterTool params = ParameterTool.fromArgs(args);
-        if (params.has(K_PROPERTIES_FILE)) {
-            params = ParameterTool.fromPropertiesFile(params.getRequired(K_PROPERTIES_FILE)).mergeWith(params);
-        }
+		LOG.info("### Job parameters:");
+		for (String key : params.getProperties().stringPropertyNames()) {
+			LOG.info("Job Param: {}={}", key, isSensitive(key, params) ? MASK : params.get(key));
+		}
+		return params;
+	}
 
-        LOG.info("### Job parameters:");
-        for (String key : params.getProperties().stringPropertyNames()) {
-            LOG.info("Job Param: {}={}", key, isSensitive(key, params) ? MASK : params.get(key));
-        }
-        return params;
-    }
+	public static Properties readKafkaProperties(ParameterTool params) {
+		Properties properties = new Properties();
+		for (String key : params.getProperties().stringPropertyNames()) {
+			if (key.startsWith(KAFKA_PREFIX)) {
+				properties.setProperty(key.substring(KAFKA_PREFIX.length()), isSensitive(key, params) ? decrypt(params.get(key)) : params.get(key));
+			}
+		}
 
-    public static Properties readKafkaProperties(ParameterTool params) {
-        Properties properties = new Properties();
-        for (String key : params.getProperties().stringPropertyNames()) {
-            if (key.startsWith(KAFKA_PREFIX)) {
-                properties.setProperty(key.substring(KAFKA_PREFIX.length()), isSensitive(key, params) ? decrypt(params.get(key)) : params.get(key));
-            }
-        }
+		LOG.info("### Kafka parameters:");
+		for (String key : properties.stringPropertyNames()) {
+			LOG.info("Loading configuration property: {}, {}", key, isSensitive(key, params) ? MASK : properties.get(key));
+		}
+		return properties;
+	}
 
-        LOG.info("### Kafka parameters:");
-        for (String key : properties.stringPropertyNames()) {
-            LOG.info("Loading configuration property: {}, {}", key, isSensitive(key, params) ? MASK : properties.get(key));
-        }
-        return properties;
-    }
+	public static Map<String, Object> readSchemaRegistryProperties(ParameterTool params) {
 
-    public static Map<String, Object> readSchemaRegistryProperties(ParameterTool params) {
-        //Setting up schema registry client
-        Map<String, String> sslClientConfig = new HashMap<>();
-        String ssl_key = K_SCHEMA_REG_SSL_CLIENT_KEY + "." + K_TRUSTSTORE_PATH;
-        sslClientConfig.put(K_TRUSTSTORE_PATH, isSensitive(ssl_key, params) ? decrypt(params.getRequired(ssl_key)) : params.getRequired(ssl_key));
-        ssl_key = K_SCHEMA_REG_SSL_CLIENT_KEY + "." + K_TRUSTSTORE_PASSWORD;
-        sslClientConfig.put(K_TRUSTSTORE_PASSWORD, isSensitive(ssl_key, params) ? decrypt(params.getRequired(ssl_key)) : params.getRequired(ssl_key));
-        sslClientConfig.put(K_KEYSTORE_PASSWORD, ""); //ugly hack needed for SchemaRegistryClient
+		//Setting up schema registry client
 
-        Map<String, Object> schemaRegistryConf = new HashMap<>();
-        schemaRegistryConf.put(K_SCHEMA_REG_URL, params.getRequired(K_SCHEMA_REG_URL));
-        schemaRegistryConf.put(K_SCHEMA_REG_SSL_CLIENT_KEY, sslClientConfig);
+		Map<String, Object> schemaRegistryConf = new HashMap<>();
+		schemaRegistryConf.put(K_SCHEMA_REG_URL, params.getRequired(K_SCHEMA_REG_URL));
 
-        LOG.info("### Schema Registry parameters:");
-        for (String key : schemaRegistryConf.keySet()) {
-            LOG.info("Schema Registry param: {}={}", key, isSensitive(key, params) ? MASK : schemaRegistryConf.get(key));
-        }
-        return schemaRegistryConf;
-    }
+		if (params.getRequired(K_SCHEMA_REG_URL).startsWith("https")) {
+			Map<String, String> sslClientConfig = new HashMap<>();
+			String ssl_key = K_SCHEMA_REG_SSL_CLIENT_KEY + "." + K_TRUSTSTORE_PATH;
+			sslClientConfig.put(K_TRUSTSTORE_PATH, isSensitive(ssl_key, params) ? decrypt(params.getRequired(ssl_key)) : params.getRequired(ssl_key));
+			ssl_key = K_SCHEMA_REG_SSL_CLIENT_KEY + "." + K_TRUSTSTORE_PASSWORD;
+			sslClientConfig.put(K_TRUSTSTORE_PASSWORD, isSensitive(ssl_key, params) ? decrypt(params.getRequired(ssl_key)) : params.getRequired(ssl_key));
+			sslClientConfig.put(K_KEYSTORE_PASSWORD, ""); //ugly hack needed for SchemaRegistryClient
 
-    public static boolean isSensitive(String key, ParameterTool params) {
-        Preconditions.checkNotNull(key, "key is null");
-        final String value = params.get(SENSITIVE_KEYS_KEY);
-        if (value == null) return false;
-        String keyInLower = key.toLowerCase();
-        String[] sensitiveKeys = value.split(",");
+			schemaRegistryConf.put(K_SCHEMA_REG_SSL_CLIENT_KEY, sslClientConfig);
+		}
 
-        for (int i = 0; i < sensitiveKeys.length; ++i) {
-            String hideKey = sensitiveKeys[i];
-            if (keyInLower.length() >= hideKey.length() && keyInLower.contains(hideKey)) {
-                return true;
-            }
-        }
-        return false;
-    }
+		LOG.info("### Schema Registry parameters:");
+		for (String key : schemaRegistryConf.keySet()) {
+			LOG.info("Schema Registry param: {}={}", key, isSensitive(key, params) ? MASK : schemaRegistryConf.get(key));
+		}
+		return schemaRegistryConf;
+	}
 
-    public static String decrypt(String input) {
-        Preconditions.checkNotNull(input, "key is null");
-        return EncryptTool.getInstance(getConfiguration()).decrypt(input);
-    }
+	public static boolean isSensitive(String key, ParameterTool params) {
+		Preconditions.checkNotNull(key, "key is null");
+		final String value = params.get(SENSITIVE_KEYS_KEY);
+		if (value == null) { return false; }
+		String keyInLower = key.toLowerCase();
+		String[] sensitiveKeys = value.split(",");
 
-    public static Configuration getConfiguration() {
-        return ConfigHolder.INSTANCE;
-    }
+		for (int i = 0; i < sensitiveKeys.length; ++i) {
+			String hideKey = sensitiveKeys[i];
+			if (keyInLower.length() >= hideKey.length() && keyInLower.contains(hideKey)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
-    private static class ConfigHolder {
-        static final Configuration INSTANCE = GlobalConfiguration.loadConfiguration(CliFrontend.getConfigurationDirectoryFromEnv());
-    }
+	public static String decrypt(String input) {
+		Preconditions.checkNotNull(input, "key is null");
+		return EncryptTool.getInstance(getConfiguration()).decrypt(input);
+	}
+
+	public static Configuration getConfiguration() {
+		return ConfigHolder.INSTANCE;
+	}
+
+	private static class ConfigHolder {
+		static final Configuration INSTANCE = GlobalConfiguration.loadConfiguration(CliFrontend.getConfigurationDirectoryFromEnv());
+	}
 
 }

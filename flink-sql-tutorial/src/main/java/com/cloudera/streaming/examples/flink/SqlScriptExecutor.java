@@ -21,6 +21,7 @@ package com.cloudera.streaming.examples.flink;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.java.StreamTableEnvironment;
+import org.apache.flink.table.catalog.hive.HiveCatalog;
 import org.apache.flink.util.FileUtils;
 
 import org.slf4j.Logger;
@@ -31,9 +32,17 @@ import java.io.File;
 public class SqlScriptExecutor {
 
 	private static final Logger LOG = LoggerFactory.getLogger(SqlScriptExecutor.class);
+	private static final String HIVE_CATALOG = "hive";
+	private static final String HIVE_DATABASE = "default";
+	private static final String HIVE_CONF_DIR = "/etc/hive/conf";
+	private static final String HIVE_VERSION = "3.1.2000";
 
 	public static void main(String[] args) throws Exception {
+
+		HiveCatalog hiveCatalog = new HiveCatalog(HIVE_CATALOG, HIVE_DATABASE, HIVE_CONF_DIR, HIVE_VERSION);
 		StreamTableEnvironment env = createTableEnv();
+		env.registerCatalog(HIVE_CATALOG, hiveCatalog);
+
 		File script = new File(args[0]);
 		String[] commands = FileUtils.readFileUtf8(script).split(";");
 

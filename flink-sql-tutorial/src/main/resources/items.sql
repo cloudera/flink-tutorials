@@ -1,4 +1,6 @@
-CREATE TABLE ItemTransactions (
+USE CATALOG HIVE;
+
+CREATE TABLE mbalassi.ItemTransactions (
 	transactionId    BIGINT,
 	ts    BIGINT,
 	itemId    STRING,
@@ -10,11 +12,12 @@ CREATE TABLE ItemTransactions (
 	'connector.version' 	 = 'universal',
 	'connector.topic'   	 = 'transaction.log.1',
 	'connector.startup-mode' = 'earliest-offset',
-	'connector.properties.bootstrap.servers' = 'gyula-1.gce.cloudera.com:9092',
+	'connector.properties.group.id' = 'flink-mbalassi',
+	'connector.properties.bootstrap.servers' = 'morhidi-flinksql-2.vpc.cloudera.com:9092',
 	'format.type' = 'json'
 );
 
-CREATE TABLE WindowedQuantity (
+CREATE TABLE mbalassi.WindowedQuantity (
 	window_start    TIMESTAMP(3),
 	itemId    STRING,
 	volume INT
@@ -22,11 +25,11 @@ CREATE TABLE WindowedQuantity (
 	'connector.type'    	 = 'kafka',
 	'connector.version' 	 = 'universal',
 	'connector.topic'   	 = 'transaction.output.log',
-	'connector.properties.bootstrap.servers' = 'gyula-1.gce.cloudera.com:9092',
+	'connector.properties.bootstrap.servers' = 'morhidi-flinksql-2.vpc.cloudera.com:9092',
 	'format.type' = 'json'
 );
 
-INSERT INTO WindowedQuantity
+INSERT INTO mbalassi.WindowedQuantity
 SELECT TUMBLE_START(event_time, INTERVAL '10' SECOND) as window_start, itemId, sum(quantity) as volume
-FROM ItemTransactions
+FROM mbalassi.ItemTransactions
 GROUP BY itemId, TUMBLE(event_time, INTERVAL '10' SECOND);

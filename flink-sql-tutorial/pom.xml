@@ -30,6 +30,7 @@ under the License.
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<flink.version>1.10.0-csa1.2.0.0</flink.version>
+		<hive.version>3.1.2</hive.version>
 		<java.version>1.8</java.version>
 		<scala.binary.version>2.11</scala.binary.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
@@ -70,6 +71,23 @@ under the License.
 		</dependency>
 
 		<dependency>
+			<groupId>org.apache.hive</groupId>
+			<artifactId>hive-exec</artifactId>
+			<version>${hive.version}</version>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.calcite</groupId>
+					<artifactId>calcite-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.calcite</groupId>
+					<artifactId>calcite-druid</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-avro-cloudera-registry</artifactId>
 			<version>${flink.version}</version>
@@ -78,6 +96,13 @@ under the License.
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-table-planner-blink_2.11</artifactId>
+			<version>${flink.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-hadoop-compatibility_${scala.binary.version}</artifactId>
 			<version>${flink.version}</version>
 			<scope>provided</scope>
 		</dependency>

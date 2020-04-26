@@ -45,7 +45,7 @@ under the License.
 		<!-- Temporary solution, do not release -->
 		<repository>
 			<id>cloudera-builds</id>
-			<url>http://cloudera-build-us-west-1.vpc.cloudera.com/s3/build/2739713/csa/1.2.0.0/maven-repository/</url>
+			<url>http://cloudera-build-us-west-1.vpc.cloudera.com/s3/build/2820887/csa/1.2.0.0/maven-repository/</url>
 		</repository>
 	</repositories>
 
@@ -74,7 +74,6 @@ under the License.
 			<groupId>org.apache.hive</groupId>
 			<artifactId>hive-exec</artifactId>
 			<version>${hive.version}</version>
-			<scope>provided</scope>
 			<exclusions>
 				<exclusion>
 					<groupId>org.apache.calcite</groupId>

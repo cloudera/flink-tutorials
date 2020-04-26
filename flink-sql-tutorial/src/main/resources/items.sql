@@ -1,4 +1,7 @@
-USE CATALOG HIVE;
+USE CATALOG hive;
+
+DROP TABLE mbalassi.ItemTransactions;
+DROP TABLE mbalassi.WindowedQuantity;
 
 CREATE TABLE mbalassi.ItemTransactions (
 	transactionId    BIGINT,
@@ -13,7 +16,7 @@ CREATE TABLE mbalassi.ItemTransactions (
 	'connector.topic'   	 = 'transaction.log.1',
 	'connector.startup-mode' = 'earliest-offset',
 	'connector.properties.group.id' = 'flink-mbalassi',
-	'connector.properties.bootstrap.servers' = 'morhidi-flinksql-2.vpc.cloudera.com:9092',
+	'connector.properties.bootstrap.servers' = 'morhidi-flinksql-1.vpc.cloudera.com:9092',
 	'format.type' = 'json'
 );
 
@@ -25,7 +28,7 @@ CREATE TABLE mbalassi.WindowedQuantity (
 	'connector.type'    	 = 'kafka',
 	'connector.version' 	 = 'universal',
 	'connector.topic'   	 = 'transaction.output.log',
-	'connector.properties.bootstrap.servers' = 'morhidi-flinksql-2.vpc.cloudera.com:9092',
+	'connector.properties.bootstrap.servers' = 'morhidi-flinksql-1.vpc.cloudera.com:9092',
 	'format.type' = 'json'
 );
 

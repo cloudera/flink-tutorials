@@ -18,6 +18,7 @@
 
 package com.cloudera.streaming.examples.flink;
 
+import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.java.StreamTableEnvironment;
@@ -65,8 +66,10 @@ public class SqlScriptExecutor {
 				.inStreamingMode()
 				.build();
 
+		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+		env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 		StreamTableEnvironment tableEnv = StreamTableEnvironment
-				.create(StreamExecutionEnvironment.getExecutionEnvironment(), settings);
+				.create(env, settings);
 
 		return tableEnv;
 	}

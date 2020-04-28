@@ -9,6 +9,7 @@
     + [Streams and Tables](#streams-and-tables)
     + [Basic Flink SQL queries](#basic-flink-sql-queries)
     + [Handling ItemTransactions and Queries](#handling-itemtransactions-and-queries)
+4. [Executing SQL from Java](#executing-sql-from-jsava)
 
 ## Introduction
 
@@ -292,4 +293,17 @@ queryId                         query_time                       itemId         
 3913845414840092492       2020-03-03T03:23:58                    item_5                       170
 8139675561435722961       2020-03-03T03:23:58                    item_3                       530
 3106569172855270754       2020-03-03T03:23:59                    item_4                       400
+```
+
+## Executing SQL from Java
+
+To run the SQL queries in production our recommendation is to package them into a standard Java Flink program.
+We are providing minimalistic utility which takes an SQL script and executes it on the cluster.
+This utility also showcases using the Hive catalog.
+
+You can follow these steps to run the enclosed example query:
+
+```
+mvn clean install
+flink run --classpath file:///opt/cloudera/parcels/CDH/lib/hadoop/client/hadoop-mapreduce-client-core.jar --classpath file:///opt/cloudera/parcels/CDH/lib/hive/lib/libfb303-0.9.3.jar --classpath file:///opt/cloudera/parcels/CDH/lib/hive/lib/hive-exec.jar -d -p 2 -ys 2 -ynm HiveSqlExecutor -c com.cloudera.streaming.examples.flink.SqlScriptExecutor target/flink-sql-tutorial-1.1-SNAPSHOT.jar src/main/resources/items.sql
 ```

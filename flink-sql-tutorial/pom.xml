@@ -74,14 +74,11 @@ under the License.
 			<groupId>org.apache.hive</groupId>
 			<artifactId>hive-exec</artifactId>
 			<version>${hive.version}</version>
+		        <scope>provided</scope>
 			<exclusions>
 				<exclusion>
 					<groupId>org.apache.calcite</groupId>
-					<artifactId>calcite-core</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.calcite</groupId>
-					<artifactId>calcite-druid</artifactId>
+					<artifactId>*</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -95,13 +92,6 @@ under the License.
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-table-planner-blink_2.11</artifactId>
-			<version>${flink.version}</version>
-			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-hadoop-compatibility_${scala.binary.version}</artifactId>
 			<version>${flink.version}</version>
 			<scope>provided</scope>
 		</dependency>

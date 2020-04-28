@@ -1,7 +1,7 @@
 USE CATALOG hive;
 
-DROP TABLE mbalassi.ItemTransactions;
-DROP TABLE mbalassi.WindowedQuantity;
+DROP TABLE IF EXISTS  mbalassi.ItemTransactions;
+DROP TABLE IF EXISTS  mbalassi.WindowedQuantity;
 
 CREATE TABLE mbalassi.ItemTransactions (
 	transactionId    BIGINT,
@@ -27,7 +27,7 @@ CREATE TABLE mbalassi.WindowedQuantity (
 ) WITH (
 	'connector.type'    	 = 'kafka',
 	'connector.version' 	 = 'universal',
-	'connector.topic'   	 = 'transaction.output.log',
+	'connector.topic'   	 = 'transaction.output.log.1',
 	'connector.properties.bootstrap.servers' = 'morhidi-flinksql-1.vpc.cloudera.com:9092',
 	'format.type' = 'json'
 );

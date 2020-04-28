@@ -36,7 +36,7 @@ public class SqlScriptExecutor {
 	private static final String HIVE_CATALOG = "hive";
 	private static final String HIVE_DATABASE = "default";
 	private static final String HIVE_CONF_DIR = "/etc/hive/conf";
-	private static final String HIVE_VERSION = "3.1.2";
+	private static final String HIVE_VERSION = "3.1.2000";
 
 	public static void main(String[] args) throws Exception {
 

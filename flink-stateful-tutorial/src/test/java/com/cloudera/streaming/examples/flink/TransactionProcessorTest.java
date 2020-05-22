@@ -22,6 +22,9 @@ import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.test.util.CollectingSink;
+import org.apache.flink.test.util.JobTester;
+import org.apache.flink.test.util.ManualSource;
 
 import com.cloudera.streaming.examples.flink.types.ItemInfo;
 import com.cloudera.streaming.examples.flink.types.ItemTransaction;
@@ -29,9 +32,6 @@ import com.cloudera.streaming.examples.flink.types.Query;
 import com.cloudera.streaming.examples.flink.types.QueryResult;
 import com.cloudera.streaming.examples.flink.types.TransactionResult;
 import com.cloudera.streaming.examples.flink.types.TransactionSummary;
-import com.cloudera.streaming.examples.flink.utils.testing.CollectingSink;
-import com.cloudera.streaming.examples.flink.utils.testing.JobTester;
-import com.cloudera.streaming.examples.flink.utils.testing.ManualSource;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

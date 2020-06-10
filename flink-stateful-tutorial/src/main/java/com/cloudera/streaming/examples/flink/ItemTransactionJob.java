@@ -21,12 +21,14 @@ package com.cloudera.streaming.examples.flink;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.TimeCharacteristic;
+import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.util.OutputTag;
 
+import com.cloudera.streaming.examples.flink.operators.ItemInfoEnrichment;
 import com.cloudera.streaming.examples.flink.operators.MaxWatermark;
 import com.cloudera.streaming.examples.flink.operators.SummaryAlertingCondition;
 import com.cloudera.streaming.examples.flink.operators.TransactionProcessor;
@@ -37,6 +39,8 @@ import com.cloudera.streaming.examples.flink.types.QueryResult;
 import com.cloudera.streaming.examples.flink.types.TransactionResult;
 import com.cloudera.streaming.examples.flink.types.TransactionSummary;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Base class for out item transaction and query processor pipeline. The core processing functionality is encapsulated here while
  * subclasses have to implement input and output methods. Check the {@link KafkaItemTransactionJob} for a Kafka input/output based
@@ -46,6 +50,10 @@ public abstract class ItemTransactionJob {
 
 	public static final String EVENT_TIME_KEY = "event.time";
 	public static final String ENABLE_SUMMARIES_KEY = "enable.summaries";
+
+	public static final String ENABLE_DB_ENRICHMENT = "enable.db.enrichment";
+	public static final String DB_CONN_STRING = "db.connection.string";
+	public static final String ASYNC_TP_SIZE = "async.threadpool.size";
 
 	public static OutputTag<QueryResult> QUERY_RESULT = new OutputTag<QueryResult>("query-result", TypeInformation.of(QueryResult.class));
 
@@ -72,6 +80,14 @@ public abstract class ItemTransactionJob {
 
 		// Query results are accessed as a sideoutput of the transaction processor
 		DataStream<QueryResult> queryResultStream = processedTransactions.getSideOutput(QUERY_RESULT);
+
+		if (params.getBoolean(ENABLE_DB_ENRICHMENT, false)) {
+			queryResultStream = AsyncDataStream.unorderedWait(
+					queryResultStream,
+					new ItemInfoEnrichment(params.getInt(ASYNC_TP_SIZE, 5), params.getRequired(DB_CONN_STRING)),
+					10, TimeUnit.SECONDS
+			);
+		}
 
 		// Handle the output of transaction and query results separately
 		writeTransactionResults(params, processedTransactions);

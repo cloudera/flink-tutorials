@@ -26,6 +26,8 @@ public class ItemInfo {
 
 	public int quantity;
 
+	public String itemName = "UNKNOWN";
+
 	public ItemInfo() {
 	}
 
@@ -34,18 +36,29 @@ public class ItemInfo {
 		this.quantity = quantity;
 	}
 
+	public ItemInfo(String itemId, int quantity, String itemName) {
+		this.itemId = itemId;
+		this.quantity = quantity;
+		this.itemName = itemName;
+	}
+
+	public void setItemName(String name) {
+		this.itemName = name;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) { return true; }
 		if (o == null || getClass() != o.getClass()) { return false; }
 		ItemInfo itemInfo = (ItemInfo) o;
 		return quantity == itemInfo.quantity &&
-				Objects.equals(itemId, itemInfo.itemId);
+				Objects.equals(itemId, itemInfo.itemId) &&
+				Objects.equals(itemName, itemInfo.itemName);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(itemId, quantity);
+		return Objects.hash(itemId, quantity, itemName);
 	}
 
 	@Override
@@ -53,6 +66,7 @@ public class ItemInfo {
 		return "ItemInfo{" +
 				"itemId='" + itemId + '\'' +
 				", quantity=" + quantity +
+				", itemName='" + itemName + '\'' +
 				'}';
 	}
 }

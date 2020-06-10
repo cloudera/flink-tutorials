@@ -246,6 +246,41 @@ processedTransactions
 
 By using the standard windowing API, you can transparently switch between event and processing time by setting the `TimeCharacteristics` on the `StreamExecutionEnvironment`.
 
+
+### Enriching query results using a Database
+
+It is often a requirement to enrich streaming output based on information available in a Database.
+
+In our case we will assume that we have the following DB table available for query result enrichment:
+
+```
+items
+   - itemId
+   - name
+```
+
+We implement an asynchronous enrichment operator (`ItemInfoEnrichment`) that will enrich each query result using the following SQL query:
+```
+SELECT name FROM items WHERE itemId = ?;
+```
+
+The operator is then applied to our previous query results:
+```
+AsyncDataStream.unorderedWait(
+					queryResultStream,
+					new ItemInfoEnrichment(threadPoolSize, dbConnectionString),
+					10, TimeUnit.SECONDS
+);
+```
+
+We can enable this logic by adding the following parameters to our job properties:
+
+```
+enable.db.enrichment=true
+db.connection.string=jdbc:mysql://user:pw@db-host/db-name
+async.threadpool.size=5
+```
+
 ## Testing and validating our pipeline
 
 Simple Flink jobs can be tested by providing a list of input records running the job. Once it completes, with some tricks, you can validate the output. This approach however is only applicable in the simplest cases, and fails miserably for most real-world applications. In these applications, the expected output depends on the order of input elements from multiple sources and the lack of ordering guarantees in the pipeline.

@@ -15,48 +15,56 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package com.cloudera.streaming.examples.flink.types;
 
 import java.util.Objects;
 
+/**
+ * Dummy alert for founding a mask in the heap usage ratios.
+ */
 public class HeapAlert {
 
-    private static final String MASK_RATIO_MATCH_MSG = " was found in the HeapMetrics ratio.";
+	private static final String MASK_RATIO_MATCH_MSG = " was found in the HeapMetrics ratio.";
 
-    public String message;
-    public HeapMetrics triggeringMetrics;
+	public String message;
+	public HeapMetrics triggeringMetrics;
 
-    public HeapAlert() {}
+	public HeapAlert() {}
 
-    public HeapAlert(String message, HeapMetrics triggeringMetrics) {
-        this.message = message;
-        this.triggeringMetrics = triggeringMetrics;
-    }
+	public HeapAlert(String message, HeapMetrics triggeringMetrics) {
+		this.message = message;
+		this.triggeringMetrics = triggeringMetrics;
+	}
 
-    public static HeapAlert maskRatioMatch(String alertMask, HeapMetrics heapMetrics){
-        return new HeapAlert(alertMask + MASK_RATIO_MATCH_MSG, heapMetrics);
-    }
+	public static HeapAlert maskRatioMatch(String alertMask, HeapMetrics heapMetrics){
+		return new HeapAlert(alertMask + MASK_RATIO_MATCH_MSG, heapMetrics);
+	}
 
-    @Override
-    public String toString() {
-        return "HeapAlert{" +
-                "message='" + message + '\'' +
-                ", triggeringStats=" + triggeringMetrics +
-                '}';
-    }
+	@Override
+	public String toString() {
+		return "HeapAlert{" +
+				"message='" + message + '\'' +
+				", triggeringStats=" + triggeringMetrics +
+				'}';
+	}
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
-        HeapAlert heapAlert = (HeapAlert) o;
-        return Objects.equals(message, heapAlert.message) &&
-                Objects.equals(triggeringMetrics, heapAlert.triggeringMetrics);
-    }
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(message, triggeringMetrics);
-    }
+		HeapAlert heapAlert = (HeapAlert) o;
+		return Objects.equals(message, heapAlert.message) &&
+				Objects.equals(triggeringMetrics, heapAlert.triggeringMetrics);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(message, triggeringMetrics);
+	}
 }

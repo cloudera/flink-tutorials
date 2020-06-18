@@ -31,6 +31,9 @@ import java.lang.management.MemoryType;
 import java.lang.management.MemoryUsage;
 import java.net.InetAddress;
 
+/**
+ * Source for the example, provides a stream of heap usage data.
+ */
 public class HeapMonitorSource extends RichParallelSourceFunction<HeapMetrics> {
 
 	private static final Logger LOG = LoggerFactory.getLogger(HeapMonitorSource.class);

@@ -15,21 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package com.cloudera.streaming.examples.flink;
 
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Dummy sink that sends every value to the logging framework.
+ */
 public class LogSink<T> implements SinkFunction<T> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(LogSink.class);
+	private static final Logger LOG = LoggerFactory.getLogger(LogSink.class);
 
-    @Override
-    public void invoke(T value, Context context) throws Exception {
-        if (value != null) {
-            LOG.info(value.toString());
-        }
-    }
+	@Override
+	public void invoke(T value, Context context) throws Exception {
+		if (value != null) {
+			LOG.info(value.toString());
+		}
+	}
 }

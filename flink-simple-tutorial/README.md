@@ -102,8 +102,8 @@ Let's take a closer look at `HeapMonitorSource` class:
   - `cancel()`: This method is called if the source should terminate before it is finished, for example, to break out early from the `run` method.
 
 - The `RichParallelSourceFunction` extends the basic `SourceFunction` behavior in two important ways:
-  - It extends the `ParallelSourceFunction`, allowing Flink to create multiple instances of the source logic. One per parallel task instance.
-  - It extends the `RichFunction` abstract class, allowing the implementation to access runtime information, such as parallelism and subtask index, that we will leverage in the source implementation.
+  - It implements the `ParallelSourceFunction` interface, allowing Flink to create multiple instances of the source logic. One per parallel task instance.
+  - It extends the `AbstractRichFunction` abstract class, allowing the implementation to access runtime information, such as parallelism and subtask index, that we will leverage in the source implementation.
 
 The source will continuously poll the heap memory usage of this application, and output it along with some task related information producing the datastream.
 

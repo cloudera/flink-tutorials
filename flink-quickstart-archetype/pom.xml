@@ -22,7 +22,7 @@ under the License.
 
   <groupId>com.cloudera.flink</groupId>
   <artifactId>flink-quickstart-archetype</artifactId>
-  <version>1.10.0-csa1.2.0.0-SNAPSHOT</version>
+  <version>1.10.0-csa1.2.0.0</version>
   <packaging>maven-archetype</packaging>
 
   <name>flink-quickstart-archetype</name>

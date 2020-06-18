@@ -129,7 +129,7 @@ The test mimics the application main class with only minor differences:
 
 ### Producing test input
 
-The Flink environment has several methods that can be used to produce data for testing. In this case, we passed the elements of the stream directly, but we could have also implemented a custom source. You have to keep in mind that the ordering guarantees of the messages processed, depend on the sources and partitioning of the downstream flow.
+The Flink environment has several methods that can be used to produce data for testing. In this case, we passed the elements of the stream directly, but we could have also implemented a custom source. You have to keep in mind that the order of the messages within the pipeline can change compared to the order at the sources depending on parallelism and partitioning.
 
 ### Collecting the test output
 

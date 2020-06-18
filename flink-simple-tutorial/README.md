@@ -7,7 +7,7 @@
 4. [Application structure](#application-structure)
 5. [Application main class](#application-main-class)
     + [Creating the stream of heap metrics](#creating-the-stream-of-heap-metrics)
-    + [Computing GC warnings and heap alerts](#computing-gc-warnings-and-heap-alerts)
+    + [Computing heap alerts](#computing-gc-warnings-and-heap-alerts)
 6. [Testing the data pipeline](#testing-the-data-pipeline)
     + [Producing test input](#producing-test-input)
     + [Collecting the test output](#collecting-the-test-output)
@@ -107,13 +107,13 @@ Let's take a closer look at `HeapMonitorSource` class:
 
 The source will continuously poll the heap memory usage of this application, and output it along with some task related information producing the datastream.
 
-### Computing GC warnings and heap alerts
+### Computing heap alerts
 
 The core data processing logic is encapsulated in the `HeapMonitorPipeline.computeHeapAlerts(DataStream<HeapMetrics> statsInput, ParameterTool params)` method that takes the stream of heap information as input, and should produce a stream of alerts to the output when the conditions are met.
 
 The reason for structuring the code this way is to make the pipeline easily testable later by replacing the production data source with the test data stream.
 
-The core alerting logic is implemented in the `AlertingFunction` class. It is a `FlatMapFunction` that filters out incoming heap statistic objects according to the configured thresholds, and converts them to `HeapAlerts`. We leverage the `ParameterTool` object coming from the main program entry point to make these alerting thresholds configurable when using the Flink client later.
+The core alerting logic is implemented in the `AlertingFunction` class. It is a `FlatMapFunction` that filters out incoming heap statistic objects according to the configured mask, and converts them to `HeapAlerts`. We leverage the `ParameterTool` object coming from the main program entry point to make this alerting mask configurable when using the Flink client later.
 
 ## Testing the data pipeline
 The business logic of a Flink application consists of one or more operators chained together, which is often called a pipeline. Pipelines can be extracted to static methods and can be easily tested with the JUnit framework. The `HeapMonitorPipelineTest` class gives a sample for this.

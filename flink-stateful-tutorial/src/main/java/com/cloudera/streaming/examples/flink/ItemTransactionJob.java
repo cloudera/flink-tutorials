@@ -55,7 +55,7 @@ public abstract class ItemTransactionJob {
 	public static final String DB_CONN_STRING = "db.connection.string";
 	public static final String ASYNC_TP_SIZE = "async.threadpool.size";
 
-	public static OutputTag<QueryResult> QUERY_RESULT = new OutputTag<QueryResult>("query-result", TypeInformation.of(QueryResult.class));
+	public static final OutputTag<QueryResult> QUERY_RESULT = new OutputTag<QueryResult>("query-result", TypeInformation.of(QueryResult.class));
 
 	public final StreamExecutionEnvironment createApplicationPipeline(ParameterTool params) throws Exception {
 

@@ -44,9 +44,9 @@ import java.util.Optional;
  */
 public class KafkaItemTransactionJob extends ItemTransactionJob {
 
-	public static String TRANSACTION_INPUT_TOPIC_KEY = "transaction.input.topic";
-	public static String QUERY_INPUT_TOPIC_KEY = "query.input.topic";
-	public static String QUERY_OUTPUT_TOPIC_KEY = "query.output.topic";
+	public static final String TRANSACTION_INPUT_TOPIC_KEY = "transaction.input.topic";
+	public static final String QUERY_INPUT_TOPIC_KEY = "query.input.topic";
+	public static final String QUERY_OUTPUT_TOPIC_KEY = "query.output.topic";
 
 	public static void main(String[] args) throws Exception {
 		if (args.length != 1) {

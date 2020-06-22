@@ -23,6 +23,9 @@ import org.apache.flink.metrics.HistogramStatistics;
 
 import com.codahale.metrics.ExponentiallyDecayingReservoir;
 
+/**
+ * Wrapper for exponential histogram at com.codahale.metrics.
+ */
 public class ExponentialHistogram implements Histogram {
 
 	private final com.codahale.metrics.Histogram dropwizardHistogram;
@@ -53,6 +56,9 @@ public class ExponentialHistogram implements Histogram {
 		return new SlidingHistogramStatistics(dropwizardHistogram.getSnapshot());
 	}
 
+	/**
+	 * Wrapper for Snapshot at com.codahale.metrics.
+	 */
 	public static final class SlidingHistogramStatistics extends HistogramStatistics {
 
 		private final com.codahale.metrics.Snapshot snapshot;

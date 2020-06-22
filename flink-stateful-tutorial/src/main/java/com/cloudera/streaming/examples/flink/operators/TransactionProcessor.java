@@ -36,13 +36,13 @@ import com.cloudera.streaming.examples.flink.utils.ExponentialHistogram;
 /**
  * Core transaction and query processing logic. {@link #processElement1(ItemTransaction, Context, Collector)} receives
  * transactions and executes them if there is sufficient quantity already stored in the state.
- * <p>
- * {@link #processElement2(Query, Context, Collector)} receives item queries that just returns the current info for the
+ *
+ * <p>{@link #processElement2(Query, Context, Collector)} receives item queries that just returns the current info for the
  * queried item.
- * <p>
- * Both processing functions are keyed by the itemId field.
- * <p>
- * In addition to the core logic we added custom histogram metrics to track state access time for future optimizations.
+ *
+ * <p>Both processing functions are keyed by the itemId field.
+ *
+ * <p>In addition to the core logic we added custom histogram metrics to track state access time for future optimizations.
  */
 public class TransactionProcessor extends KeyedCoProcessFunction<String, ItemTransaction, Query, TransactionResult> {
 

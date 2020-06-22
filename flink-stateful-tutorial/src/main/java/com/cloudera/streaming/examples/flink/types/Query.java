@@ -20,6 +20,9 @@ package com.cloudera.streaming.examples.flink.types;
 
 import java.util.Objects;
 
+/**
+ * Query for the actually available quantity of an item.
+ */
 public class Query {
 
 	public long queryId;
@@ -44,8 +47,13 @@ public class Query {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) { return true; }
-		if (o == null || getClass() != o.getClass()) { return false; }
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+
 		Query query = (Query) o;
 		return queryId == query.queryId &&
 				ts == query.ts &&

@@ -20,6 +20,9 @@ package com.cloudera.streaming.examples.flink.types;
 
 import java.util.Objects;
 
+/**
+ * Transaction request for an item.
+ */
 public class ItemTransaction {
 
 	public long transactionId;
@@ -41,8 +44,13 @@ public class ItemTransaction {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) { return true; }
-		if (o == null || getClass() != o.getClass()) { return false; }
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+
 		ItemTransaction that = (ItemTransaction) o;
 		return transactionId == that.transactionId &&
 				ts == that.ts &&

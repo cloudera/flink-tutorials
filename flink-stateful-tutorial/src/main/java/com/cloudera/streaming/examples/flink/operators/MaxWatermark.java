@@ -24,8 +24,8 @@ import org.apache.flink.streaming.api.watermark.Watermark;
 /**
  * Watermark implementation that emits Long.MAX_VALUE as watermark and ts, basically removing
  * this stream from watermark computation.
- * <p>
- * Should only be used on streams that won't be aggregated to the window.
+ *
+ * <p>Should only be used on streams that won't be aggregated to the window.
  */
 public final class MaxWatermark<T> implements AssignerWithPeriodicWatermarks<T> {
 	private static final long serialVersionUID = 1L;

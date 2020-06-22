@@ -20,6 +20,9 @@ package com.cloudera.streaming.examples.flink.types;
 
 import java.util.Objects;
 
+/**
+ * The outcome of an item transaction request.
+ */
 public class TransactionResult {
 
 	public ItemTransaction transaction;
@@ -43,8 +46,13 @@ public class TransactionResult {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) { return true; }
-		if (o == null || getClass() != o.getClass()) { return false; }
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+
 		TransactionResult that = (TransactionResult) o;
 		return success == that.success &&
 				Objects.equals(transaction, that.transaction);

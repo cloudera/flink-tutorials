@@ -17,9 +17,12 @@ import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * Enriches the item info by fetching the item name by item id.
+ */
 public class ItemInfoEnrichment extends RichAsyncFunction<QueryResult, QueryResult> {
 
-	private static Logger LOG = LoggerFactory.getLogger(ItemInfoEnrichment.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ItemInfoEnrichment.class);
 
 	private static final String ITEM_QUERY = "SELECT name FROM items WHERE itemId = ?;";
 

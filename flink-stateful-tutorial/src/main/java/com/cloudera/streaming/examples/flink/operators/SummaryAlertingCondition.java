@@ -23,6 +23,9 @@ import org.apache.flink.api.java.utils.ParameterTool;
 
 import com.cloudera.streaming.examples.flink.types.TransactionSummary;
 
+/**
+ * Raises an alert if the ratio of failed transctions is over a ratio, in a large enough sample.
+ */
 public class SummaryAlertingCondition implements FilterFunction<TransactionSummary> {
 
 	public static final String REPORTING_NUMBER_KEY = "transaction.num.min";

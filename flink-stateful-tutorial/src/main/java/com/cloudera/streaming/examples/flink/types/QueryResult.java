@@ -20,6 +20,9 @@ package com.cloudera.streaming.examples.flink.types;
 
 import java.util.Objects;
 
+/**
+ * Results for an item quantity query.
+ */
 public class QueryResult {
 
 	public long queryId;
@@ -36,8 +39,13 @@ public class QueryResult {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) { return true; }
-		if (o == null || getClass() != o.getClass()) { return false; }
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+
 		QueryResult that = (QueryResult) o;
 		return queryId == that.queryId &&
 				Objects.equals(itemInfo, that.itemInfo);

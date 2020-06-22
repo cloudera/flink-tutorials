@@ -33,9 +33,9 @@ Keeping in mind the purpose of the application, we designed it to scale to very 
 **Note**
 For the sake of readability, the rest of the tutorial uses command line parameters in short form:
 + Long form:
-`flink run --jobmanager yarn-cluster --detached --parallelism 2 --yarnname HeapMonitor target/flink-simple-tutorial-1.1-SNAPSHOT.jar`
+`flink run --jobmanager yarn-cluster --detached --parallelism 2 --yarnname HeapMonitor target/flink-stateful-tutorial-1.1-SNAPSHOT.jar`
 + Short form:
-`flink run -m yarn-cluster -d -p 2 -ynm HeapMonitor target/flink-simple-tutorial-1.1-SNAPSHOT.jar`
+`flink run -m yarn-cluster -d -p 2 -ynm HeapMonitor target/flink-stateful-tutorial-1.1-SNAPSHOT.jar`
 
 ### Overview of the data pipeline
 

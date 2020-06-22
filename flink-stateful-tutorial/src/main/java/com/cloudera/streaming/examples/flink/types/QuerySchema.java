@@ -19,7 +19,6 @@
 package com.cloudera.streaming.examples.flink.types;
 
 import org.apache.flink.api.common.serialization.DeserializationSchema;
-import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.util.serialization.KeyedSerializationSchema;
@@ -30,6 +29,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Query serialization schema for running the example with kafka.
+ */
 public class QuerySchema implements DeserializationSchema<Query>, KeyedSerializationSchema<Query> {
 
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();

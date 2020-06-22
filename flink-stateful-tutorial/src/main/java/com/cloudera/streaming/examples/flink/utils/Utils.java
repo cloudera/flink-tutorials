@@ -25,9 +25,16 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
 
+/**
+ * Utility functions.
+ */
 public class Utils {
 
-	private static Logger LOG = LoggerFactory.getLogger(Utils.class);
+	private Utils() {
+		throw new UnsupportedOperationException("Utils should not be instantiated!");
+	}
+
+	private static final Logger LOG = LoggerFactory.getLogger(Utils.class);
 
 	public static final String KAFKA_PREFIX = "kafka.";
 

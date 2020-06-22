@@ -25,6 +25,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Query result serialization schema for running the example with kafka.
+ */
 public class QueryResultSchema implements KeyedSerializationSchema<QueryResult> {
 
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();

@@ -23,10 +23,15 @@ import org.apache.flink.api.common.functions.AggregateFunction;
 import com.cloudera.streaming.examples.flink.types.TransactionResult;
 import com.cloudera.streaming.examples.flink.types.TransactionSummary;
 
+/**
+ * Aggregate function for summarizing the transaction successfulness.
+ */
 public class TransactionSummaryAggregator implements AggregateFunction<TransactionResult, TransactionSummary, TransactionSummary> {
 
 	@Override
-	public TransactionSummary createAccumulator() {return new TransactionSummary();}
+	public TransactionSummary createAccumulator() {
+		return new TransactionSummary();
+	}
 
 	@Override
 	public TransactionSummary add(TransactionResult tr, TransactionSummary acc) {
@@ -41,7 +46,9 @@ public class TransactionSummaryAggregator implements AggregateFunction<Transacti
 	}
 
 	@Override
-	public TransactionSummary getResult(TransactionSummary acc) {return acc;}
+	public TransactionSummary getResult(TransactionSummary acc) {
+		return acc;
+	}
 
 	@Override
 	public TransactionSummary merge(TransactionSummary ts1, TransactionSummary ts2) {

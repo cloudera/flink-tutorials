@@ -29,6 +29,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Transaction serialization schema for running the example with kafka.
+ */
 public class TransactionSchema implements KeyedSerializationSchema<ItemTransaction>, DeserializationSchema<ItemTransaction> {
 
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();

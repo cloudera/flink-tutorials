@@ -37,6 +37,9 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+/**
+ * Simple unit tesst covering the core functions of the stateful example.
+ */
 public class TransactionProcessorTest extends ItemTransactionJob {
 
 	private ManualSource<ItemTransaction> transactionSource;

@@ -20,6 +20,9 @@ package com.cloudera.streaming.examples.flink.types;
 
 import java.util.Objects;
 
+/**
+ * Item stock information.
+ */
 public class ItemInfo {
 
 	public String itemId;
@@ -48,8 +51,13 @@ public class ItemInfo {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) { return true; }
-		if (o == null || getClass() != o.getClass()) { return false; }
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+
 		ItemInfo itemInfo = (ItemInfo) o;
 		return quantity == itemInfo.quantity &&
 				Objects.equals(itemId, itemInfo.itemId) &&

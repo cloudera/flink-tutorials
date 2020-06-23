@@ -207,7 +207,7 @@ The Simple Flink Application Tutorial can be deployed on a Cloudera Runtime clus
 After you have [built](#Build) the project, run the application from a Flink GateWay node using the following command:
 
 ```
-flink run --jobmanager yarn-cluster --detached --parallelism 2 --yarnname HeapMonitor target/flink-simple-tutorial-1.1-SNAPSHOT.jar
+flink run --jobmanager yarn-cluster --detached --parallelism 2 --yarnname HeapMonitor target/flink-simple-tutorial-1.2-SNAPSHOT.jar
 ```
 
 After launching the application, Flink creates a YARN session and launches a dashboard where the application can be monitored. The Flink dashboard can be reached from Cloudera Manager with the following path: 
@@ -248,7 +248,7 @@ flink run --jobmanager yarn-cluster \
           --detached  \
           --parallelism 2 \
           --yarnname HeapMonitor \
-          target/flink-simple-tutorial-1.1-SNAPSHOT.jar
+          target/flink-simple-tutorial-1.2-SNAPSHOT.jar
 ```
 **Note**
 In the CSA 1.1.0.0 release the `org.apache.kafka.log4jappender.KafkaLog4jAppender` class is not present on the TaskManagers' classpath. As a workaround, we referenced the `com.cloudera.kafka.log4jappender.KafkaLog4jAppender` class in the [log4j.properties](kafka-appender/log4j.properties) file that is shipped with CDP Data Center.
@@ -286,7 +286,7 @@ flink run --jobmanager yarn-cluster \
           --parallelism 2 \
           --yarnname HeapMonitor \
           --cluster true \
-           target/flink-simple-tutorial-1.1-SNAPSHOT.jar
+           target/flink-simple-tutorial-1.2-SNAPSHOT.jar
 ```
 
 To inspect the output, you can call `hdfs` directly:

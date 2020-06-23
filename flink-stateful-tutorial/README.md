@@ -139,7 +139,7 @@ A uid is assigned to the operator by calling uid("Transaction Processor") that e
 
 #### TransactionProcessor
 
-The `TransactionProcessor` class itself implements the `CoProcessFunction` interface, where the `processElement1` method takes care of applying or rejecting new transactions on the inventory state. The `processElement2` simply reads this state to serve queries. The functionality is illustrated on the figure below:
+The `TransactionProcessor` class itself extends the `KeyedCoProcessFunction` abstract class, where the `processElement1` method takes care of applying or rejecting new transactions on the inventory state. The `processElement2` simply reads this state to serve queries. The functionality is illustrated on the figure below:
 
 ![Inventory Logic](images/InventoryLogic.png "Inventory Logic")
 

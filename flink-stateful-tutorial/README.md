@@ -33,9 +33,9 @@ Keeping in mind the purpose of the application, we designed it to scale to very 
 **Note**
 For the sake of readability, the rest of the tutorial uses command line parameters in short form:
 + Long form:
-`flink run --jobmanager yarn-cluster --detached --parallelism 2 --yarnname HeapMonitor target/flink-stateful-tutorial-1.1-SNAPSHOT.jar`
+`flink run --jobmanager yarn-cluster --detached --parallelism 2 --yarnname HeapMonitor target/flink-stateful-tutorial-1.2-SNAPSHOT.jar`
 + Short form:
-`flink run -m yarn-cluster -d -p 2 -ynm HeapMonitor target/flink-stateful-tutorial-1.1-SNAPSHOT.jar`
+`flink run -m yarn-cluster -d -p 2 -ynm HeapMonitor target/flink-stateful-tutorial-1.2-SNAPSHOT.jar`
 
 ### Overview of the data pipeline
 
@@ -442,7 +442,7 @@ Build a jar of the application containing all dependencies (fatjar or uberjar) b
 mvn clean package
 ```
 
-If everything runs correctly, the jar is located under `target/flink-stateful-tutorial-1.1-SNAPSHOT.jar`.
+If everything runs correctly, the jar is located under `target/flink-stateful-tutorial-1.2-SNAPSHOT.jar`.
 
 Now it's time to copy the jar and job configuration located under `config/job.properties` to the cluster.
 
@@ -467,7 +467,7 @@ Note: In the above command `$(hostname -f)` assumes that you are running Zookeep
 
 ```
 # Run the data generator job
-flink run -m yarn-cluster -d -p 2 -ys 2 -ynm DataGenerator -c com.cloudera.streaming.examples.flink.KafkaDataGeneratorJob target/flink-stateful-tutorial-1.1-SNAPSHOT.jar config/job.properties
+flink run -m yarn-cluster -d -p 2 -ys 2 -ynm DataGenerator -c com.cloudera.streaming.examples.flink.KafkaDataGeneratorJob target/flink-stateful-tutorial-1.2-SNAPSHOT.jar config/job.properties
 ```
 
 We can now check the configured Kafka topic for the generated transaction data stream from the command line:
@@ -481,7 +481,7 @@ kafka-console-consumer --bootstrap-server <your_broker_1>:9092 --topic transacti
 Now that we have a transaction input stream in the `transaction.log.1` topic, we can deploy the transaction processor job.
 
 ```
-flink run -m yarn-cluster -d -p 8 -ys 4 -ytm 1500 -ynm TransactionProcessor target/flink-stateful-tutorial-1.1-SNAPSHOT.jar config/job.properties
+flink run -m yarn-cluster -d -p 8 -ys 4 -ytm 1500 -ynm TransactionProcessor target/flink-stateful-tutorial-1.2-SNAPSHOT.jar config/job.properties
 ```
 
 **Note**
@@ -523,5 +523,5 @@ flink savepoint -m yarn-cluster -yid yarnAppID flinkJobId
 *Restoring from a savepoint*
 
 ```
-flink run -m yarn-cluster -d -p 8 -ys 4 -ytm 1500 -ynm TransactionProcessor -s hdfs://savepointpath target/flink-stateful-tutorial-1.1-SNAPSHOT.jar config/job.properties
+flink run -m yarn-cluster -d -p 8 -ys 4 -ytm 1500 -ynm TransactionProcessor -s hdfs://savepointpath target/flink-stateful-tutorial-1.2-SNAPSHOT.jar config/job.properties
 ```

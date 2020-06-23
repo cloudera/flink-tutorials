@@ -365,7 +365,7 @@ nc -lk 9999
 
 The job starts up with the built in data generator. You can start sending the queries and look at the output:
 
- - input (socket): `123 item_2`
+ - input (socket): `{"queryId":123, "itemId":"item_2"}`
  - output (IDE console): `QueryResult{queryId=123, itemInfo=ItemInfo{itemId='item_2', quantity=10665}}`
 
 In case you modify the Flink application, this test can still be used to manual test the different aspects of the changed pipeline locally.

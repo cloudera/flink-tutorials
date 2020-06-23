@@ -39,11 +39,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * <p>Once the job started you can send queries in the form:
  *
- * <p>queryId itemId
+ * <p{"queryId":<queryId>, "itemId":"<itemId>"}
  *
  * <p>For example:
  *
- * <p>123 item_2
+ * <p>{"queryId":123, "itemId":"item_2"}
  */
 public class SocketTransactionProcessorJob extends ItemTransactionJob {
 

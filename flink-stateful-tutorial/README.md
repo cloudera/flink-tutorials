@@ -129,7 +129,7 @@ Given the above context, now you can implement the core business logic using a s
 To process multiple input streams in a single operator, you can either `union` them if they are the same data type or `connect` them to create `ConnectedStream`, which allows you to handle the input of the connected streams independently of each other. In this use case, there are two different types and to separate the transaction and querying logic, you need to use `connect`.
 
 The `ItemTransaction` and `ItemQuery` streams are connected after applying `.keyBy("itemId")` on both of them. This results in partitioning the streams according to their `itemId` and using keyed states in the processing operator.
-The operator logic is implemented in a `CoProcessFunction`, which allows you to access state and also exposes some lower level functionality like side-outputs.
+The operator logic is implemented in a `KeyedCoProcessFunction`, which allows you to access state and also exposes some lower level functionality like side-outputs.
 
 This lets you send two output streams to separate transaction and query results.
 

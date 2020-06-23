@@ -177,11 +177,9 @@ The `FlinkKafkaConsumer` class is used to consume the input records.
 Let's look at one of the consumers:
 
 ```java
-transactionSource = new FlinkKafkaConsumer<>(
-                params.getRequired(TRANSACTION_INPUT_TOPIC_KEY),
-                new TransactionSchema(),
-                Utils.createKafkaConsumerProps(params.get(KAFKA_BROKERS_KEY),
-                params.getRequired(KAFKA_GROUPID_KEY)));
+FlinkKafkaConsumer<ItemTransaction> transactionSource = new FlinkKafkaConsumer<>(
+		params.getRequired(TRANSACTION_INPUT_TOPIC_KEY), new TransactionSchema(),
+		Utils.readKafkaProperties(params, true));
 
 transactionSource.setCommitOffsetsOnCheckpoints(true);
 transactionSource.setStartFromEarliest();
@@ -192,9 +190,9 @@ The `FlinkKafkaConsumer` can be created with a few different constructors, in th
  2. Schema implementation that provides the message deserialization format
  3. Consumer properties
 
-For `ItemTransactions` we used the custom `TransactionSchema` implementation that serializers the records in a tab delimited text format for readability. We used the same schema in the data generator job later to write to the Kafka topic.
+For `ItemTransactions` we used the custom `TransactionSchema` implementation that serializers the records in json format for readability. We used the same schema in the data generator job later to write to the Kafka topic.
 
-For `Query` inputs we used the built-in `SimpleStringSchema` that can be used to read String data from Kafka.
+For `Query` inputs we use the similar `QuerySchema` class.
 
 We created a simple utility class to generate the consumer properties based on the input properties (it extracts props with `kafka.` prefix):
  - `group.id=...` : *REQUIRED*
@@ -211,10 +209,9 @@ Let's look at the Kafka sink used to write query results:
 
 ```java
 FlinkKafkaProducer<QueryResult> queryOutputSink = new FlinkKafkaProducer<>(
-                params.getRequired(QUERY_OUTPUT_TOPIC_KEY),
-                new QueryResultSchema(),
-                Utils.createKafkaProducerProps(params.getRequired(KAFKA_BROKERS_KEY)),
-                Optional.of(new HashingKafkaPartitioner<>()));
+		params.getRequired(QUERY_OUTPUT_TOPIC_KEY), new QueryResultSchema(),
+		Utils.readKafkaProperties(params, false),
+		Optional.of(new HashingKafkaPartitioner<>()));
 ```
 
 We specified the following constructor parameters:
@@ -224,7 +221,7 @@ We specified the following constructor parameters:
  3. Producer properties
  4. Partitioner for the kafka messages
 
-The `QueryResultSchema` provides simple tab delimited format for the messages and we used the `queryId` as the key for the Kafka records.
+The `QueryResultSchema` provides simple json format for the messages and we used the `queryId` as the key for the Kafka records.
 
 For the producer properties, we set the following two parameters:
  - `bootstrap.servers=...` : *REQUIRED*
@@ -239,7 +236,7 @@ An interesting thing to compute would be the number of failed and successful tra
 ```java
 processedTransactions
          .keyBy("transaction.itemId")
-         .timeWindow(Time.minutes(1))
+         .timeWindow(Time.minutes(10))
          .aggregate(new TransactionSummaryAggregator())
          .filter(new SummaryAlertingCondition(params));
 ```
@@ -308,7 +305,7 @@ public DataStream<Query> readQueryStream(ParameterTool params, StreamExecutionEn
 }
 ```
 **Note**
-Only a reference is created to the source store, no input data is specified.
+Only a reference is created to the source stream, no input data is specified.
 
 We will be validating query and transaction output, so we created `CollectingSink`s:
 
@@ -328,19 +325,22 @@ Now that we have wired together the data inputs and outputs, we will run the tes
 ```java
 @Test
 public void runTest() throws Exception {
-   JobTester.startTest(createApplicationPipeline(ParameterTool.fromArgs(new String[]{})));
+	JobTester.startTest(createApplicationPipeline(ParameterTool.fromArgs(new String[]{})));
 
-   ItemTransaction it1 = new ItemTransaction(1, 2, "item_1", 100);
-   transactionSource.sendRecord(it1);
-   assertEquals(new TransactionResult(it1, true), transactionResultSink.poll());
+	ItemTransaction it1 = new ItemTransaction(1, 2, "item_1", 100);
+	transactionSource.sendRecord(it1);
+	assertEquals(new TransactionResult(it1, true), transactionResultSink.poll());
 
-   querySource.sendRecord(new Query(0, "item_1"));
-   assertEquals(new QueryResult(0, new ItemInfo("item_1", 100)), queryResultSink.poll());
+	querySource.sendRecord(new Query(0, "item_1"));
+	assertEquals(new QueryResult(0, new ItemInfo("item_1", 100)), queryResultSink.poll());
 
-   JobTester.stopTest();
+	querySource.sendRecord(new Query(3, "item_2"));
+	assertEquals(new QueryResult(3, new ItemInfo("item_2", 0)), queryResultSink.poll());
 
-   assertTrue(transactionResultSink.isEmpty());
-   assertTrue(queryResultSink.isEmpty());
+	JobTester.stopTest();
+
+	assertTrue(transactionResultSink.isEmpty());
+	assertTrue(queryResultSink.isEmpty());
 }
 ```
 

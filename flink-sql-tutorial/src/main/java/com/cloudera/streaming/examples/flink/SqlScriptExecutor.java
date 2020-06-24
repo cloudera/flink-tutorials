@@ -30,6 +30,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
+/**
+ * Small example application executing an sql script file in Flink.
+ */
 public class SqlScriptExecutor {
 
 	private static final Logger LOG = LoggerFactory.getLogger(SqlScriptExecutor.class);

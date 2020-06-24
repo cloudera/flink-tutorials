@@ -305,5 +305,5 @@ You can follow these steps to run the enclosed example query:
 
 ```
 mvn clean install
-flink run --classpath file:///opt/cloudera/parcels/CDH/lib/hadoop/client/hadoop-mapreduce-client-core.jar --classpath file:///opt/cloudera/parcels/CDH/lib/hive/lib/libfb303-0.9.3.jar --classpath file:///opt/cloudera/parcels/CDH/lib/hive/lib/hive-exec.jar -d -p 2 -ys 2 -ynm HiveSqlExecutor -c com.cloudera.streaming.examples.flink.SqlScriptExecutor target/flink-sql-tutorial-1.1-SNAPSHOT.jar src/main/resources/items.sql
+flink run --classpath file:///opt/cloudera/parcels/CDH/lib/hadoop/client/hadoop-mapreduce-client-core.jar --classpath file:///opt/cloudera/parcels/CDH/lib/hive/lib/libfb303-0.9.3.jar --classpath file:///opt/cloudera/parcels/CDH/lib/hive/lib/hive-exec.jar -d -p 2 -ys 2 -ynm HiveSqlExecutor -c com.cloudera.streaming.examples.flink.SqlScriptExecutor target/flink-sql-tutorial-1.2-SNAPSHOT.jar src/main/resources/items.sql
 ```

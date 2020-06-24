@@ -147,7 +147,9 @@ The main output type of the function is `TransactionResult`, which populates the
 
 With this pattern, you can avoid using a union output that should be filtered out downstream such as `(Either<TransactionResult, QueryResult>)`.
 
-The ItemInfo state is created during the operator initialization step in the `open(...)` method, and it is a simple `ValueState` object that allows you to store an `ItemInfo` instance per key `(itemId)`.
+The `TransactionProcessor` instance provided at ConnectedStreams.process() is not directly used during runtime, instead it will be copied in order to have one instance for each parallel stream processor. In other words the one created is a template for the future instances.
+
+The `ItemInfo` state is created during the operator initialization step in the `open(...)` method, and it is a simple `ValueState` object that allows you to store an `ItemInfo` instance per key `(itemId)`. Flink ensures that `ValueState` always returns the appropriate `ItemInfo` object for the key defined by the element processed - in this example it's itemId field for both elements. `ValueState` is also necessary for creating checkpoints (not covered in this tutorial). 
 
 ### Setting up Kafka inputs and outputs
 

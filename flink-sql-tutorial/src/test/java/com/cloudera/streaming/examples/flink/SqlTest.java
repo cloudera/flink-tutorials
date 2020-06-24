@@ -27,6 +27,9 @@ import org.apache.flink.table.api.java.StreamTableEnvironment;
 
 import org.junit.Test;
 
+/**
+ * Simple test for Flink sql.
+ */
 public class SqlTest {
 
 	@Test
@@ -35,9 +38,9 @@ public class SqlTest {
 		StreamTableEnvironment tableEnv = createTableEnv(env);
 
 		DataStream<Tuple2<Long, String>> ds = env.fromElements(
-				Tuple2.of(1l, "a"),
-				Tuple2.of(2l, "b"),
-				Tuple2.of(3l, "c")
+				Tuple2.of(1L, "a"),
+				Tuple2.of(2L, "b"),
+				Tuple2.of(3L, "c")
 		);
 
 		Table table = tableEnv.fromDataStream(ds, "id, name");

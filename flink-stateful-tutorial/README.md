@@ -37,6 +37,9 @@ For the sake of readability, the rest of the tutorial uses command line paramete
 + Short form:
 `flink run -m yarn-cluster -d -p 2 -ynm HeapMonitor target/flink-stateful-tutorial-1.2-SNAPSHOT.jar`
 
+**Note**
+Don't forget to [set up your HDFS home directory](https://docs.cloudera.com/csa/1.2.0/installation/topics/csa-hdfs-home-install.html).
+
 ### Overview of the data pipeline
 
 Let's take a quick look at a simple illustration of the data pipeline:

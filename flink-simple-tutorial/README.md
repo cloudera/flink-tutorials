@@ -206,6 +206,9 @@ The Simple Flink Application Tutorial can be deployed on a Cloudera Runtime clus
 
 After you have [built](#Build) the project, run the application from a Flink GateWay node using the following command:
 
+**Note**
+Don't forget to [set up your HDFS home directory](https://docs.cloudera.com/csa/1.2.0/installation/topics/csa-hdfs-home-install.html).
+
 ```
 flink run --jobmanager yarn-cluster --detached --parallelism 2 --yarnname HeapMonitor target/flink-simple-tutorial-1.2-SNAPSHOT.jar
 ```

@@ -45,7 +45,7 @@ On a **non-secured** CDP Data Center cluster, the command for the quick start ap
 
 ```
 flink run -m yarn-cluster -d -p 2 \
-flink-sec-tutorial-1.1-SNAPSHOT.jar \
+flink-secure-tutorial-1.2-SNAPSHOT.jar \
 --kafka.bootstrap.servers <hostname>:9093 \
 --kafkaTopic flink \
 --hdfsOutput hdfs:///tmp/flink-sec-tutorial
@@ -58,14 +58,14 @@ For information about Flink Security, see the [Security Overview](https://docs.c
 For the sake of readability, the rest of the tutorial uses command line parameters in short form:
 - Long form
 `flink run --jobmanager yarn-cluster --detached --parallelism 2 --yarnname HeapMonitor
-target/flink-simple-tutorial-1.1-SNAPSHOT.jar`
+target/flink-secure-tutorial-1.2-SNAPSHOT.jar`
 
 - Short form
 `flink run -m yarn-cluster -d -p 2 -ynm HeapMonitor
-target/flink-simple-tutorial-1.1-SNAPSHOT.jar`
+target/flink-secure-tutorial-1.2-SNAPSHOT.jar`
 
 **Note**
-+Don't forget to [set up your HDFS home directory](https://docs.cloudera.com/csa/1.2.0/installation/topics/csa-hdfs-home-install.html)
+Don't forget to [set up your HDFS home directory](https://docs.cloudera.com/csa/1.2.0/installation/topics/csa-hdfs-home-install.html)
 
 ## Understanding Security Parameters
 
@@ -128,7 +128,7 @@ flink run -m yarn-cluster -d -p 2 \
 -yD security.ssl.internal.truststore-password=`cat pwd.txt` \
 -yt keystore.jks \
 -yt application.properties \
-flink-sec-tutorial-1.1-SNAPSHOT.jar \
+flink-secure-tutorial-1.2-SNAPSHOT.jar \
 --properties.file application.properties
 ```
 
@@ -191,7 +191,7 @@ Flink has a built-in `ParameterTool` class to handle program arguments elegantly
   -yD security.ssl.internal.truststore=keystore.jks \
   -yD security.ssl.internal.truststore-password=`cat pwd.txt` \
   -yt keystore.jks \
-  flink-sec-tutorial-1.1-SNAPSHOT.jar \
+  flink-secure-tutorial-1.2-SNAPSHOT.jar \
   --kafkaTopic flink \
   --hdfsOutput hdfs:///tmp/flink-sec-tutorial \
   --kafka.bootstrap.servers <hostname>:9093 \

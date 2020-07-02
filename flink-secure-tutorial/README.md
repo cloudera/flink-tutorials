@@ -64,6 +64,9 @@ target/flink-simple-tutorial-1.1-SNAPSHOT.jar`
 `flink run -m yarn-cluster -d -p 2 -ynm HeapMonitor
 target/flink-simple-tutorial-1.1-SNAPSHOT.jar`
 
+**Note**
++Don't forget to [set up your HDFS home directory](https://docs.cloudera.com/csa/1.2.0/installation/topics/csa-hdfs-home-install.html)
+
 ## Understanding Security Parameters
 
 Authentication related configurations are defined as Flink command line parameters (-yD):

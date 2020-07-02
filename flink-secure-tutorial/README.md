@@ -52,7 +52,7 @@ flink-secure-tutorial-1.2-SNAPSHOT.jar \
 ```
 As you will later see, enabling security features make the command a bit more complicated, and thus we will show every needed step to create the secured code for the Flink application.
 
-For information about Flink Security, see the [Security Overview](https://docs.cloudera.com/csa/1.1.0/security-overview/topics/csa-security.html) section in Cloudera Streaming Analytics document.
+For information about Flink Security, see the [Security Overview](https://docs.cloudera.com/csa/1.2.0/security/topics/csa-authentication.html) section in Cloudera Streaming Analytics document.
 
 **Note**
 For the sake of readability, the rest of the tutorial uses command line parameters in short form:

@@ -135,10 +135,10 @@ flink-secure-tutorial-1.2-SNAPSHOT.jar \
 Flink has a built-in `ParameterTool` class to handle program arguments elegantly. You can merge the arguments given in the command line and configuration file like the example below:
 ```java
   ParameterTool params = ParameterTool.fromArgs(args);
-  final String P_PROPERTIES_FILE = params.get("properties.file");
+  final String propertiesFile = params.get("properties.file");
 
-  if (P_PROPERTIES_FILE != null) {
-    params = ParameterTool.fromPropertiesFile(P_PROPERTIES_FILE).mergeWith(params);
+  if (propertiesFile != null) {
+    params = ParameterTool.fromProperties(propertiesFile).mergeWith(params);
   }
 
   LOG.info("### Job parameters:");
@@ -146,8 +146,8 @@ Flink has a built-in `ParameterTool` class to handle program arguments elegantly
      LOG.info("Param: {}={}", key, params.get(key));
   }
 
-  final String P_KAFKA_TOPIC = params.get("kafkaTopic");
-  final String P_FS_OUTPUT = params.get("hdfsOutput");
+  final String kafkaTopic = params.get("kafkaTopic");
+  final String hdfsOutput = params.get("hdfsOutput");
 ```
 
 

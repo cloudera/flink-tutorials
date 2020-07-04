@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *	 http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,6 +21,7 @@ package com.cloudera.streaming.examples.flink;
 import org.apache.flink.api.common.serialization.SimpleStringEncoder;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.core.fs.Path;
+import org.apache.flink.formats.avro.generated.Message;
 import org.apache.flink.formats.avro.registry.cloudera.ClouderaRegistryKafkaDeserializationSchema;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -28,47 +29,45 @@ import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSin
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.KafkaDeserializationSchema;
 
-import com.cloudera.streaming.examples.flink.data.Message;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import static com.cloudera.streaming.examples.flink.Constants.K_HDFS_OUTPUT;
 import static com.cloudera.streaming.examples.flink.Constants.K_KAFKA_TOPIC;
 
+/**
+ * Channels a kafka topic to an HDFS after converting it to a string.
+ */
 public class KafkaToHDFSAvroJob {
 
-    private static Logger LOG = LoggerFactory.getLogger(KafkaToHDFSAvroJob.class);
+	public static void main(String[] args) throws Exception {
 
-    public static void main(String[] args) throws Exception {
+		ParameterTool params = Utils.parseArgs(args);
 
-        ParameterTool params = Utils.parseArgs(args);
+		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+		KafkaDeserializationSchema<Message> schema = ClouderaRegistryKafkaDeserializationSchema
+				.builder(Message.class)
+				.setConfig(Utils.readSchemaRegistryProperties(params))
+				.build();
 
-        KafkaDeserializationSchema<Message> schema = ClouderaRegistryKafkaDeserializationSchema
-                .builder(Message.class)
-                .setConfig(Utils.readSchemaRegistryProperties(params))
-                .build();
+		FlinkKafkaConsumer<Message> consumer = new FlinkKafkaConsumer<Message>(params.getRequired(K_KAFKA_TOPIC),
+				schema, Utils.readKafkaProperties(params));
 
-        FlinkKafkaConsumer<Message> consumer = new FlinkKafkaConsumer<Message>(params.getRequired(K_KAFKA_TOPIC), schema, Utils.readKafkaProperties(params));
+		DataStream<String> source = env.addSource(consumer)
+				.name("Kafka Source")
+				.uid("Kafka Source")
+				.map(record -> record.getId() + "," + record.getName() + "," + record.getDescription())
+				.name("ToOutputString");
 
-        DataStream<String> source = env.addSource(consumer)
-                .name("Kafka Source")
-                .uid("Kafka Source")
-                .map(record -> record.getId() + "," + record.getName() + "," + record.getDescription())
-                .name("ToOutputString");
+		StreamingFileSink<String> sink = StreamingFileSink
+				.forRowFormat(new Path(params.getRequired(K_HDFS_OUTPUT)), new SimpleStringEncoder<String>("UTF-8"))
+				.build();
 
-        StreamingFileSink<String> sink = StreamingFileSink
-                .forRowFormat(new Path(params.getRequired(K_HDFS_OUTPUT)), new SimpleStringEncoder<String>("UTF-8"))
-                .build();
+		source.addSink(sink)
+				.name("FS Sink")
+				.uid("FS Sink");
 
-        source.addSink(sink)
-                .name("FS Sink")
-                .uid("FS Sink");
+		source.print();
 
-        source.print();
-
-        env.execute("Flink Streaming Secured Job Sample");
-    }
+		env.execute("Flink Streaming Secured Job Sample");
+	}
 
 }

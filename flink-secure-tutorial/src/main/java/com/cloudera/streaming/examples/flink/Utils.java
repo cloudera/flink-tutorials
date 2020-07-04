@@ -19,7 +19,6 @@
 package com.cloudera.streaming.examples.flink;
 
 import org.apache.flink.api.java.utils.ParameterTool;
-
 import org.apache.flink.client.cli.CliFrontend;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.GlobalConfiguration;
@@ -30,8 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -46,9 +43,16 @@ import static com.cloudera.streaming.examples.flink.Constants.K_TRUSTSTORE_PATH;
 import static com.cloudera.streaming.examples.flink.Constants.MASK;
 import static com.cloudera.streaming.examples.flink.Constants.SENSITIVE_KEYS_KEY;
 
-public class Utils {
+/**
+ * Utility functions for the security tutorial.
+ */
+public final class Utils {
 
-	private static Logger LOG = LoggerFactory.getLogger(Utils.class);
+	private Utils() {
+		throw new UnsupportedOperationException("Utils should not be instantiated");
+	}
+
+	private static final Logger LOG = LoggerFactory.getLogger(Utils.class);
 
 	public static ParameterTool parseArgs(String[] args) throws IOException {
 
@@ -89,10 +93,10 @@ public class Utils {
 
 		if (params.getRequired(K_SCHEMA_REG_URL).startsWith("https")) {
 			Map<String, String> sslClientConfig = new HashMap<>();
-			String ssl_key = K_SCHEMA_REG_SSL_CLIENT_KEY + "." + K_TRUSTSTORE_PATH;
-			sslClientConfig.put(K_TRUSTSTORE_PATH, isSensitive(ssl_key, params) ? decrypt(params.getRequired(ssl_key)) : params.getRequired(ssl_key));
-			ssl_key = K_SCHEMA_REG_SSL_CLIENT_KEY + "." + K_TRUSTSTORE_PASSWORD;
-			sslClientConfig.put(K_TRUSTSTORE_PASSWORD, isSensitive(ssl_key, params) ? decrypt(params.getRequired(ssl_key)) : params.getRequired(ssl_key));
+			String sslKey = K_SCHEMA_REG_SSL_CLIENT_KEY + "." + K_TRUSTSTORE_PATH;
+			sslClientConfig.put(K_TRUSTSTORE_PATH, isSensitive(sslKey, params) ? decrypt(params.getRequired(sslKey)) : params.getRequired(sslKey));
+			sslKey = K_SCHEMA_REG_SSL_CLIENT_KEY + "." + K_TRUSTSTORE_PASSWORD;
+			sslClientConfig.put(K_TRUSTSTORE_PASSWORD, isSensitive(sslKey, params) ? decrypt(params.getRequired(sslKey)) : params.getRequired(sslKey));
 			sslClientConfig.put(K_KEYSTORE_PASSWORD, ""); //ugly hack needed for SchemaRegistryClient
 
 			schemaRegistryConf.put(K_SCHEMA_REG_SSL_CLIENT_KEY, sslClientConfig);
@@ -108,7 +112,9 @@ public class Utils {
 	public static boolean isSensitive(String key, ParameterTool params) {
 		Preconditions.checkNotNull(key, "key is null");
 		final String value = params.get(SENSITIVE_KEYS_KEY);
-		if (value == null) { return false; }
+		if (value == null) {
+			return false;
+		}
 		String keyInLower = key.toLowerCase();
 		String[] sensitiveKeys = value.split(",");
 

@@ -19,6 +19,7 @@
 package com.cloudera.streaming.examples.flink;
 
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.formats.avro.generated.Message;
 import org.apache.flink.formats.avro.registry.cloudera.ClouderaRegistryKafkaSerializationSchema;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -26,20 +27,16 @@ import org.apache.flink.streaming.api.functions.source.ParallelSourceFunction;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.connectors.kafka.KafkaSerializationSchema;
 
-import com.cloudera.streaming.examples.flink.data.Message;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static com.cloudera.streaming.examples.flink.Constants.K_KAFKA_TOPIC;
 
+/**
+ * Generates random Messages to a kafka topic.
+ */
 public class AvroDataGeneratorJob {
-
-	private static Logger LOG = LoggerFactory.getLogger(AvroDataGeneratorJob.class);
 
 	public static void main(String[] args) throws Exception {
 		ParameterTool params = Utils.parseArgs(args);
@@ -54,7 +51,8 @@ public class AvroDataGeneratorJob {
 		FlinkKafkaProducer<Message> kafkaSink = new FlinkKafkaProducer<>(
 				"default", schema, Utils.readKafkaProperties(params), FlinkKafkaProducer.Semantic.AT_LEAST_ONCE);
 
-		DataStream<Message> input = env.addSource(new DataGeneratorSource()).name("Data Generator Source");
+		DataStream<Message> input = env.addSource(new DataGeneratorSource())
+				.name("Data Generator Source");
 
 		input.addSink(kafkaSink)
 				.name("Kafka Sink")
@@ -65,6 +63,9 @@ public class AvroDataGeneratorJob {
 		env.execute("Data Generator Job");
 	}
 
+	/**
+	 * Generates Message objects with random content at random interval.
+	 */
 	public static class DataGeneratorSource implements ParallelSourceFunction<Message> {
 
 		private volatile boolean isRunning = true;

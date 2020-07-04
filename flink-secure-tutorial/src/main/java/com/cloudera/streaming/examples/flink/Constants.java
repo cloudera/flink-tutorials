@@ -18,6 +18,9 @@
 
 package com.cloudera.streaming.examples.flink;
 
+/**
+ * Property names and other constants used in this tutorial.
+ */
 public class Constants {
 
 	public static final String SENSITIVE_KEYS_KEY = "sensitive.keys";

@@ -1,4 +1,4 @@
-{"namespace": "com.cloudera.streaming.examples.flink.data",
+{"namespace": "org.apache.flink.formats.avro.generated",
  "type": "record",
  "name": "Message",
  "fields": [

@@ -24,50 +24,53 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.ParallelSourceFunction;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static com.cloudera.streaming.examples.flink.Constants.K_KAFKA_TOPIC;
 
+/**
+ * Generates random UUID strings to a kafka topic.
+ */
 public class RandomKafkaDataGeneratorJob {
+	public static void main(String[] args) throws Exception {
+		ParameterTool params = Utils.parseArgs(args);
+		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-    private static Logger LOG = LoggerFactory.getLogger(RandomKafkaDataGeneratorJob.class);
+		FlinkKafkaProducer<String> kafkaSink = new FlinkKafkaProducer<String>(params.getRequired(K_KAFKA_TOPIC),
+				new SimpleStringSchema(), Utils.readKafkaProperties(params));
 
-    public static void main(String[] args) throws Exception {
-        ParameterTool params = Utils.parseArgs(args);
-        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+		DataStream<String> input = env.addSource(new UUIDGeneratorSource())
+				.name("Data Generator Source");
 
+		input.addSink(kafkaSink)
+				.name("Kafka Sink")
+				.uid("Kafka Sink");
 
-        FlinkKafkaProducer<String> kafkaSink = new FlinkKafkaProducer<String>(params.getRequired(K_KAFKA_TOPIC), new SimpleStringSchema(), Utils.readKafkaProperties(params));
+		input.print();
 
-        DataStream<String> input = env.addSource(new UUIDGeneratorSource()).name("Data Generator Source");
+		env.execute("Data Generator Job");
+	}
 
-        input.addSink(kafkaSink).name("Kafka Sink").uid("Kafka Sink");
+	/**
+	 * Source generating random UUID strings.
+	 */
+	public static class UUIDGeneratorSource implements ParallelSourceFunction<String> {
 
-        input.print();
+		private volatile boolean isRunning = true;
 
-        env.execute("Data Generator Job");
-    }
+		@Override
+		public void run(SourceContext<String> ctx) throws Exception {
+			while (isRunning) {
+				ctx.collect(UUID.randomUUID().toString());
+				Thread.sleep(Math.abs(ThreadLocalRandom.current().nextInt()) % 1000);
+			}
+		}
 
-    public static class UUIDGeneratorSource implements ParallelSourceFunction<String> {
-
-        private volatile boolean isRunning = true;
-
-        @Override
-        public void run(SourceContext<String> ctx) throws Exception {
-            while (isRunning) {
-                ctx.collect(UUID.randomUUID().toString());
-                Thread.sleep(Math.abs(ThreadLocalRandom.current().nextInt()) % 1000);
-            }
-        }
-
-        @Override
-        public void cancel() {
-            isRunning = false;
-        }
-    }
+		@Override
+		public void cancel() {
+			isRunning = false;
+		}
+	}
 }

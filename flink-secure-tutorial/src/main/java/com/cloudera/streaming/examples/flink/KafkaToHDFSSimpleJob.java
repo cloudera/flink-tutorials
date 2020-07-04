@@ -27,26 +27,29 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+/**
+ * Channels a kafka topic to an HDFS file.
+ */
 public class KafkaToHDFSSimpleJob {
-
-	private static Logger LOG = LoggerFactory.getLogger(KafkaToHDFSSimpleJob.class);
 
 	public static void main(String[] args) throws Exception {
 
 		ParameterTool params = Utils.parseArgs(args);
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-		FlinkKafkaConsumer<String> consumer = new FlinkKafkaConsumer<>(params.getRequired("kafkaTopic"), new SimpleStringSchema(), Utils.readKafkaProperties(params));
-		DataStream<String> source = env.addSource(consumer).name("Kafka Source").uid("Kafka Source");
+		FlinkKafkaConsumer<String> consumer = new FlinkKafkaConsumer<>(params.getRequired("kafkaTopic"),
+				new SimpleStringSchema(), Utils.readKafkaProperties(params));
+		DataStream<String> source = env.addSource(consumer)
+				.name("Kafka Source")
+				.uid("Kafka Source");
 
 		StreamingFileSink<String> sink = StreamingFileSink
 				.forRowFormat(new Path(params.getRequired("hdfsOutput")), new SimpleStringEncoder<String>("UTF-8"))
 				.build();
 
-		source.addSink(sink).name("FS Sink").uid("FS Sink");
+		source.addSink(sink)
+				.name("FS Sink")
+				.uid("FS Sink");
 		source.print();
 
 		env.execute("Flink Streaming Secured Job Sample");

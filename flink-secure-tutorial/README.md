@@ -163,7 +163,7 @@ Flink has a built-in `ParameterTool` class to handle program arguments elegantly
   * Kafka
   * YARN
   * Flink
-* Existing test user in the Kerberos realm and as local users on each cluster nodes. You can find some useful commands for fulfilling the prerequisites in a dedicated chapter [here](#sample-command).
+* Existing test user in the Kerberos realm and as local users on each cluster nodes. You can find some useful commands for fulfilling the prerequisites in a dedicated chapter [here](#sample-commands).
 
 ### Steps to run the Secured Flink Application Tutorial
 

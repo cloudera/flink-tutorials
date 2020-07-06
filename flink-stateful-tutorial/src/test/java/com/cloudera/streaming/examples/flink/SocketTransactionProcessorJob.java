@@ -39,7 +39,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * <p>Once the job started you can send queries in the form:
  *
- * <p{"queryId":<queryId>, "itemId":"<itemId>"}
+ * <p>{"queryId":$queryId, "itemId":"$itemId"}
  *
  * <p>For example:
  *

@@ -207,7 +207,7 @@ under the License.
 					<configuration>
 						<suppressionsLocation>../checkstyle/suppressions.xml</suppressionsLocation>
 						<includeTestSourceDirectory>true</includeTestSourceDirectory>
-						<configLocation>../checkstyle/checkstyle.xml</configLocation>
+						<configLocation>https://raw.githubusercontent.com/apache/flink/master/tools/maven/checkstyle.xml</configLocation>
 						<logViolationsToConsole>true</logViolationsToConsole>
 						<failOnViolation>true</failOnViolation>
 					</configuration>

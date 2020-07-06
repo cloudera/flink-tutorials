@@ -83,10 +83,10 @@ Authentication related configurations are defined as Flink command line paramete
 Internal network encryption related configurations are defined as Flink command line parameters (-yD):
 ```
 -yD security.ssl.internal.enabled=true
--yD security.ssl.internal.keystore=keystore.jks
+-yD security.ssl.internal.keystore=/path/to/keystore.jks
 -yD security.ssl.internal.key-password=`cat pwd.txt`
 -yD security.ssl.internal.keystore-password=`cat pwd.txt`
--yD security.ssl.internal.truststore=keystore.jks
+-yD security.ssl.internal.truststore=/path/to/keystore.jks
 -yD security.ssl.internal.truststore-password=`cat pwd.txt`
 -yt keystore.jks
 ```
@@ -125,10 +125,10 @@ flink run -m yarn-cluster -d -p 2 \
 -yD security.kerberos.login.keytab=test.keytab \
 -yD security.kerberos.login.principal=test \
 -yD security.ssl.internal.enabled=true \
--yD security.ssl.internal.keystore=keystore.jks \
+-yD security.ssl.internal.keystore=/path/to/keystore.jks \
 -yD security.ssl.internal.key-password=`cat pwd.txt` \
 -yD security.ssl.internal.keystore-password=`cat pwd.txt` \
--yD security.ssl.internal.truststore=keystore.jks \
+-yD security.ssl.internal.truststore=/path/to/keystore.jks \
 -yD security.ssl.internal.truststore-password=`cat pwd.txt` \
 -yt keystore.jks \
 -yt application.properties \
@@ -189,10 +189,10 @@ Flink has a built-in `ParameterTool` class to handle program arguments elegantly
   -yD security.kerberos.login.keytab=test.keytab \
   -yD security.kerberos.login.principal=test \
   -yD security.ssl.internal.enabled=true \
-  -yD security.ssl.internal.keystore=keystore.jks \
+  -yD security.ssl.internal.keystore=/path/to/keystore.jks \
   -yD security.ssl.internal.key-password=`cat pwd.txt` \
   -yD security.ssl.internal.keystore-password=`cat pwd.txt` \
-  -yD security.ssl.internal.truststore=keystore.jks \
+  -yD security.ssl.internal.truststore=/path/to/keystore.jks \
   -yD security.ssl.internal.truststore-password=`cat pwd.txt` \
   -yt keystore.jks \
   flink-secure-tutorial-1.2-SNAPSHOT.jar \
@@ -200,8 +200,9 @@ Flink has a built-in `ParameterTool` class to handle program arguments elegantly
   --hdfsOutput hdfs:///tmp/flink-sec-tutorial \
   --kafka.bootstrap.servers <hostname>:9093 \
   --kafka.security.protocol SASL_SSL \
-  --kafka.sasl.kerberos.service.name kafka \
-  --kafka.ssl.truststore.location /etc/cdep-ssl-conf/CA_STANDARD/truststore.jks
+  --kafka.sasl.kerberos.service.name kafka 
+  --kafka.ssl.truststore.location /path/to/kafka/truststore.jks \
+  --kafka.ssl.truststore.password <kafka_truststore_password>
   ```
 4. Send some messages to the _flink_ topic in Kafka. 
 5. Check the application logs and the HDFS output folder to verify that the messages arrive as expected.
@@ -358,19 +359,19 @@ Valid starting       Expires              Service principal
 
 Creating the *flink* topic in Kafka for testing
 ```
-> kafka-topics --create  --zookeeper <hostname>:2181/kafka --replication-factor 3 --partitions 3 --topic flink
-> kafka-topics --zookeeper <hostname>:2181/kafka --list
+> KAFKA_OPTS="-Djava.security.auth.login.config=/path/to/kafka/jaas.conf" kafka-topics --create  --zookeeper <hostname>:2181/kafka --replication-factor 3 --partitions 3 --topic flink
+> KAFKA_OPTS="-Djava.security.auth.login.config=/path/to/kafka/jaas.conf" kafka-topics --zookeeper <hostname>:2181/kafka --list
 ```
 
 Sending messages to the *flink* topic with **kafka-console-producer**:
 
 ```
-KAFKA_OPTS="-Djava.security.auth.login.config=.kafka.jaas.conf" kafka-console-producer --broker-list <hostname>:9093 --producer.config .kafka.client.properties --topic flink
+KAFKA_OPTS="-Djava.security.auth.login.config=/path/to/kafka/jaas.conf" kafka-console-producer --broker-list <hostname>:9093 --producer.config .kafka.client.properties --topic flink
 ```
 
 Reading messages to the *flink* topic with **kafka-console-producer**:
 ```
-KAFKA_OPTS="-Djava.security.auth.login.config=.kafka.jaas.conf" kafka-console-consumer --bootstrap-server <hostname>:9093 --consumer.config .kafka.client.properties --topic flink --from-beginning
+KAFKA_OPTS="-Djava.security.auth.login.config=/path/to/kafka/jaas.conf" kafka-console-consumer --bootstrap-server <hostname>:9093 --consumer.config .kafka.client.properties --topic flink --from-beginning
 ```
 
 Kafka configurations are given as separate files (*.kafka.client.properties* and .kafka.jaas.conf) for **kafka-console-producer** and **kafka-console-consumer** commands:

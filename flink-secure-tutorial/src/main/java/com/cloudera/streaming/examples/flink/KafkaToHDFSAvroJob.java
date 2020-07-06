@@ -21,13 +21,14 @@ package com.cloudera.streaming.examples.flink;
 import org.apache.flink.api.common.serialization.SimpleStringEncoder;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.core.fs.Path;
-import org.apache.flink.formats.avro.generated.Message;
 import org.apache.flink.formats.avro.registry.cloudera.ClouderaRegistryKafkaDeserializationSchema;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.KafkaDeserializationSchema;
+
+import com.cloudera.streaming.examples.flink.data.Message;
 
 import static com.cloudera.streaming.examples.flink.Constants.K_HDFS_OUTPUT;
 import static com.cloudera.streaming.examples.flink.Constants.K_KAFKA_TOPIC;

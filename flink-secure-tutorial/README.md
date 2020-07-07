@@ -54,6 +54,9 @@ flink-secure-tutorial-1.2-SNAPSHOT.jar \
 **Note**
 The default non-secured kafka port is 9092, the default tls port is 9093. 
 
+**Note**
+Don't forget to [create the `flink` topic](#kafka-related-commands).
+
 As you will later see, enabling security features make the command a bit more complicated, and thus we will show every needed step to create the secured code for the Flink application.
 
 For information about Flink Security, see the [Security Overview](https://docs.cloudera.com/csa/1.2.0/security/topics/csa-authentication.html) section in Cloudera Streaming Analytics document.

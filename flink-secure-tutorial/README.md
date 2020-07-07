@@ -373,7 +373,7 @@ Sending messages to the *flink* topic with **kafka-console-producer**:
 KAFKA_OPTS="-Djava.security.auth.login.config=/path/to/kafka/jaas.conf" kafka-console-producer --broker-list <hostname>:9093 --producer.config .kafka.client.properties --topic flink
 ```
 
-Reading messages to the *flink* topic with **kafka-console-producer**:
+Reading messages from the *flink* topic with **kafka-console-consumer**:
 ```
 KAFKA_OPTS="-Djava.security.auth.login.config=/path/to/kafka/jaas.conf" kafka-console-consumer --bootstrap-server <hostname>:9093 --consumer.config .kafka.client.properties --topic flink --from-beginning
 ```

@@ -183,7 +183,11 @@ Flink has a built-in `ParameterTool` class to handle program arguments elegantly
   ```
   The key pair acts as the shared secret for internal security, and we can directly use it as keystore and truststore.
 
-3. Using additional security configuration parameters, submit Flink application as normal:
+3. If Ranger is also present the test user should be authorized to publish to the flink topic. This can be done on the Ranger UI. Navigate to Kafka, click on the `Add New Policy` button, then configure it like this:
+
+![Ranger Settings](images/RangerSettings.png "Ranger Settings")
+
+4. Using additional security configuration parameters, submit Flink application as normal:
   ```
   flink run -m yarn-cluster -d -p 2 \
   -yD security.kerberos.login.keytab=test.keytab \
@@ -204,8 +208,8 @@ Flink has a built-in `ParameterTool` class to handle program arguments elegantly
   --kafka.ssl.truststore.location /path/to/kafka/truststore.jks \
   --kafka.ssl.truststore.password <kafka_truststore_password>
   ```
-4. Send some messages to the _flink_ topic in Kafka. 
-5. Check the application logs and the HDFS output folder to verify that the messages arrive as expected.
+5. Send some messages to the _flink_ topic in Kafka. 
+6. Check the application logs and the HDFS output folder to verify that the messages arrive as expected.
 
 ## Kafka Metrics Reporter
 There is a metrics reporter implementation for writing Flink metrics to a target Kafka topic in JSON format. The corresponding security related Kafka properties can be set either in the command itself or globally using Cloudera Manager safety valve (Flink Client Advanced Configuration Snippet for flink-conf-xml/flink-cli-conf.xml).

@@ -308,6 +308,14 @@ For Kerberos authentication Flink provides seamless integration for Cloudera Sch
 ## Sample commands
 Here are some sample commands, which can be useful for preparing your CDP environment for running the Tutorial Application.
 
+
+### Unix user related commands
+
+Creating the test user locally (should be added on each node):
+```
+> useradd test
+```
+
 ### Kerberos related commands
 
 Creating a *test* user for submitting Flink jobs using **kadmin.local** in the local Kerberos server:
@@ -329,19 +337,6 @@ Password for hdfs@<hostname>:
 > hdfs dfs -chown test:test /user/test
 ```
 
-Creating the test user locally (should be added on each node):
-```
-> useradd test
-```
-
-Creating a keytab for the test user with **ktutil**
-```
-> ktutil
-ktutil: add_entry -password -p test -k 1 -e des3-cbc-sha1
-Password for test@<hostname>:
-ktutil:  wkt test.keytab
-ktutil:  quit
-```
 Listing the stored principal(s) from the keytab:
 ```
 > klist -kte test.keytab

@@ -21,7 +21,7 @@ package com.cloudera.streaming.examples.flink;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.EnvironmentSettings;
-import org.apache.flink.table.api.java.StreamTableEnvironment;
+import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.table.catalog.hive.HiveCatalog;
 import org.apache.flink.util.FileUtils;
 
@@ -56,7 +56,7 @@ public class SqlScriptExecutor {
 			}
 
 			LOG.info("Executing SQL statement: {}", command.trim());
-			env.sqlUpdate(command.trim());
+			env.executeSql(command.trim());
 		}
 
 		env.execute("SQL Script: " + script.getName());

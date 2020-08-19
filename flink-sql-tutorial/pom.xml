@@ -29,7 +29,7 @@ under the License.
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<flink.version>1.10.0-csa1.2.0.0</flink.version>
+		<flink.version>1.11.1-csa1.3.0.0-SNAPSHOT</flink.version>
 		<hive.version>3.1.2</hive.version>
 		<java.version>1.8</java.version>
 		<scala.binary.version>2.11</scala.binary.version>
@@ -45,6 +45,13 @@ under the License.
 	</repositories>
 
 	<dependencies>
+
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-clients_${scala.binary.version}</artifactId>
+			<version>${flink.version}</version>
+			<scope>provided</scope>
+		</dependency>
 
 		<dependency>
 		  <groupId>org.apache.flink</groupId>
@@ -75,9 +82,16 @@ under the License.
 					<groupId>org.apache.calcite</groupId>
 					<artifactId>*</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>org.apache.logging.log4j</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>*</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-avro-cloudera-registry</artifactId>
@@ -94,17 +108,22 @@ under the License.
 		<!-- Add logging framework, to produce console output when running in the IDE. -->
 		<!-- These dependencies are excluded from the application JAR by default. -->
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.7.7</version>
-			<scope>compile</scope>
-		</dependency>
-
+	    <groupId>org.apache.logging.log4j</groupId>
+	    <artifactId>log4j-api</artifactId>
+	    <version>2.13.3</version>
+			<scope>test</scope>
+	  </dependency>
+	  <dependency>
+	    <groupId>org.apache.logging.log4j</groupId>
+	    <artifactId>log4j-core</artifactId>
+	    <version>2.13.3</version>
+			<scope>test</scope>
+	  </dependency>
 		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.17</version>
-			<scope>runtime</scope>
+	    <groupId>org.apache.logging.log4j</groupId>
+	    <artifactId>log4j-slf4j-impl</artifactId>
+	    <version>2.13.3</version>
+	    <scope>test</scope>
 		</dependency>
 
 		<dependency>

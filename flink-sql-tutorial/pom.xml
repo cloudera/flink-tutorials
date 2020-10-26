@@ -42,6 +42,16 @@ under the License.
 			<id>cloudera</id>
 			<url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
 		</repository>
+                <repository>
+			<id>cloudera-internal-snapshots</id>
+			<url>http://maven.jenkins.cloudera.com:8081/artifactory/libs-snapshot-local/</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
 	</repositories>
 
 	<dependencies>

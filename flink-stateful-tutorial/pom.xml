@@ -45,6 +45,16 @@ under the License.
 			<id>hortonworks</id>
 			<url>https://repo.hortonworks.com/content/repositories/releases/</url>
 		</repository>
+                <repository>
+			<id>cloudera-internal-snapshots</id>
+			<url>http://maven.jenkins.cloudera.com:8081/artifactory/libs-snapshot-local/</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
 	</repositories>
 
 	<dependencies>

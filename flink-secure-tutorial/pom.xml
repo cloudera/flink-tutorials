@@ -31,10 +31,10 @@ under the License.
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<flink.version>1.11.1-csa1.3.0.0-SNAPSHOT</flink.version>
 		<java.version>1.8</java.version>
-		<scala.binary.version>2.11</scala.binary.version>
+		<scala.binary.version>2.12</scala.binary.version>
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
-		<avro.version>1.8.2</avro.version>
+		<avro.version>1.9.1</avro.version>
 	</properties>
 
 	<repositories>
@@ -74,7 +74,7 @@ under the License.
 
 		<dependency>
 			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-connector-kafka_2.11</artifactId>
+			<artifactId>flink-connector-kafka_${scala.binary.version}</artifactId>
 			<version>${flink.version}</version>
 		</dependency>
 
@@ -314,7 +314,7 @@ under the License.
 				</dependency>
 				<dependency>
 					<groupId>org.apache.flink</groupId>
-					<artifactId>flink-connector-kafka_2.11</artifactId>
+					<artifactId>flink-connector-kafka_${scala.binary.version}</artifactId>
 					<version>${flink.version}</version>
 				</dependency>
 				<dependency>

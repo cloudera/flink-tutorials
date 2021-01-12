@@ -7,7 +7,7 @@
 4. [Application structure](#application-structure)
 5. [Application main class](#application-main-class)
     + [Creating the stream of heap metrics](#creating-the-stream-of-heap-metrics)
-    + [Computing heap alerts](#computing-gc-warnings-and-heap-alerts)
+    + [Computing heap alerts](#computing-heap-alerts)
 6. [Testing the data pipeline](#testing-the-data-pipeline)
     + [Producing test input](#producing-test-input)
     + [Collecting the test output](#collecting-the-test-output)
@@ -177,25 +177,36 @@ Let's explore this logging implementation and it's configuration.
 ## Logging framework
 
 `LogSink` is a custom sink implementation that simply sends the messages to the logging framework. The logs can be redirected through log4j to any centralized logging system, or simply printed to the standard output in case of debugging. The quick start application provides a sample log4j configuration for redirecting the alert logs to the standard error.
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO">
+  <Appenders>
+    <Console name="stdout" target="SYSTEM_OUT">
+      <PatternLayout charset="UTF-8">
+        <Pattern>%d{HH:mm:ss,SSS} %-5p %-60c %x - %m%n</Pattern>
+      </PatternLayout>
+    </Console>
 
+    <Console name="stderr" target="SYSTEM_ERR">
+      <PatternLayout charset="UTF-8">
+        <Pattern>%d{HH:mm:ss,SSS} %-5p %-60c %x - %m%n</Pattern>
+      </PatternLayout>
+    </Console>
+  </Appenders>
+
+  <Loggers>
+    <Root level="INFO">
+      <AppenderRef ref="stdout"/>
+    </Root>
+
+    <Logger name="com.cloudera.streaming.examples.flink.LogSink" level="INFO">
+      <AppenderRef ref="stderr"/>
+    </Logger>
+  </Loggers>
+</Configuration>
 ```
-log4j.rootLogger=INFO, stdout
 
-log4j.logger.com.cloudera.streaming.examples.flink.LogSink=INFO, stderr
-log4j.additivity.com.cloudera.streaming.examples.flink.LogSink=false
-
-log4j.appender.stdout=org.apache.log4j.ConsoleAppender
-log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
-log4j.appender.stdout.Target   = System.out
-log4j.appender.stdout.layout.ConversionPattern=%d{HH:mm:ss,SSS} %-5p %-60c %x - %m%n
-
-log4j.appender.stderr=org.apache.log4j.ConsoleAppender
-log4j.appender.stderr.layout=org.apache.log4j.PatternLayout
-log4j.appender.stderr.Target   = System.err
-log4j.appender.stderr.layout.ConversionPattern=%d{HH:mm:ss,SSS} %-5p %-60c %x - %m%n
-```
 You can configure the alert mask with a more simple value to produce more frequent hits for testing:
-
 ```
 --alertMask 42
 --alertMask 4
@@ -206,12 +217,13 @@ The Simple Flink Application Tutorial can be deployed on a Cloudera Runtime clus
 
 After you have [built](#Build) the project, run the application from a Flink GateWay node using the following command:
 
-**Note**
-Don't forget to [set up your HDFS home directory](https://docs.cloudera.com/csa/1.2.0/installation/topics/csa-hdfs-home-install.html).
+> **Note:** Don't forget to [set up your HDFS home directory](https://docs.cloudera.com/csa/1.2.0/installation/topics/csa-hdfs-home-install.html).
 
 ```
-flink run --jobmanager yarn-cluster --detached --parallelism 2 --yarnname HeapMonitor target/flink-simple-tutorial-1.2-SNAPSHOT.jar
+flink run -ynm HeapMonitor target/flink-simple-tutorial-1.2-SNAPSHOT.jar
 ```
+
+> **Note:** Details about the `flink run` options can be found under the help. Execute: `flink run -h`
 
 After launching the application, Flink creates a YARN session and launches a dashboard where the application can be monitored. The Flink dashboard can be reached from Cloudera Manager with the following path: 
 `Cluster->Yarn->Applications->application_<ID>->Tracking URL:ApplicationMaster`.
@@ -222,41 +234,31 @@ Following through this link, you can access the Flink application dashboard. On 
 
 ![TaskLogs](images/TaskLogs.png "The logs are accessible on the TaskManager pane of the web dashboard.")
 
-In this case, we have actually run the application with the default `log4j.configuration` controlled by Cloudera Manager, and not with the one we previously used in the IDE locally.
+In this case, we have actually run the application with the default log4j configuration controlled by Cloudera Manager, and not with the one we previously used in the IDE locally.
 
 ### Writing logs to Kafka
 Log messages from a Flink application can also be collected and forwarded to a Kafka topic for convenience. This requires only a few extra configuration steps and dependencies in Flink. The default log4j configuration can be overridden with the following command parameter:
-
 ```
---yarnconf log4j.configuration.file=kafka-appender/log4j.properties
+-yD logging.configuration.file=kafka-appender/log4j2.xml
 ```
 
-You will need to edit the `kafka-appender/log4j.properties` file and replace the placeholders in the line below with the details of your Kafka brokers:
-
-```
-log4j.appender.kafka.brokerList=<your_broker_1>:9092,<your_broker_2>:9092,<your_broker_3>:9092
+You will need to edit the `kafka-appender/log4j2.xml` file and replace the placeholders in the line below with the details of your Kafka brokers:
+```xml
+<Property name="bootstrap.servers">
+    your_broker_1:9092,your_broker_2:9092,your_broker_3:9092
+</Property>
 ```
 
 By default, we are using the `flink-heap-alerts` Kafka topic in the application for tracking the alerts. You can create this topic in your application as follows:
 ```
 kafka-topics --create --partitions 16 --replication-factor 1 --zookeeper $(hostname -f):2181/kafka --topic flink-heap-alerts
 ```
-**Note** 
-In the above command `$(hostname -f)` assumes that you are running Zookeeper on the Flink Gateway node. If you are running it on a different node, simply replace it with your Zookeeper hostname.
+> **Note:** In the above command `$(hostname -f)` assumes that you are running Zookeeper on the Flink Gateway node. If you are running it on a different node, simply replace it with your Zookeeper hostname.
 
 Here is an example for the full command with Kafka logging:
 ```
-flink run --jobmanager yarn-cluster \
-          --yarnconf log4j.configuration.file=kafka-appender/log4j.properties \
-          --detached  \
-          --parallelism 2 \
-          --yarnname HeapMonitor \
-          target/flink-simple-tutorial-1.2-SNAPSHOT.jar
+flink run -ynm HeapMonitor -yD logging.configuration.file=kafka-appender/log4j2.xml target/flink-simple-tutorial-1.2-SNAPSHOT.jar
 ```
-**Note**
-In the CSA 1.1.0.0 release the `org.apache.kafka.log4jappender.KafkaLog4jAppender` class is not present on the TaskManagers' classpath. As a workaround, we referenced the `com.cloudera.kafka.log4jappender.KafkaLog4jAppender` class in the [log4j.properties](kafka-appender/log4j.properties) file that is shipped with CDP Data Center.
-
-As referencing a custom jar in Flink is a common use case, it is worth mentioning that alternatively, `--yarnship /opt/cloudera/parcels/CDH/jars/kafka-log4j-appender-*.jar` could be appended to shade the Apache version of kafka-log4j-appender with the Cloudera version on the classpath of each TaskManagers.
 
 Then, accessing the logs from the Kafka topic will look like this:
 ```
@@ -275,25 +277,16 @@ kafka-console-consumer --bootstrap-server <your_broker>:9092 --topic flink-heap-
 ### Writing output to HDFS
 
 On a cluster environment, it is more preferable to write the output to a durable storage medium, that is why we chose HDFS for this storage layer. You can switch to the HDFS writer from the stdout writer with the following parameter:
-
 ```
 --cluster true
 ```
 
 By default, the output files will be stored under `hdfs:///tmp/flink-heap-stats`, but the output location is configurable with the `--output` parameter. The complete command that includes saving the output to HDFS and logging to Kafka looks like this:
-
 ```
-flink run --jobmanager yarn-cluster \
-          --yarnconf log4j.configuration.file=kafka-appender/log4j.properties \
-          --detached  \
-          --parallelism 2 \
-          --yarnname HeapMonitor \
-          --cluster true \
-           target/flink-simple-tutorial-1.2-SNAPSHOT.jar
+flink run -ynm HeapMonitor -yD logging.configuration.file=kafka-appender/log4j2.xml target/flink-simple-tutorial-1.2-SNAPSHOT.jar --cluster true
 ```
 
 To inspect the output, you can call `hdfs` directly:
-
 ```
 hdfs dfs -cat /tmp/flink-heap-stats/*/*
 ...

@@ -31,7 +31,7 @@ public class LogSink<T> implements SinkFunction<T> {
 	private static final Logger LOG = LoggerFactory.getLogger(LogSink.class);
 
 	@Override
-	public void invoke(T value, Context context) throws Exception {
+	public void invoke(T value, Context context) {
 		if (value != null) {
 			LOG.info(value.toString());
 		}

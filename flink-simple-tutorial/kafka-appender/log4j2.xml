@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO">
+  <Appenders>
+    <Kafka name="Kafka" topic="flink-heap-alerts">
+      <Property name="bootstrap.servers">
+        fcsaky-1.vpc.cloudera.com:9092,fcsaky-2.vpc.cloudera.com:9092,fcsaky-3.vpc.cloudera.com:9092
+      </Property>
+      <PatternLayout charset="UTF-8">
+        <Pattern>%d{HH:mm:ss,SSS} %-5p %-60c %x - %m%n</Pattern>
+      </PatternLayout>
+    </Kafka>
+
+    <File name="File" fileName="${log.file}" append="false">
+      <PatternLayout charset="UTF-8">
+        <Pattern>%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %-60c %x - %m%n</Pattern>
+      </PatternLayout>
+    </File>
+  </Appenders>
+
+  <Loggers>
+    <Root level="INFO">
+      <AppenderRef ref="Kafka"/>
+    </Root>
+  </Loggers>
+</Configuration>

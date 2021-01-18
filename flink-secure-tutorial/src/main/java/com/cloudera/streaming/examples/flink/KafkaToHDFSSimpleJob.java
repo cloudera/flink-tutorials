@@ -28,17 +28,17 @@ import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSin
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 
 /**
- * Channels a kafka topic to an HDFS file.
+ * Channels a Kafka topic to an HDFS file.
  */
 public class KafkaToHDFSSimpleJob {
 
 	public static void main(String[] args) throws Exception {
-
 		ParameterTool params = Utils.parseArgs(args);
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-		FlinkKafkaConsumer<String> consumer = new FlinkKafkaConsumer<>(params.getRequired("kafkaTopic"),
-				new SimpleStringSchema(), Utils.readKafkaProperties(params));
+		FlinkKafkaConsumer<String> consumer = new FlinkKafkaConsumer<>(
+				params.getRequired("kafkaTopic"), new SimpleStringSchema(),
+				Utils.readKafkaProperties(params));
 		DataStream<String> source = env.addSource(consumer)
 				.name("Kafka Source")
 				.uid("Kafka Source");
@@ -52,6 +52,6 @@ public class KafkaToHDFSSimpleJob {
 				.uid("FS Sink");
 		source.print();
 
-		env.execute("Flink Streaming Secured Job Sample");
+		env.execute("Secured Flink Streaming Job");
 	}
 }

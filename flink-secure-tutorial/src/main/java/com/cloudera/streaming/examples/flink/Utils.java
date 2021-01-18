@@ -73,7 +73,10 @@ public final class Utils {
 		Properties properties = new Properties();
 		for (String key : params.getProperties().stringPropertyNames()) {
 			if (key.startsWith(KAFKA_PREFIX)) {
-				properties.setProperty(key.substring(KAFKA_PREFIX.length()), isSensitive(key, params) ? decrypt(params.get(key)) : params.get(key));
+				String keyWithoutPrefix = key.substring(KAFKA_PREFIX.length());
+				String value = isSensitive(key, params) ? decrypt(params.get(key)) : params.get(key);
+
+				properties.setProperty(keyWithoutPrefix, value);
 			}
 		}
 

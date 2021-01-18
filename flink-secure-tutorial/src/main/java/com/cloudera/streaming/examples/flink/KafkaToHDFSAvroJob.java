@@ -34,14 +34,12 @@ import static com.cloudera.streaming.examples.flink.Constants.K_HDFS_OUTPUT;
 import static com.cloudera.streaming.examples.flink.Constants.K_KAFKA_TOPIC;
 
 /**
- * Channels a kafka topic to an HDFS after converting it to a string.
+ * Channels a Kafka topic to an HDFS after converting it to a string.
  */
 public class KafkaToHDFSAvroJob {
 
 	public static void main(String[] args) throws Exception {
-
 		ParameterTool params = Utils.parseArgs(args);
-
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
 		KafkaDeserializationSchema<Message> schema = ClouderaRegistryKafkaDeserializationSchema
@@ -49,10 +47,11 @@ public class KafkaToHDFSAvroJob {
 				.setConfig(Utils.readSchemaRegistryProperties(params))
 				.build();
 
-		FlinkKafkaConsumer<Message> consumer = new FlinkKafkaConsumer<Message>(params.getRequired(K_KAFKA_TOPIC),
-				schema, Utils.readKafkaProperties(params));
+		FlinkKafkaConsumer<Message> kafkaSource = new FlinkKafkaConsumer<>(
+				params.getRequired(K_KAFKA_TOPIC), schema,
+				Utils.readKafkaProperties(params));
 
-		DataStream<String> source = env.addSource(consumer)
+		DataStream<String> source = env.addSource(kafkaSource)
 				.name("Kafka Source")
 				.uid("Kafka Source")
 				.map(record -> record.getId() + "," + record.getName() + "," + record.getDescription())
@@ -68,7 +67,7 @@ public class KafkaToHDFSAvroJob {
 
 		source.print();
 
-		env.execute("Flink Streaming Secured Job Sample");
+		env.execute("Secured Avro Flink Streaming Job");
 	}
 
 }

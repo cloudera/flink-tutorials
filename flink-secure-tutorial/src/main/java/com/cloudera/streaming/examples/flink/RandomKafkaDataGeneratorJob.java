@@ -31,15 +31,17 @@ import java.util.concurrent.ThreadLocalRandom;
 import static com.cloudera.streaming.examples.flink.Constants.K_KAFKA_TOPIC;
 
 /**
- * Generates random UUID strings to a kafka topic.
+ * Generates random UUID strings to a Kafka topic.
  */
 public class RandomKafkaDataGeneratorJob {
+
 	public static void main(String[] args) throws Exception {
 		ParameterTool params = Utils.parseArgs(args);
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-		FlinkKafkaProducer<String> kafkaSink = new FlinkKafkaProducer<String>(params.getRequired(K_KAFKA_TOPIC),
-				new SimpleStringSchema(), Utils.readKafkaProperties(params));
+		FlinkKafkaProducer<String> kafkaSink = new FlinkKafkaProducer<>(
+				params.getRequired(K_KAFKA_TOPIC), new SimpleStringSchema(),
+				Utils.readKafkaProperties(params));
 
 		DataStream<String> input = env.addSource(new UUIDGeneratorSource())
 				.name("Data Generator Source");
@@ -50,7 +52,7 @@ public class RandomKafkaDataGeneratorJob {
 
 		input.print();
 
-		env.execute("Data Generator Job");
+		env.execute("String Data Generator Job");
 	}
 
 	/**

@@ -32,9 +32,10 @@ import org.apache.commons.lang3.RandomStringUtils;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static com.cloudera.streaming.examples.flink.Constants.K_KAFKA_TOPIC;
+import static com.cloudera.streaming.examples.flink.Constants.K_SCHEMA_REG_URL;
 
 /**
- * Generates random Messages to a kafka topic.
+ * Generates random Messages to a Kafka topic.
  */
 public class AvroDataGeneratorJob {
 
@@ -42,14 +43,16 @@ public class AvroDataGeneratorJob {
 		ParameterTool params = Utils.parseArgs(args);
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-		KafkaSerializationSchema<Message> schema = ClouderaRegistryKafkaSerializationSchema.<Message>
-				builder(params.getRequired(K_KAFKA_TOPIC))
+		String topic = params.getRequired(K_KAFKA_TOPIC);
+		KafkaSerializationSchema<Message> schema = ClouderaRegistryKafkaSerializationSchema
+				.<Message>builder(topic)
 				.setConfig(Utils.readSchemaRegistryProperties(params))
 				.setKey(Message::getId)
 				.build();
 
 		FlinkKafkaProducer<Message> kafkaSink = new FlinkKafkaProducer<>(
-				"default", schema, Utils.readKafkaProperties(params), FlinkKafkaProducer.Semantic.AT_LEAST_ONCE);
+				topic, schema, Utils.readKafkaProperties(params),
+				FlinkKafkaProducer.Semantic.AT_LEAST_ONCE);
 
 		DataStream<Message> input = env.addSource(new DataGeneratorSource())
 				.name("Data Generator Source");
@@ -60,7 +63,7 @@ public class AvroDataGeneratorJob {
 
 		input.print();
 
-		env.execute("Data Generator Job");
+		env.execute("Avro Data Generator Job");
 	}
 
 	/**

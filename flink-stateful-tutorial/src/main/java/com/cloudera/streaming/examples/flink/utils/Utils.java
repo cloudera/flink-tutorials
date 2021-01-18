@@ -30,15 +30,11 @@ import java.util.Properties;
  */
 public class Utils {
 
-	private Utils() {
-		throw new UnsupportedOperationException("Utils should not be instantiated!");
-	}
-
 	private static final Logger LOG = LoggerFactory.getLogger(Utils.class);
 
 	public static final String KAFKA_PREFIX = "kafka.";
 
-	public static Properties readKafkaProperties(ParameterTool params, boolean consumer) {
+	public static Properties readKafkaProperties(ParameterTool params) {
 		Properties properties = new Properties();
 		for (String key : params.getProperties().stringPropertyNames()) {
 			if (key.startsWith(KAFKA_PREFIX)) {
@@ -51,5 +47,9 @@ public class Utils {
 			LOG.info("Kafka param: {}={}", key, properties.get(key));
 		}
 		return properties;
+	}
+
+	private Utils() {
+		throw new UnsupportedOperationException("Utils should not be instantiated!");
 	}
 }

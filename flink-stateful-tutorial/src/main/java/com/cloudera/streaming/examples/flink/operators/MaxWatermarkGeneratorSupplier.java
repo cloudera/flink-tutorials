@@ -18,25 +18,31 @@
 
 package com.cloudera.streaming.examples.flink.operators;
 
-import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks;
-import org.apache.flink.streaming.api.watermark.Watermark;
+import org.apache.flink.api.common.eventtime.Watermark;
+import org.apache.flink.api.common.eventtime.WatermarkGenerator;
+import org.apache.flink.api.common.eventtime.WatermarkGeneratorSupplier;
+import org.apache.flink.api.common.eventtime.WatermarkOutput;
 
 /**
- * Watermark implementation that emits Long.MAX_VALUE as watermark and ts, basically removing
+ * Watermark implementation that emits {@link Watermark#MAX_WATERMARK}, basically removing
  * this stream from watermark computation.
  *
  * <p>Should only be used on streams that won't be aggregated to the window.
  */
-public final class MaxWatermark<T> implements AssignerWithPeriodicWatermarks<T> {
-	private static final long serialVersionUID = 1L;
+public class MaxWatermarkGeneratorSupplier<T> implements WatermarkGeneratorSupplier<T> {
 
 	@Override
-	public long extractTimestamp(T input, long ts) {
-		return Long.MAX_VALUE;
-	}
+	public WatermarkGenerator<T> createWatermarkGenerator(Context context) {
+		return new WatermarkGenerator<T>() {
+			@Override
+			public void onEvent(T t, long l, WatermarkOutput watermarkOutput) {
+				watermarkOutput.emitWatermark(Watermark.MAX_WATERMARK);
+			}
 
-	@Override
-	public Watermark getCurrentWatermark() {
-		return new Watermark(Long.MAX_VALUE);
+			@Override
+			public void onPeriodicEmit(WatermarkOutput watermarkOutput) {
+				watermarkOutput.emitWatermark(Watermark.MAX_WATERMARK);
+			}
+		};
 	}
 }

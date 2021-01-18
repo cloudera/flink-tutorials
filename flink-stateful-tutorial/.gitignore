@@ -1,12 +1,13 @@
-.idea/
 target/
 dependency-reduced-pom.xml
-flink-tutorial-cdh-state.iml
 .DS_Store
+
+# idea
+.idea/
+*.iml
 
 # eclipse
 /bin/
 .classpath
 .project
 .settings
-

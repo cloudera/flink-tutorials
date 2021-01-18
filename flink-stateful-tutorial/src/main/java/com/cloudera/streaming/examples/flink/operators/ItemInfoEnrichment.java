@@ -39,7 +39,7 @@ public class ItemInfoEnrichment extends RichAsyncFunction<QueryResult, QueryResu
 	}
 
 	@Override
-	public void asyncInvoke(QueryResult queryResult, ResultFuture<QueryResult> resultFuture) throws Exception {
+	public void asyncInvoke(QueryResult queryResult, ResultFuture<QueryResult> resultFuture) {
 		executor.submit(() -> {
 			try {
 				itemQuery.setString(1, queryResult.itemInfo.itemId);

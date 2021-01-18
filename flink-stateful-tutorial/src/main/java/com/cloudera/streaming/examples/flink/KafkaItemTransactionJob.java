@@ -18,15 +18,13 @@
 
 package com.cloudera.streaming.examples.flink;
 
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor;
-import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 
-import com.cloudera.streaming.examples.flink.operators.HashingKafkaPartitioner;
 import com.cloudera.streaming.examples.flink.types.ItemTransaction;
 import com.cloudera.streaming.examples.flink.types.Query;
 import com.cloudera.streaming.examples.flink.types.QueryResult;
@@ -37,7 +35,7 @@ import com.cloudera.streaming.examples.flink.types.TransactionSchema;
 import com.cloudera.streaming.examples.flink.types.TransactionSummary;
 import com.cloudera.streaming.examples.flink.utils.Utils;
 
-import java.util.Optional;
+import java.time.Duration;
 
 /**
  * {@link ItemTransactionJob} implementation that reads and writes data using Kafka.
@@ -60,9 +58,10 @@ public class KafkaItemTransactionJob extends ItemTransactionJob {
 
 	public DataStream<Query> readQueryStream(ParameterTool params, StreamExecutionEnvironment env) {
 		// We read queries in a simple String format and parse it to our Query object
+		String topic = params.getRequired(QUERY_INPUT_TOPIC_KEY);
 		FlinkKafkaConsumer<Query> rawQuerySource = new FlinkKafkaConsumer<>(
-				params.getRequired(QUERY_INPUT_TOPIC_KEY), new QuerySchema(),
-				Utils.readKafkaProperties(params, true));
+				topic, new QuerySchema(topic),
+				Utils.readKafkaProperties(params));
 
 		rawQuerySource.setCommitOffsetsOnCheckpoints(true);
 
@@ -76,20 +75,17 @@ public class KafkaItemTransactionJob extends ItemTransactionJob {
 
 	public DataStream<ItemTransaction> readTransactionStream(ParameterTool params, StreamExecutionEnvironment env) {
 		// We read the ItemTransaction objects directly using the schema
+		String topic = params.getRequired(TRANSACTION_INPUT_TOPIC_KEY);
 		FlinkKafkaConsumer<ItemTransaction> transactionSource = new FlinkKafkaConsumer<>(
-				params.getRequired(TRANSACTION_INPUT_TOPIC_KEY), new TransactionSchema(),
-				Utils.readKafkaProperties(params, true));
+				topic, new TransactionSchema(topic),
+				Utils.readKafkaProperties(params));
 
 		transactionSource.setCommitOffsetsOnCheckpoints(true);
 		transactionSource.setStartFromEarliest();
 
 		// In case event time processing is enabled we assign trailing watermarks for each partition
-		transactionSource.assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<ItemTransaction>(Time.minutes(1)) {
-			@Override
-			public long extractTimestamp(ItemTransaction transaction) {
-				return transaction.ts;
-			}
-		});
+		transactionSource.assignTimestampsAndWatermarks(
+				WatermarkStrategy.forBoundedOutOfOrderness(Duration.ofMinutes(1)));
 
 		return env.addSource(transactionSource)
 				.name("Kafka Transaction Source")
@@ -98,10 +94,11 @@ public class KafkaItemTransactionJob extends ItemTransactionJob {
 
 	public void writeQueryOutput(ParameterTool params, DataStream<QueryResult> queryResultStream) {
 		// Query output is written back to kafka in a tab delimited format for readability
+		String topic = params.getRequired(QUERY_OUTPUT_TOPIC_KEY);
 		FlinkKafkaProducer<QueryResult> queryOutputSink = new FlinkKafkaProducer<>(
-				params.getRequired(QUERY_OUTPUT_TOPIC_KEY), new QueryResultSchema(),
-				Utils.readKafkaProperties(params, false),
-				Optional.of(new HashingKafkaPartitioner<>()));
+				topic, new QueryResultSchema(topic),
+				Utils.readKafkaProperties(params),
+				FlinkKafkaProducer.Semantic.AT_LEAST_ONCE);
 
 		queryResultStream
 				.addSink(queryOutputSink)
@@ -110,7 +107,7 @@ public class KafkaItemTransactionJob extends ItemTransactionJob {
 	}
 
 	@Override
-	protected void writeTransactionResults(ParameterTool params, DataStream<TransactionResult> transactionresults) {
+	protected void writeTransactionResults(ParameterTool params, DataStream<TransactionResult> transactionResults) {
 		// Ignore for now
 	}
 

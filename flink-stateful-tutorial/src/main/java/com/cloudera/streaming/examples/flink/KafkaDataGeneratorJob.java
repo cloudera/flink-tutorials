@@ -30,17 +30,11 @@ import com.cloudera.streaming.examples.flink.types.Query;
 import com.cloudera.streaming.examples.flink.types.QuerySchema;
 import com.cloudera.streaming.examples.flink.types.TransactionSchema;
 import com.cloudera.streaming.examples.flink.utils.Utils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Optional;
 
 /**
  * Simple Flink job that generates {@link ItemTransaction} data to Kafka.
  */
 public class KafkaDataGeneratorJob {
-
-	private static final Logger LOG = LoggerFactory.getLogger(KafkaDataGeneratorJob.class);
 
 	private static final String GENERATE_QUERIES = "generate.queries";
 
@@ -55,28 +49,29 @@ public class KafkaDataGeneratorJob {
 				env.addSource(new ItemTransactionGeneratorSource(params))
 						.name("Item Transaction Generator");
 
+		String transactionTopic = params.getRequired(KafkaItemTransactionJob.TRANSACTION_INPUT_TOPIC_KEY);
 		FlinkKafkaProducer<ItemTransaction> kafkaSink = new FlinkKafkaProducer<>(
-				params.getRequired(KafkaItemTransactionJob.TRANSACTION_INPUT_TOPIC_KEY),
-				new TransactionSchema(),
-				Utils.readKafkaProperties(params, false),
-				Optional.empty());
+				transactionTopic,
+				new TransactionSchema(transactionTopic),
+				Utils.readKafkaProperties(params),
+				FlinkKafkaProducer.Semantic.AT_LEAST_ONCE);
 
-		generatedInput.keyBy("itemId").addSink(kafkaSink).name("Transaction Kafka Sink");
+		generatedInput.keyBy(t -> t.itemId).addSink(kafkaSink).name("Transaction Kafka Sink");
 
 		if (params.getBoolean(GENERATE_QUERIES, false)) {
 			DataStream<Query> queries = env.addSource(new QueryGeneratorSource(params))
 					.name("Query Generator");
 
+			String queryTopic = params.getRequired(KafkaItemTransactionJob.QUERY_INPUT_TOPIC_KEY);
 			FlinkKafkaProducer<Query> querySink = new FlinkKafkaProducer<>(
-					params.getRequired(KafkaItemTransactionJob.QUERY_INPUT_TOPIC_KEY),
-					new QuerySchema(),
-					Utils.readKafkaProperties(params, false),
-					Optional.empty());
+					queryTopic,
+					new QuerySchema(queryTopic),
+					Utils.readKafkaProperties(params),
+					FlinkKafkaProducer.Semantic.AT_LEAST_ONCE);
 
-			queries.keyBy("itemId").addSink(querySink).name("Query Kafka Sink");
+			queries.keyBy(q -> q.itemId).addSink(querySink).name("Query Kafka Sink");
 		}
 
 		env.execute("Kafka Data generator");
 	}
-
 }

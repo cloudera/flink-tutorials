@@ -21,10 +21,6 @@ package com.cloudera.streaming.examples.flink.types;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.streaming.util.serialization.KeyedSerializationSchema;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -32,27 +28,10 @@ import java.nio.charset.StandardCharsets;
 /**
  * Transaction serialization schema for running the example with kafka.
  */
-public class TransactionSchema implements KeyedSerializationSchema<ItemTransaction>, DeserializationSchema<ItemTransaction> {
+public class TransactionSchema extends JsonKafkaSerializationSchema<ItemTransaction> implements DeserializationSchema<ItemTransaction> {
 
-	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
-	@Override
-	public byte[] serializeKey(ItemTransaction t) {
-		return t.itemId.getBytes(StandardCharsets.UTF_8);
-	}
-
-	@Override
-	public byte[] serializeValue(ItemTransaction t) {
-		try {
-			return OBJECT_MAPPER.writeValueAsBytes(t);
-		} catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	@Override
-	public String getTargetTopic(ItemTransaction t) {
-		return null;
+	public TransactionSchema(String topic) {
+		super(topic);
 	}
 
 	@Override
@@ -73,5 +52,10 @@ public class TransactionSchema implements KeyedSerializationSchema<ItemTransacti
 	public TypeInformation<ItemTransaction> getProducedType() {
 		return new TypeHint<ItemTransaction>() {
 		}.getTypeInfo();
+	}
+
+	@Override
+	protected byte[] getKeyAsBytes(ItemTransaction itemTransaction) {
+		return itemTransaction.itemId.getBytes(StandardCharsets.UTF_8);
 	}
 }

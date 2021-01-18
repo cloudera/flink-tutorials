@@ -21,10 +21,6 @@ package com.cloudera.streaming.examples.flink.types;
 import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.streaming.util.serialization.KeyedSerializationSchema;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -32,9 +28,11 @@ import java.nio.charset.StandardCharsets;
 /**
  * Query serialization schema for running the example with kafka.
  */
-public class QuerySchema implements DeserializationSchema<Query>, KeyedSerializationSchema<Query> {
+public class QuerySchema extends JsonKafkaSerializationSchema<Query> implements DeserializationSchema<Query> {
 
-	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+	public QuerySchema(String topic) {
+		super(topic);
+	}
 
 	@Override
 	public Query deserialize(byte[] message) {
@@ -57,21 +55,7 @@ public class QuerySchema implements DeserializationSchema<Query>, KeyedSerializa
 	}
 
 	@Override
-	public byte[] serializeKey(Query query) {
+	protected byte[] getKeyAsBytes(Query query) {
 		return query.itemId.getBytes(StandardCharsets.UTF_8);
-	}
-
-	@Override
-	public byte[] serializeValue(Query query) {
-		try {
-			return OBJECT_MAPPER.writeValueAsBytes(query);
-		} catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	@Override
-	public String getTargetTopic(Query query) {
-		return null;
 	}
 }

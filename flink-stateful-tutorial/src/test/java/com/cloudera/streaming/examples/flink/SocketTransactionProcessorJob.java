@@ -59,7 +59,7 @@ public class SocketTransactionProcessorJob extends ItemTransactionJob {
 	}
 
 	@Override
-	protected void writeTransactionResults(ParameterTool params, DataStream<TransactionResult> transactionresults) {
+	protected void writeTransactionResults(ParameterTool params, DataStream<TransactionResult> transactionResults) {
 		// Ignore them for now
 	}
 
@@ -71,13 +71,13 @@ public class SocketTransactionProcessorJob extends ItemTransactionJob {
 	@Override
 	public DataStream<Query> readQueryStream(ParameterTool params, StreamExecutionEnvironment env) {
 		return env.socketTextStream("localhost", 9999).flatMap(new FlatMapFunction<String, Query>() {
-			private ObjectMapper om = new ObjectMapper();
+			private final ObjectMapper om = new ObjectMapper();
 
 			@Override
-			public void flatMap(String s, Collector<Query> out) throws Exception {
+			public void flatMap(String s, Collector<Query> out) {
 				try {
 					out.collect(om.readValue(s, Query.class));
-				} catch (Throwable t) {}
+				} catch (Throwable ignored) {}
 			}
 		});
 	}

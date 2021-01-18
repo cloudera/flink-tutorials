@@ -18,6 +18,7 @@
 
 package com.cloudera.streaming.examples.flink;
 
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.TimeCharacteristic;
@@ -29,7 +30,7 @@ import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.util.OutputTag;
 
 import com.cloudera.streaming.examples.flink.operators.ItemInfoEnrichment;
-import com.cloudera.streaming.examples.flink.operators.MaxWatermark;
+import com.cloudera.streaming.examples.flink.operators.MaxWatermarkGeneratorSupplier;
 import com.cloudera.streaming.examples.flink.operators.SummaryAlertingCondition;
 import com.cloudera.streaming.examples.flink.operators.TransactionProcessor;
 import com.cloudera.streaming.examples.flink.operators.TransactionSummaryAggregator;
@@ -55,9 +56,9 @@ public abstract class ItemTransactionJob {
 	public static final String DB_CONN_STRING = "db.connection.string";
 	public static final String ASYNC_TP_SIZE = "async.threadpool.size";
 
-	public static final OutputTag<QueryResult> QUERY_RESULT = new OutputTag<QueryResult>("query-result", TypeInformation.of(QueryResult.class));
+	public static final OutputTag<QueryResult> QUERY_RESULT = new OutputTag<>("query-result", TypeInformation.of(QueryResult.class));
 
-	public final StreamExecutionEnvironment createApplicationPipeline(ParameterTool params) throws Exception {
+	public final StreamExecutionEnvironment createApplicationPipeline(ParameterTool params) {
 
 		// Create and configure the StreamExecutionEnvironment
 		StreamExecutionEnvironment env = createExecutionEnvironment(params);
@@ -65,28 +66,27 @@ public abstract class ItemTransactionJob {
 		// Read transaction stream
 		DataStream<ItemTransaction> transactionStream = readTransactionStream(params, env);
 
-		// We read the query stream and exclude it from watermark tracking by assigning Long.MAX_VALUE watermark
+		// We read the query stream and exclude it from watermark tracking by assigning Watermark.MAX_WATERMARK
 		DataStream<Query> queryStream = readQueryStream(params, env)
-				.assignTimestampsAndWatermarks(new MaxWatermark<>())
+				.assignTimestampsAndWatermarks(WatermarkStrategy.forGenerator(new MaxWatermarkGeneratorSupplier<>()))
 				.name("MaxWatermark");
 
 		// Connect transactions with queries using the same itemId key and apply our transaction processor
 		// The main output is the transaction result, query results are accessed as a side output.
-		SingleOutputStreamOperator<TransactionResult> processedTransactions = transactionStream.keyBy("itemId")
-				.connect(queryStream.keyBy("itemId"))
+		SingleOutputStreamOperator<TransactionResult> processedTransactions = transactionStream.keyBy(t -> t.itemId)
+				.connect(queryStream.keyBy(q -> q.itemId))
 				.process(new TransactionProcessor())
 				.name("Transaction Processor")
 				.uid("Transaction Processor");
 
-		// Query results are accessed as a sideoutput of the transaction processor
+		// Query results are accessed as a side output of the transaction processor
 		DataStream<QueryResult> queryResultStream = processedTransactions.getSideOutput(QUERY_RESULT);
 
 		if (params.getBoolean(ENABLE_DB_ENRICHMENT, false)) {
 			queryResultStream = AsyncDataStream.unorderedWait(
 					queryResultStream,
 					new ItemInfoEnrichment(params.getInt(ASYNC_TP_SIZE, 5), params.getRequired(DB_CONN_STRING)),
-					10, TimeUnit.SECONDS
-			);
+					10, TimeUnit.SECONDS);
 		}
 
 		// Handle the output of transaction and query results separately
@@ -96,7 +96,7 @@ public abstract class ItemTransactionJob {
 		// If needed we create a window computation of the transaction summaries by item and time window
 		if (params.getBoolean(ENABLE_SUMMARIES_KEY, false)) {
 			DataStream<TransactionSummary> transactionSummaryStream = processedTransactions
-					.keyBy("transaction.itemId")
+					.keyBy(res -> res.transaction.itemId)
 					.timeWindow(Time.minutes(10))
 					.aggregate(new TransactionSummaryAggregator())
 					.name("Create Transaction Summary")
@@ -110,7 +110,7 @@ public abstract class ItemTransactionJob {
 		return env;
 	}
 
-	private StreamExecutionEnvironment createExecutionEnvironment(ParameterTool params) throws Exception {
+	private StreamExecutionEnvironment createExecutionEnvironment(ParameterTool params) {
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
 		if (params.getBoolean(EVENT_TIME_KEY, false)) {

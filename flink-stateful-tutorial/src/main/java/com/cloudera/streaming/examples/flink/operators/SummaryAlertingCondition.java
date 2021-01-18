@@ -24,7 +24,7 @@ import org.apache.flink.api.java.utils.ParameterTool;
 import com.cloudera.streaming.examples.flink.types.TransactionSummary;
 
 /**
- * Raises an alert if the ratio of failed transctions is over a ratio, in a large enough sample.
+ * Raises an alert if the ratio of failed transactions is over a ratio, in a large enough sample.
  */
 public class SummaryAlertingCondition implements FilterFunction<TransactionSummary> {
 
@@ -40,7 +40,7 @@ public class SummaryAlertingCondition implements FilterFunction<TransactionSumma
 	}
 
 	@Override
-	public boolean filter(TransactionSummary transactionSummary) throws Exception {
+	public boolean filter(TransactionSummary transactionSummary) {
 		int total = transactionSummary.numSuccessfulTransactions + transactionSummary.numFailedTransactions;
 		return total > minNum && (((double) transactionSummary.numFailedTransactions) / total) > minFailureRate;
 	}

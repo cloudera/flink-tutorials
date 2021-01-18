@@ -38,15 +38,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Simple unit tesst covering the core functions of the stateful example.
+ * Simple unit test covering the core functions of the stateful example.
  */
 public class TransactionProcessorTest extends ItemTransactionJob {
 
+	private final CollectingSink<TransactionResult> transactionResultSink = new CollectingSink<>();
+	private final CollectingSink<QueryResult> queryResultSink = new CollectingSink<>();
+
 	private ManualSource<ItemTransaction> transactionSource;
 	private ManualSource<Query> querySource;
-
-	private CollectingSink<QueryResult> queryResultSink = new CollectingSink<>();
-	private CollectingSink<TransactionResult> transactionResultSink = new CollectingSink<>();
 
 	@Test
 	public void runTest() throws Exception {

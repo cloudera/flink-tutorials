@@ -22,7 +22,7 @@ under the License.
 
 	<groupId>com.cloudera.flink</groupId>
 	<artifactId>flink-stateful-tutorial</artifactId>
-	<version>1.3-SNAPSHOT</version>
+	<version>1.12-csa1.3.0.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>Flink Stateful Tutorial</name>
@@ -33,7 +33,7 @@ under the License.
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 
-		<flink.version>1.11.1-csa1.3.0.0-SNAPSHOT</flink.version>
+		<flink.version>1.12-csa1.3.0.0-SNAPSHOT</flink.version>
 		<log4j.version>2.13.3</log4j.version>
 		<scala.binary.version>2.12</scala.binary.version>
 	</properties>

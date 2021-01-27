@@ -1,7 +1,17 @@
 # Tutorials for Flink on Cloudera
 
 This repo contains reference Flink Streaming applications for a few example use-cases. These examples should serve as solid starting points when building production grade streaming applications as they include detailed development, configuration and deployment guidelines.
-We suggest to refer to them in the following order even though they are designed to be standalone references:
+
+## Prerequisites
+
+Every tutorial handles dependency versions via a [BOM](https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#bill-of-materials-bom-poms), so you need to install that to your local maven repository (but you only have to do this once):
+```shell
+git clone https://github.com/cloudera/flink-tutorials.git
+cd flink-tutorials/flink-tutorials-bom
+mvn clean install
+```
+
+We suggest to refer the tutorials in the following order even though they are designed to be standalone references:
 
 ## Stateless Monitoring Application
 

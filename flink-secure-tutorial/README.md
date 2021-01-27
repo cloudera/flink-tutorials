@@ -45,6 +45,7 @@ public class KafkaToHDFSSimpleJob {
  }
 }
 ```
+
 With this Secure Flink Application Tutorial, we are focusing on how to handle authentication and encryption (TLS) in Flink applications.
 
 First, you need to clone and build the project:
@@ -54,6 +55,8 @@ First, you need to clone and build the project:
 > mvn clean package
 > cd target
 ```
+
+> **Note:** Don't forget to [install the dependency BOM](../README.md#prerequisites) first.
 
 On a **non-secured** CDP Data Center cluster, the command for the quick start application looks like this:
 ```shell
@@ -123,6 +126,7 @@ The keytab and the keystore files that are referred to as `-yD security.kerberos
 > **Note:** For more security information, see the Apache Flink documentation about [Kerberos](https://ci.apache.org/projects/flink/flink-docs-release-1.9/ops/security-kerberos.html), [TLS](https://ci.apache.org/projects/flink/flink-docs-release-1.9/ops/security-ssl.html) and [Kafka](https://ci.apache.org/projects/flink/flink-docs-release-1.9/dev/connectors/kafka.html#enabling-kerberos-authentication-for-versions-09-and-above-only) connector.
 
 ### Job Properties
+
 As you can see, the number of security related configuration options with various Flink connectors can get complicated really easily. Therefore, it is recommended to define as much security property as possible in a separate configuration file, and submit it along other business parameters.
 
 ```shell
@@ -162,6 +166,7 @@ String hdfsOutput = params.get("hdfsOutput");
 ## Complete Command including Security
 
 ### Preparation
+
 * Cloudera Runtime 7.0+ clusters with Kerberos (MIT or AD) and TLS integration (Manual or Auto TLS) including services:
   * HDFS
   * Kafka
@@ -214,6 +219,7 @@ flink run -d -p 2 \
 6. Check the application logs and the HDFS output folder to verify that the messages arrive as expected.
 
 ## Kafka Metrics Reporter
+
 There is a metrics reporter implementation for writing Flink metrics to a target Kafka topic in JSON format. The corresponding security related Kafka properties can be set either in the command itself or globally using Cloudera Manager safety valve (Flink Client Advanced Configuration Snippet for flink-conf-xml/flink-cli-conf.xml).
 ```
 -yD metrics.reporter.kafka.class=org.apache.flink.metrics.kafka.KafkaMetricsReporter \
@@ -311,6 +317,7 @@ security.kerberos.login.contexts=Client,KafkaClient,RegistryClient
 ```
 
 ## Sample commands
+
 Here are some sample commands, which can be useful for preparing your CDP environment for running the Tutorial Application.
 
 ### Kerberos related commands

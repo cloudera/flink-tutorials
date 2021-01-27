@@ -1,6 +1,7 @@
 # Stateless Monitoring Application
 
 ## Table of contents
+
 1. [Overview](#overview)
 2. [Build](#build)
 3. [Application logic](#application-logic)
@@ -19,6 +20,7 @@
 
 
 ## Overview
+
 The purpose of the Stateless Monitoring Application tutorial is to provide a self-contained boilerplate code example for a Flink application. You can use this simple tutorial for learning the basics of developing a Flink streaming application.
 
 The application demonstrates basic capabilities of the DataStream API and shares best practices for testing and logging.
@@ -30,6 +32,7 @@ By the end of the tutorial, you will be able to:
 
 
 ## Build
+
 Before you start the tutorial, check out the repository and build the artifacts:
 ```
 git clone https://github.com/cloudera/flink-tutorials.git
@@ -37,7 +40,10 @@ cd flink-tutorials/flink-simple-tutorial
 mvn clean package
 ```
 
+> **Note:** Don't forget to [install the dependency BOM](../README.md#prerequisites) first.
+
 ## Application logic
+
 Before developing a streaming application, you need to decide the logic behind it, in other words: what will the application do? In this use case, we built an application that monitors the metrics of the JVM heap and produces metrics records similar to the following:
 ```
 HeapMetrics{area=PS Old Gen, used=14495768, max=2863661056, ratio=0.005061970574215889, jobId=1, hostname=`<your_hostname>`}
@@ -116,6 +122,7 @@ The reason for structuring the code this way is to make the pipeline easily test
 The core alerting logic is implemented in the `AlertingFunction` class. It is a `FlatMapFunction` that filters out incoming heap statistic objects according to the configured mask, and converts them to `HeapAlerts`. We leverage the `ParameterTool` object coming from the main program entry point to make this alerting mask configurable when using the Flink client later.
 
 ## Testing the data pipeline
+
 The business logic of a Flink application consists of one or more operators chained together, which is often called a pipeline. Pipelines can be extracted to static methods and can be easily tested with the JUnit framework. The `HeapMonitorPipelineTest` class gives a sample for this.
 
 A simple JUnit test was written to verify the core application logic. The test is implemented in the `HeapMonitorPipelineTest` and should be regarded as an integration test of the application flow. Even though this pipeline is very simple, you can later use the same idea to test more complex application flows.
@@ -213,6 +220,7 @@ You can configure the alert mask with a more simple value to produce more freque
 ```
 
 ## Running the application on a Cloudera cluster
+
 The Simple Flink Application Tutorial can be deployed on a Cloudera Runtime cluster remotely. The actual version of the application was tested on Cloudera Runtime 7.0.3.0 and FLINK-1.9.1-csa1.1.0.0-cdh7.0.3.0-79-1753674 without any security integration on it. 
 
 After you have [built](#Build) the project, run the application from a Flink GateWay node using the following command:
@@ -237,6 +245,7 @@ Following through this link, you can access the Flink application dashboard. On 
 In this case, we have actually run the application with the default log4j configuration controlled by Cloudera Manager, and not with the one we previously used in the IDE locally.
 
 ### Writing logs to Kafka
+
 Log messages from a Flink application can also be collected and forwarded to a Kafka topic for convenience. This requires only a few extra configuration steps and dependencies in Flink. The default log4j configuration can be overridden with the following command parameter:
 ```
 -yD logging.configuration.file=kafka-appender/log4j2.xml
@@ -274,6 +283,7 @@ kafka-console-consumer --bootstrap-server <your_broker>:9092 --topic flink-heap-
 
 00:17:53,800 INFO  com.cloudera.streaming.examples.flink.LogSink                 - HeapAlert{message='42 was found in the HeapMetrics ratio.', triggeringStats=HeapMetrics{area=PS Eden Space, used=54560840, max=94371840, ratio=0.578147464328342, jobId=0, hostname='<yourhostname>'}}
 ```
+
 ### Writing output to HDFS
 
 On a cluster environment, it is more preferable to write the output to a durable storage medium, that is why we chose HDFS for this storage layer. You can switch to the HDFS writer from the stdout writer with the following parameter:

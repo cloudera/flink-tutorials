@@ -460,7 +460,7 @@ kafka-console-consumer --bootstrap-server "<your_broker_1>":9092 --topic transac
 Now that we have a transaction input stream in the `transaction.log.1` topic, we can deploy the transaction processor job.
 
 ```shell
-flink run -m yarn-cluster -d -p 8 -ys 4 -ytm 1500 -ynm TransactionProcessor target/flink-stateful-tutorial-1.3-SNAPSHOT.jar config/job.properties
+flink run -d -p 8 -ys 4 -ytm 1500 -ynm TransactionProcessor target/flink-stateful-tutorial-1.3-SNAPSHOT.jar config/job.properties
 ```
 
 > **Note:** If the deployment hangs, make sure that `yarn.scheduler.maximum-allocation-vcores` is set to at least 4 in the YARN configuration for the cluster

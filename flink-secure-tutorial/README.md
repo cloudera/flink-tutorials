@@ -60,12 +60,12 @@ First, you need to clone and build the project:
 
 On a **non-secured** CDP Data Center cluster, the command for the quick start application looks like this:
 ```shell
-flink run -d -p 2 flink-secure-tutorial-1.3-SNAPSHOT.jar \
+flink run -d -p 2 flink-secure-tutorial-1.12-csa1.3.0.0-SNAPSHOT.jar \
   --kafka.bootstrap.servers "<your-broker>":9092 \
   --kafkaTopic flink
 ```
 
-> **Note:** The default non-secured kafka port is 9092, the default tls port is 9093. 
+> **Note:** The default non-secured kafka port is 9092, the default tls port is 9093.
 
 > **Note:** Don't forget to [create the `flink` topic](#kafka-related-commands).
 
@@ -141,7 +141,7 @@ flink run -d -p 2 \
   -yD security.ssl.internal.truststore-password=$(cat pwd.txt) \
   -yt keystore.jks \
   -yt job.properties \
-  flink-secure-tutorial-1.3-SNAPSHOT.jar \
+  flink-secure-tutorial-1.12-csa1.3.0.0-SNAPSHOT.jar \
   --properties.file job.properties
 ```
 
@@ -207,7 +207,7 @@ flink run -d -p 2 \
   -yD security.ssl.internal.truststore=/path/to/keystore.jks \
   -yD security.ssl.internal.truststore-password=$(cat pw.txt) \
   -yt keystore.jks \
-  flink-secure-tutorial-1.3-SNAPSHOT.jar \
+  flink-secure-tutorial-1.12-csa1.3.0.0-SNAPSHOT.jar \
   --kafkaTopic flink \
   --hdfsOutput hdfs:///tmp/flink-sec-tutorial \
   --kafka.bootstrap.servers <your-broker-1>:9093 \

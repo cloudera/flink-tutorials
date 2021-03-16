@@ -175,10 +175,10 @@ flink run -d -ynm SecureTutorial \
   -yD security.ssl.internal.truststore=keystore.jks \
   -yD security.ssl.internal.truststore-password=****** \
   -yt keystore.jks \
-  flink-secure-tutorial-1.12-csa1.3.0.0-SNAPSHOT.jar \ 
+  flink-secure-tutorial-1.12-csa1.3.0.0-SNAPSHOT.jar \
   --kafkaTopic flink \
   --hdfsOutput hdfs:///tmp/flink-sec-tutorial \
-  --kafka.bootstrap.servers <your-broker-1>:9093 \ 
+  --kafka.bootstrap.servers <your-broker-1>:9093 \
   --kafka.security.protocol SASL_SSL \
   --kafka.sasl.kerberos.service.name kafka \
   --kafka.ssl.truststore.location /var/lib/cloudera-scm-agent/agent-cert/cm-auto-global_truststore.jks
@@ -186,7 +186,7 @@ flink run -d -ynm SecureTutorial \
 Therefore, it is recommended to ship connector related security properties along with other business properties in a separate configuration file (e.g. `job.properties`): 
 
 ```shell
-cat << EOF >> job.properties
+cat << "EOF" > job.properties
 kafkaTopic=flink
 hdfsOutput=hdfs:///tmp/flink-sec-tutorial
 kafka.bootstrap.servers=<your-broker-1>:9093
@@ -205,7 +205,7 @@ flink run -d -ynm SecureTutorial \
   -yD security.ssl.internal.key-password=****** \
   -yD security.ssl.internal.keystore-password=****** \
   -yD security.ssl.internal.truststore=keystore.jks \
-  -yD security.ssl.internal.truststore-password=****** \ 
+  -yD security.ssl.internal.truststore-password=****** \
   -yt keystore.jks \
   flink-secure-tutorial-1.12-csa1.3.0.0-SNAPSHOT.jar \
   --properties.file job.properties
@@ -328,17 +328,39 @@ public class KafkaToHDFSAvroJob {
 }
 ```
 
-The ```ClouderaRegistryKafkaSerializationSchema/ClouderaRegistryKafkaDeserializationSchema ``` related configuration parameters are shipped in the application.properties file too:
+The ```ClouderaRegistryKafkaSerializationSchema/ClouderaRegistryKafkaDeserializationSchema ``` related configuration parameters can be shipped in the job.properties file too:
 ```properties
 schema.registry.url=https://<your-sr-host>:7790/api/v1
 schema.registry.client.ssl.trustStorePath=/var/lib/cloudera-scm-agent/agent-cert/cm-auto-global_truststore.jks
 schema.registry.client.ssl.trustStorePassword=******
 ```
+Once the schema registry properties has been added to `job.properties` the `AvroDataGeneratorJob` can be submitted with:
 
-For Kerberos authentication Flink provides seamless integration for Cloudera Schema Registry through the `security.kerberos.login.contexts` property. After defining an additional `RegistryClient` context here, Flink can maintain authentication and ticket renewal automatically. It is recommended to define these contexts in Cloudera Manager globally:
+```shell
+flink run -d -ynm AvroDataGeneratorJob \
+-yD security.kerberos.login.keytab=morhidi.keytab \
+-yD security.kerberos.login.principal=morhidi \
+-c com.cloudera.streaming.examples.flink.AvroDataGeneratorJob \
+flink-secure-tutorial-1.12-csa1.3.0.0-SNAPSHOT.jar \
+--properties.file job.properties
+```
+The generated avro messages can be read by the `KafkaToHDFSAvroJob`
+
+```shell
+flink run -d -ynm KafkaToHDFSAvroJob \
+-yD security.kerberos.login.keytab=morhidi.keytab \
+-yD security.kerberos.login.principal=morhidi \
+-c com.cloudera.streaming.examples.flink.KafkaToHDFSAvroJob \
+flink-secure-tutorial-1.12-csa1.3.0.0-SNAPSHOT.jar \
+--properties.file job.properties
+```
+
+For Kerberos authentication Flink provides seamless integration for Cloudera Schema Registry through the `security.kerberos.login.contexts` property:
 ```properties
 security.kerberos.login.contexts=Client,KafkaClient,RegistryClient
 ```
+
+> **Note:**  If Ranger is deployed on your cluster make sure the `test` user has access to the schema groups and schema metadata through the `cm_schema-registry` policy group
 
 ## Sample commands
 

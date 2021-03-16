@@ -45,18 +45,16 @@ public class KafkaToHDFSSimpleJob {
  }
 }
 ```
-We will introduce the security configs gradually that makes it easier for you to consume. For more information about Flink Security, see the section [Security Overview](https://docs.cloudera.com/csa/1.2.0/security/topics/csa-authentication.html) in Cloudera Streaming Analytics document.
+We will introduce the security configs gradually that makes it easier to consume. For more information about Flink Security, see the section [Security Overview](https://docs.cloudera.com/csa/latest/security/topics/csa-authentication.html) in Cloudera Streaming Analytics document.
 ## Build
-You need to [install the dependency BOM](../README.md#prerequisites) first and [create a topic called `flink`](#kafka-related-commands). Also, don't forget to [set up your HDFS home directory](https://docs.cloudera.com/csa/1.2.0/installation/topics/csa-hdfs-home-install.html) if you haven't done it yet. Once the dependencies are in place we can build the project:
+You need to [install the dependency BOM](../README.md#prerequisites) first and [create a topic called `flink`](#kafka-related-commands). Also, don't forget to [set up your HDFS home directory](https://docs.cloudera.com/csa/latest/installation/topics/csa-hdfs-home-install.html) if you haven't done it yet. Once the dependencies are in place we can build the project:
 ```shell
 cd flink-tutorials/flink-secure-tutorial
 mvn clean package
 cd target
 ```
 
-
-
-On a typical **NON-SECURED** CDP cluster, the command to start our flink job would look something like this:
+On a typical *NON-SECURED* CDP cluster, the command to start our flink job would look something like this:
 ```shell
 flink run -d -ynm SecureTutorial flink-secure-tutorial-1.12-csa1.3.0.0-SNAPSHOT.jar \
   --kafka.bootstrap.servers "<your-broker>":9092 \
@@ -66,9 +64,7 @@ flink run -d -ynm SecureTutorial flink-secure-tutorial-1.12-csa1.3.0.0-SNAPSHOT.
 > **Note:** The tutorial uses the flink command line parameters in short form, to see all the options run `flink run -h`. The default non-secured kafka port is 9092, the default TLS port is 9093.
 
 ## Understanding Security Parameters
-
-In a production deployment scenario, streaming jobs are understood to run for long periods of time and be able to authenticate to secure data sources throughout the life of the job. Kerberos keytabs do not expire in that timeframe, unlike a Hadoop delegation token or ticket cache entry.
-Kerberos related configurations are defined as Flink command line parameters (`-yD`):
+In a production deployment scenario, streaming jobs are understood to run for long periods of time and be able to authenticate to secure data sources throughout the life of the job. Kerberos keytabs do not expire in that timeframe, thus recommended in flink for authentication. Kerberos related configurations are defined as Flink command line parameters (`-yD`):
 ```
 -yD security.kerberos.login.keytab=test.keytab
 -yD security.kerberos.login.principal=test
@@ -84,6 +80,7 @@ Apache Flink differentiates between internal and external connectivity. All inte
 -yD security.ssl.internal.truststore-password=******
 -yt keystore.jks
 ```
+> **Note:** External TLS configuration is out of scope of this tutorial
 
 Kafka connector security properties should be defined as normal job arguments, since there are no built-in configurations for them in Flink:
 ```
@@ -107,7 +104,7 @@ FlinkKafkaConsumer<String> consumer = new FlinkKafkaConsumer<>(
         params.getRequired("kafkaTopic"), new SimpleStringSchema(),
         Utils.readKafkaProperties(params));
 ```
-> **Note:** The truststore given for the Kafka connector for example is different from the one generated for Flink internal encryption. This is the truststore used to access the TLS protected Kafka endpoint. For more security information, see the Apache Flink documentation about [Kerberos](https://ci.apache.org/projects/flink/flink-docs-release-1.9/ops/security-kerberos.html), [TLS](https://ci.apache.org/projects/flink/flink-docs-release-1.9/ops/security-ssl.html) and [Kafka](https://ci.apache.org/projects/flink/flink-docs-release-1.9/dev/connectors/kafka.html#enabling-kerberos-authentication-for-versions-09-and-above-only) connector.
+> **Note:** The truststore given for the Kafka connector for example is different from the one generated for Flink internal encryption. This is the truststore used to access the TLS protected Kafka endpoint. For more security information, see the Apache Flink documentation about [Kerberos](https://ci.apache.org/projects/flink/flink-docs-release-1.12/deployment/security/security-kerberos.html), [TLS](https://ci.apache.org/projects/flink/flink-docs-release-1.12/deployment/security/security-ssl.html) and [Kafka](https://ci.apache.org/projects/flink/flink-docs-release-1.12/dev/connectors/kafka.html#enabling-kerberos-authentication) connector.
 
 ## Submitting Flink Jobs with Full Security
 
@@ -165,7 +162,7 @@ flink run -d -ynm SecureTutorial \
 6. Check the application logs and HDFS output folder to verify that messages arrive as expected.
 
 ### job.properties
-As you can see, the number of security related configuration options with various Flink connectors can get complicated pretty quickly.
+As you can see, the number of security related configuration options can make our `flink run` command fairly complicated pretty quickly.
 
 ```shell
 flink run -d -ynm SecureTutorial \
@@ -186,7 +183,7 @@ flink run -d -ynm SecureTutorial \
   --kafka.sasl.kerberos.service.name kafka \
   --kafka.ssl.truststore.location /var/lib/cloudera-scm-agent/agent-cert/cm-auto-global_truststore.jks
 ```
-Therefore, it is recommended to define as much security property as possible in a separate configuration file  (e.g. `job.properties`), and submit them along with other business parameters. 
+Therefore, it is recommended to ship connector related security properties along with other business properties in a separate configuration file (e.g. `job.properties`): 
 
 ```shell
 cat << EOF >> job.properties
@@ -198,7 +195,7 @@ kafka.sasl.kerberos.service.name=kafka
 kafka.ssl.truststore.location=/var/lib/cloudera-scm-agent/agent-cert/cm-auto-global_truststore.jks
 EOF
 ```
-Our command looks a bit simpler now:
+Our command looks a bit better now:
 ```shell
 flink run -d -ynm SecureTutorial \
   -yD security.kerberos.login.keytab=test.keytab \
@@ -213,7 +210,7 @@ flink run -d -ynm SecureTutorial \
   flink-secure-tutorial-1.12-csa1.3.0.0-SNAPSHOT.jar \
   --properties.file job.properties
   ```
-> **Note:** We can simplify our command further if we leave out the optional TLS configs
+> **Note:** We can also simplify our command further if we leave out the optional TLS configs
 ```shell
 flink run -d -ynm SecureTutorial \
   -yD security.kerberos.login.keytab=test.keytab \

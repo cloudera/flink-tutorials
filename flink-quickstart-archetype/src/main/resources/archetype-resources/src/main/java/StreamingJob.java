@@ -25,10 +25,13 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 public class StreamingJob {
+
 	public static void main(String[] args) throws Exception {
 		final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+
 		DataStream<Integer> ds = env.fromElements(1,2,3,4);
 		ds.printToErr();
+
 		env.execute("Flink Streaming Java API Skeleton");
 	}
 }

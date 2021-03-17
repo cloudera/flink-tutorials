@@ -40,8 +40,6 @@ cd flink-tutorials/flink-simple-tutorial
 mvn clean package
 ```
 
-> **Note:** Don't forget to [install the dependency BOM](../README.md#prerequisites) first.
-
 ## Application logic
 
 Before developing a streaming application, you need to decide the logic behind it, in other words: what will the application do? In this use case, we built an application that monitors the metrics of the JVM heap and produces metrics records similar to the following:

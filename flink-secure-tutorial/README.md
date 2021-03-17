@@ -3,14 +3,16 @@
 ## Table of Contents
 
  1. [Overview](#overview)
- 2. [Understanding Security Parameters](#understanding-security-parameters)
-     + [Job Properties](#job-properties)
- 3. [Complete Command including Security](#complete-command-including-security)
+ 2. [Build](#build)
+     + [Prerequisites](#prerequisites)
+ 3. [Understanding security parameters](#understanding-security-parameters)
+ 4. [Submitting Flink jobs with full security](#submitting-flink-jobs-with-full-security)
      + [Preparation](#preparation)
-     + [Steps to run the Secured Flink Application Tutorial](#steps-to-run-the-secured-flink-application-tutorial)
- 4. [Kafka Metrics Reporter](#kafka-metrics-reporter)
- 5. [Schema Registry Integration](#schema-registry-integration)
- 6. [Sample commands](#sample-commands)
+     + [Steps to run the secured Flink application tutorial](#steps-to-run-the-secured-flink-application-tutorial)
+     + [Job properties](#jobproperties)
+ 5. [Kafka metrics reporter](#kafka-metrics-reporter)
+ 6. [Schema Registry integration](#schema-registry-integration)
+ 7. [Sample commands](#sample-commands)
      + [Kerberos related commands](#kerberos-related-commands)
      + [Kafka related commands](#kafka-related-commands)
 
@@ -46,8 +48,13 @@ public class KafkaToHDFSSimpleJob {
 }
 ```
 We will introduce the security configs gradually that makes it easier to consume. For more information about Flink Security, see the section [Security Overview](https://docs.cloudera.com/csa/latest/security/topics/csa-authentication.html) in Cloudera Streaming Analytics document.
+
 ## Build
-You need to [install the dependency BOM](../README.md#prerequisites) first and [create a topic called `flink`](#kafka-related-commands). Also, don't forget to [set up your HDFS home directory](https://docs.cloudera.com/csa/latest/installation/topics/csa-hdfs-home-install.html) if you haven't done it yet. Once the dependencies are in place we can build the project:
+
+### Prerequisites
+
+You need to [create a topic called `flink`](#kafka-related-commands).
+Also, don't forget to [set up your HDFS home directory](https://docs.cloudera.com/csa/latest/installation/topics/csa-hdfs-home-install.html) if you haven't done it yet. Once the dependencies are in place we can build the project:
 ```shell
 cd flink-tutorials/flink-secure-tutorial
 mvn clean package
@@ -63,7 +70,8 @@ flink run -d -ynm SecureTutorial flink-secure-tutorial-1.12-csa1.3.0.0-SNAPSHOT.
 
 > **Note:** The tutorial uses the flink command line parameters in short form, to see all the options run `flink run -h`. The default non-secured kafka port is 9092, the default TLS port is 9093.
 
-## Understanding Security Parameters
+## Understanding security parameters
+
 In a production deployment scenario, streaming jobs are understood to run for long periods of time and be able to authenticate to secure data sources throughout the life of the job. Kerberos keytabs do not expire in that timeframe, thus recommended in flink for authentication. Kerberos related configurations are defined as Flink command line parameters (`-yD`):
 ```
 -yD security.kerberos.login.keytab=test.keytab
@@ -106,7 +114,7 @@ FlinkKafkaConsumer<String> consumer = new FlinkKafkaConsumer<>(
 ```
 > **Note:** The truststore given for the Kafka connector for example is different from the one generated for Flink internal encryption. This is the truststore used to access the TLS protected Kafka endpoint. For more security information, see the Apache Flink documentation about [Kerberos](https://ci.apache.org/projects/flink/flink-docs-release-1.12/deployment/security/security-kerberos.html), [TLS](https://ci.apache.org/projects/flink/flink-docs-release-1.12/deployment/security/security-ssl.html) and [Kafka](https://ci.apache.org/projects/flink/flink-docs-release-1.12/dev/connectors/kafka.html#enabling-kerberos-authentication) connector.
 
-## Submitting Flink Jobs with Full Security
+## Submitting Flink jobs with full security
 
 ### Preparation
 
@@ -117,7 +125,7 @@ FlinkKafkaConsumer<String> consumer = new FlinkKafkaConsumer<>(
   * Flink
 * Existing test user in the Kerberos realm and as local users on each cluster nodes. You can find some useful commands for fulfilling the prerequisites in a dedicated chapter [here](#sample-commands).
 
-### Steps to run the Secured Flink Application Tutorial
+### Steps to tun the secured Flink application tutorial
 
 1. For Kerberos authentication, generate a keytab file for the user intended to submit the Flink job. Keytabs can be generated with `ktutil` as the following example:
 ```
@@ -162,6 +170,7 @@ flink run -d -ynm SecureTutorial \
 6. Check the application logs and HDFS output folder to verify that messages arrive as expected.
 
 ### job.properties
+
 As you can see, the number of security related configuration options can make our `flink run` command fairly complicated pretty quickly.
 
 ```shell
@@ -220,6 +229,7 @@ flink run -d -ynm SecureTutorial \
   ```
 
 ### Flink default configs (/etc/flink/conf/flink-conf.yaml)
+
 The keytab and the keystore files that are referred to as `-yD security.kerberos.login.keytab=test.keytab` and `-yt keystore.jks` respectively are distributed automatically to the temporary folder of the YARN container on the remote hosts. These properties are user specific, and usually cannot be added to the default Flink configuration unless a single technical user is used to submit the Flink jobs. If there is a dedicated technical user for submitting Flink jobs on a cluster, the keytab and keystore files can be provisioned to the YARN hosts in advance. In this case the related configuration parameters can be set globally in Cloudera Manager using Safety Valves.
 
 ### ParameterTool
@@ -242,7 +252,7 @@ String kafkaTopic = params.get("kafkaTopic");
 String hdfsOutput = params.get("hdfsOutput");
 ```
 
-## Kafka Metrics Reporter
+## Kafka metrics reporter
 
 There is a metrics reporter implementation for writing Flink metrics to a target Kafka topic in JSON format. The corresponding security related Kafka properties can be set either in the command itself or globally using Cloudera Manager safety valve (Flink Client Advanced Configuration Snippet for flink-conf-xml/flink-cli-conf.xml).
 ```
@@ -254,7 +264,7 @@ There is a metrics reporter implementation for writing Flink metrics to a target
 -yD metrics.reporter.kafka.ssl.truststore.location=/var/lib/cloudera-scm-agent/agent-cert/cm-auto-global_truststore.jks \
 ```
 
-## Schema Registry Integration
+## Schema Registry integration
 
 Flink Kafka sources and sinks can be used together with Cloudera Schema Registry to maintain schema information about your Kafka topics. In this example, the schema registry is used to provide automatic serialization/deserialization functionality for Kafka Avro messages.
 
@@ -459,4 +469,3 @@ useTicketCache=true;
 ```
 
 > **Note:** This approach can also be used for testing and verifying the security properties for the Kafka connector used in the Flink application itself.
-

@@ -17,7 +17,8 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
@@ -25,15 +26,18 @@ under the License.
 	<artifactId>flink-quickstart-archetype</artifactId>
 	<version>1.12-csa1.3.0.0-SNAPSHOT</version>
 	<packaging>maven-archetype</packaging>
-
 	<name>Flink Quickstart Archetype</name>
+
+	<properties>
+		<archetype.packaging.version>3.1.2</archetype.packaging.version>
+	</properties>
 
 	<build>
 		<extensions>
 			<extension>
 				<groupId>org.apache.maven.archetype</groupId>
 				<artifactId>archetype-packaging</artifactId>
-				<version>3.1.2</version>
+				<version>${archetype.packaging.version}</version>
 			</extension>
 		</extensions>
 	</build>

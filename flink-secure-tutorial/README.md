@@ -192,7 +192,7 @@ flink run -d -ynm SecureTutorial \
   --kafka.sasl.kerberos.service.name kafka \
   --kafka.ssl.truststore.location /var/lib/cloudera-scm-agent/agent-cert/cm-auto-global_truststore.jks
 ```
-Therefore, it is recommended to ship connector related security properties along with other business properties in a separate configuration file (e.g. `job.properties`): 
+Therefore, it is recommended to ship connector related security properties along with other business properties in a separate configuration file (e.g. `job.properties`):
 
 ```shell
 cat << "EOF" > job.properties
@@ -235,7 +235,7 @@ The keytab and the keystore files that are referred to as `-yD security.kerberos
 ### ParameterTool
 
 Flink has a built-in `ParameterTool` class to handle program arguments elegantly. You can merge the arguments given in the command line and configuration file like the example below:
-```java     
+```java
 ParameterTool params = ParameterTool.fromArgs(args);
 String propertiesFile = params.get("properties.file");
 

@@ -1,7 +1,7 @@
 # Flink Quickstart Archetype
 This is a maven archetype for generating Java projects for Flink on Cloudera.
 
-## Prerequisites 
+## Prerequisites
 Cloudera does not release maven archetypes to the Maven Central Repository thus the archetype should be installed locally on your host before usage.
 
 ```shell
@@ -19,7 +19,7 @@ cat ~/.m2/repository/archetype-catalog.xml
     <archetype>
       <groupId>com.cloudera.flink</groupId>
       <artifactId>flink-quickstart-archetype</artifactId>
-      <version>1.12-csa1.3.0.0-SNAPSHOT</version>
+      <version>1.12-csa1.3.0.0</version>
       <description>flink-quickstart-archetype</description>
     </archetype>
   </archetypes>
@@ -32,7 +32,7 @@ Once the archetype is installed you can generate project skeletons by running:
 mvn archetype:generate \
   -DarchetypeGroupId=com.cloudera.flink \
   -DarchetypeArtifactId=flink-quickstart-archetype \
-  -DarchetypeVersion=1.12-csa1.3.0.0-SNAPSHOT
+  -DarchetypeVersion=1.12-csa1.3.0.0
 ```
 
 You must provide some basic information about your new project when prompted.
@@ -63,5 +63,5 @@ sample-project
         │           └── flink
         │               └── StreamingJob.java
         └── resources
-            └── log4j.properties            
+            └── log4j.properties
 ```

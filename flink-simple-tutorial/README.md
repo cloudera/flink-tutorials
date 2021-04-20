@@ -148,7 +148,7 @@ As we cannot always force strict ordering for the output elements, we used a `Se
 
 The Application Tutorial is based on the upstream Flink quickstart Maven archetype. The project can be imported into IntelliJ by following the instructions from the [Flink documentation](https://ci.apache.org/projects/flink/flink-docs-stable/dev/projectsetup/java_api_quickstart.html#maven).
 
-To run applications directly from the IDE, you must enable the `add-dependencies-for-IDEA` profile. This ensures that the provided dependencies, that would be otherwise supplied by the runtime environment, are available in this case.
+To run applications directly from the IDE, you must enable the `Include dependencies with "Provided" scope` option in `Run -> Edit Configurations`. This ensures that the provided dependencies, that would be otherwise supplied by the runtime environment, are available in this case.
 
 The first step is to simply run the `HeapMonitorPipeline` class from the IDE. Like this, one or more multiple lines are printed to the console:
 ```

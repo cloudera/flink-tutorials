@@ -42,8 +42,8 @@ under the License.
 
 		<!-- Dependency versions -->
 		<hive.version>3.1.2</hive.version>
-		<jackson.version>2.10.1</jackson.version>
-		<junit.version>4.12</junit.version>
+		<jackson.version>2.10.5.1</jackson.version>
+		<junit.version>4.13.1</junit.version>
 		<log4j.version>2.13.3</log4j.version>
 		<metrics.version>4.1.0</metrics.version>
 		<mysql.version>8.0.20</mysql.version>

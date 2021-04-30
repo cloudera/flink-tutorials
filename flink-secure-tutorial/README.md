@@ -63,7 +63,7 @@ cd target
 
 On a typical *NON-SECURED* CDP cluster, the command to start our flink job would look something like this:
 ```shell
-flink run -d -ynm SecureTutorial flink-secure-tutorial-1.12-csa1.4.0.0-SNAPSHOT.jar \
+flink run -d -ynm SecureTutorial flink-secure-tutorial-1.12.1-csa1.5.0.0-SNAPSHOT.jar \
   --kafka.bootstrap.servers "<your-broker>":9092 \
   --kafkaTopic flink
 ```
@@ -158,7 +158,7 @@ flink run -d -ynm SecureTutorial \
   -yD security.ssl.internal.truststore=keystore.jks \
   -yD security.ssl.internal.truststore-password=****** \
   -yt keystore.jks \
-  flink-secure-tutorial-1.12-csa1.4.0.0-SNAPSHOT.jar \
+  flink-secure-tutorial-1.12.1-csa1.5.0.0-SNAPSHOT.jar \
   --kafkaTopic flink \
   --hdfsOutput hdfs:///tmp/flink-sec-tutorial \
   --kafka.bootstrap.servers <your-broker-1>:9093 \
@@ -184,7 +184,7 @@ flink run -d -ynm SecureTutorial \
   -yD security.ssl.internal.truststore=keystore.jks \
   -yD security.ssl.internal.truststore-password=****** \
   -yt keystore.jks \
-  flink-secure-tutorial-1.12-csa1.4.0.0-SNAPSHOT.jar \
+  flink-secure-tutorial-1.12.1-csa1.5.0.0-SNAPSHOT.jar \
   --kafkaTopic flink \
   --hdfsOutput hdfs:///tmp/flink-sec-tutorial \
   --kafka.bootstrap.servers <your-broker-1>:9093 \
@@ -216,7 +216,7 @@ flink run -d -ynm SecureTutorial \
   -yD security.ssl.internal.truststore=keystore.jks \
   -yD security.ssl.internal.truststore-password=****** \
   -yt keystore.jks \
-  flink-secure-tutorial-1.12-csa1.4.0.0-SNAPSHOT.jar \
+  flink-secure-tutorial-1.12.1-csa1.5.0.0-SNAPSHOT.jar \
   --properties.file job.properties
   ```
 > **Note:** We can also simplify our command further if we leave out the optional TLS configs
@@ -224,7 +224,7 @@ flink run -d -ynm SecureTutorial \
 flink run -d -ynm SecureTutorial \
   -yD security.kerberos.login.keytab=test.keytab \
   -yD security.kerberos.login.principal=test \
-  flink-secure-tutorial-1.12-csa1.4.0.0-SNAPSHOT.jar \
+  flink-secure-tutorial-1.12.1-csa1.5.0.0-SNAPSHOT.jar \
   --properties.file job.properties
   ```
 
@@ -351,7 +351,7 @@ flink run -d -ynm AvroDataGeneratorJob \
 -yD security.kerberos.login.keytab=morhidi.keytab \
 -yD security.kerberos.login.principal=morhidi \
 -c com.cloudera.streaming.examples.flink.AvroDataGeneratorJob \
-flink-secure-tutorial-1.12-csa1.4.0.0-SNAPSHOT.jar \
+flink-secure-tutorial-1.12.1-csa1.5.0.0-SNAPSHOT.jar \
 --properties.file job.properties
 ```
 The generated avro messages can be read by the `KafkaToHDFSAvroJob`
@@ -361,7 +361,7 @@ flink run -d -ynm KafkaToHDFSAvroJob \
 -yD security.kerberos.login.keytab=morhidi.keytab \
 -yD security.kerberos.login.principal=morhidi \
 -c com.cloudera.streaming.examples.flink.KafkaToHDFSAvroJob \
-flink-secure-tutorial-1.12-csa1.4.0.0-SNAPSHOT.jar \
+flink-secure-tutorial-1.12.1-csa1.5.0.0-SNAPSHOT.jar \
 --properties.file job.properties
 ```
 

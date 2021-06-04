@@ -63,7 +63,7 @@ cd target
 
 On a typical *NON-SECURED* CDP cluster, the command to start our flink job would look something like this:
 ```shell
-flink run -d -ynm SecureTutorial flink-secure-tutorial-1.12.1-csa1.5.0.0-SNAPSHOT.jar \
+flink run -d -ynm SecureTutorial flink-secure-tutorial-1.13.1-csa1.5.0.0-SNAPSHOT.jar \
   --kafka.bootstrap.servers "<your-broker>":9092 \
   --kafkaTopic flink
 ```
@@ -112,7 +112,7 @@ FlinkKafkaConsumer<String> consumer = new FlinkKafkaConsumer<>(
         params.getRequired("kafkaTopic"), new SimpleStringSchema(),
         Utils.readKafkaProperties(params));
 ```
-> **Note:** The truststore given for the Kafka connector for example is different from the one generated for Flink internal encryption. This is the truststore used to access the TLS protected Kafka endpoint. For more security information, see the Apache Flink documentation about [Kerberos](https://ci.apache.org/projects/flink/flink-docs-release-1.12/deployment/security/security-kerberos.html), [TLS](https://ci.apache.org/projects/flink/flink-docs-release-1.12/deployment/security/security-ssl.html) and [Kafka](https://ci.apache.org/projects/flink/flink-docs-release-1.12/dev/connectors/kafka.html#enabling-kerberos-authentication) connector.
+> **Note:** The truststore given for the Kafka connector for example is different from the one generated for Flink internal encryption. This is the truststore used to access the TLS protected Kafka endpoint. For more security information, see the Apache Flink documentation about [Kerberos](https://ci.apache.org/projects/flink/flink-docs-release-1.13/deployment/security/security-kerberos.html), [TLS](https://ci.apache.org/projects/flink/flink-docs-release-1.13/deployment/security/security-ssl.html) and [Kafka](https://ci.apache.org/projects/flink/flink-docs-release-1.13/dev/connectors/kafka.html#enabling-kerberos-authentication) connector.
 
 ## Submitting Flink jobs with full security
 
@@ -158,7 +158,7 @@ flink run -d -ynm SecureTutorial \
   -yD security.ssl.internal.truststore=keystore.jks \
   -yD security.ssl.internal.truststore-password=****** \
   -yt keystore.jks \
-  flink-secure-tutorial-1.12.1-csa1.5.0.0-SNAPSHOT.jar \
+  flink-secure-tutorial-1.13.1-csa1.5.0.0-SNAPSHOT.jar \
   --kafkaTopic flink \
   --hdfsOutput hdfs:///tmp/flink-sec-tutorial \
   --kafka.bootstrap.servers <your-broker-1>:9093 \
@@ -184,7 +184,7 @@ flink run -d -ynm SecureTutorial \
   -yD security.ssl.internal.truststore=keystore.jks \
   -yD security.ssl.internal.truststore-password=****** \
   -yt keystore.jks \
-  flink-secure-tutorial-1.12.1-csa1.5.0.0-SNAPSHOT.jar \
+  flink-secure-tutorial-1.13.1-csa1.5.0.0-SNAPSHOT.jar \
   --kafkaTopic flink \
   --hdfsOutput hdfs:///tmp/flink-sec-tutorial \
   --kafka.bootstrap.servers <your-broker-1>:9093 \
@@ -216,7 +216,7 @@ flink run -d -ynm SecureTutorial \
   -yD security.ssl.internal.truststore=keystore.jks \
   -yD security.ssl.internal.truststore-password=****** \
   -yt keystore.jks \
-  flink-secure-tutorial-1.12.1-csa1.5.0.0-SNAPSHOT.jar \
+  flink-secure-tutorial-1.13.1-csa1.5.0.0-SNAPSHOT.jar \
   --properties.file job.properties
   ```
 > **Note:** We can also simplify our command further if we leave out the optional TLS configs
@@ -224,7 +224,7 @@ flink run -d -ynm SecureTutorial \
 flink run -d -ynm SecureTutorial \
   -yD security.kerberos.login.keytab=test.keytab \
   -yD security.kerberos.login.principal=test \
-  flink-secure-tutorial-1.12.1-csa1.5.0.0-SNAPSHOT.jar \
+  flink-secure-tutorial-1.13.1-csa1.5.0.0-SNAPSHOT.jar \
   --properties.file job.properties
   ```
 
@@ -351,7 +351,7 @@ flink run -d -ynm AvroDataGeneratorJob \
 -yD security.kerberos.login.keytab=morhidi.keytab \
 -yD security.kerberos.login.principal=morhidi \
 -c com.cloudera.streaming.examples.flink.AvroDataGeneratorJob \
-flink-secure-tutorial-1.12.1-csa1.5.0.0-SNAPSHOT.jar \
+flink-secure-tutorial-1.13.1-csa1.5.0.0-SNAPSHOT.jar \
 --properties.file job.properties
 ```
 The generated avro messages can be read by the `KafkaToHDFSAvroJob`
@@ -361,7 +361,7 @@ flink run -d -ynm KafkaToHDFSAvroJob \
 -yD security.kerberos.login.keytab=morhidi.keytab \
 -yD security.kerberos.login.principal=morhidi \
 -c com.cloudera.streaming.examples.flink.KafkaToHDFSAvroJob \
-flink-secure-tutorial-1.12.1-csa1.5.0.0-SNAPSHOT.jar \
+flink-secure-tutorial-1.13.1-csa1.5.0.0-SNAPSHOT.jar \
 --properties.file job.properties
 ```
 

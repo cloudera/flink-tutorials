@@ -34,7 +34,7 @@ under the License.
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
 
-		<flink.version>1.13.1-csa1.5.0.0-SNAPSHOT</flink.version>
+		<flink.version>1.13.1-csa1.6.0.0-SNAPSHOT</flink.version>
 
 		<junit.version>4.13.1</junit.version>
 		<log4j.version>2.13.3</log4j.version>

@@ -19,7 +19,7 @@ cat ~/.m2/repository/archetype-catalog.xml
     <archetype>
       <groupId>com.cloudera.flink</groupId>
       <artifactId>flink-quickstart-archetype</artifactId>
-      <version>1.14.0-csa1.6.1.0</version>
+      <version>1.14.0-csa1.6.2.0</version>
       <description>flink-quickstart-archetype</description>
     </archetype>
   </archetypes>
@@ -32,7 +32,7 @@ Once the archetype is installed you can generate project skeletons by running:
 mvn archetype:generate \
   -DarchetypeGroupId=com.cloudera.flink \
   -DarchetypeArtifactId=flink-quickstart-archetype \
-  -DarchetypeVersion=1.14.0-csa1.6.1.0
+  -DarchetypeVersion=1.14.0-csa1.6.2.0
 ```
 
 You must provide some basic information about your new project when prompted.

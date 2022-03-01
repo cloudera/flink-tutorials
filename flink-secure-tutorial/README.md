@@ -461,11 +461,12 @@ EOF
 
 Preparing a *.kafka.jaas.conf* file for **kafka-console-producer** to access the secured Kafka service:
 ```shell
-> cat .kafka.jaas.conf
+cat << "EOF" > .kafka.jaas.conf
 KafkaClient {
 com.sun.security.auth.module.Krb5LoginModule required
 useTicketCache=true;
 };
+EOF
 ```
 
 > **Note:** This approach can also be used for testing and verifying the security properties for the Kafka connector used in the Flink application itself.

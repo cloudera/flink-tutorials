@@ -20,14 +20,16 @@ package com.cloudera.streaming.examples.flink;
 
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
+import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.ParallelSourceFunction;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static com.cloudera.streaming.examples.flink.Constants.K_BOOTSTRAP_SERVERS;
 import static com.cloudera.streaming.examples.flink.Constants.K_KAFKA_TOPIC;
 
 /**
@@ -39,16 +41,23 @@ public class RandomKafkaDataGeneratorJob {
 		ParameterTool params = Utils.parseArgs(args);
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-		FlinkKafkaProducer<String> kafkaSink = new FlinkKafkaProducer<>(
-				params.getRequired(K_KAFKA_TOPIC), new SimpleStringSchema(),
-				Utils.readKafkaProperties(params));
+		KafkaSink<String> kafkaSink = KafkaSink.<String>builder()
+				.setBootstrapServers(params.get(K_BOOTSTRAP_SERVERS))
+				.setRecordSerializer(KafkaRecordSerializationSchema.builder()
+						.setTopic(params.get(K_KAFKA_TOPIC))
+						.setValueSerializationSchema(new SimpleStringSchema())
+						.build()
+				)
+				.setKafkaProducerConfig(Utils.readKafkaProperties(params))
+				.build();
 
 		DataStream<String> input = env.addSource(new UUIDGeneratorSource())
-				.name("Data Generator Source");
+				.name("Data Generator Source")
+				.uid("data-generator-source");
 
-		input.addSink(kafkaSink)
+		input.sinkTo(kafkaSink)
 				.name("Kafka Sink")
-				.uid("Kafka Sink");
+				.uid("kafka-sink");
 
 		input.print();
 

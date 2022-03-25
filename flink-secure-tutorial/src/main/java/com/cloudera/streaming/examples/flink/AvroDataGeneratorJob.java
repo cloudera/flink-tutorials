@@ -19,20 +19,21 @@
 package com.cloudera.streaming.examples.flink;
 
 import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.flink.formats.avro.registry.cloudera.ClouderaRegistryKafkaSerializationSchema;
+import org.apache.flink.connector.base.DeliveryGuarantee;
+import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
+import org.apache.flink.connector.kafka.sink.KafkaSink;
+import org.apache.flink.formats.avro.registry.cloudera.ClouderaRegistryKafkaRecordSerializationSchema;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.ParallelSourceFunction;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
-import org.apache.flink.streaming.connectors.kafka.KafkaSerializationSchema;
 
 import com.cloudera.streaming.examples.flink.data.Message;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+import static com.cloudera.streaming.examples.flink.Constants.K_BOOTSTRAP_SERVERS;
 import static com.cloudera.streaming.examples.flink.Constants.K_KAFKA_TOPIC;
-import static com.cloudera.streaming.examples.flink.Constants.K_SCHEMA_REG_URL;
 
 /**
  * Generates random Messages to a Kafka topic.
@@ -44,22 +45,25 @@ public class AvroDataGeneratorJob {
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
 		String topic = params.getRequired(K_KAFKA_TOPIC);
-		KafkaSerializationSchema<Message> schema = ClouderaRegistryKafkaSerializationSchema
+		KafkaRecordSerializationSchema<Message> schema = ClouderaRegistryKafkaRecordSerializationSchema
 				.<Message>builder(topic)
 				.setConfig(Utils.readSchemaRegistryProperties(params))
 				.setKey(Message::getId)
 				.build();
 
-		FlinkKafkaProducer<Message> kafkaSink = new FlinkKafkaProducer<>(
-				topic, schema, Utils.readKafkaProperties(params),
-				FlinkKafkaProducer.Semantic.AT_LEAST_ONCE);
+		KafkaSink<Message> kafkaSink = KafkaSink.<Message>builder()
+				.setBootstrapServers(params.get(K_BOOTSTRAP_SERVERS))
+				.setRecordSerializer(schema)
+				.setKafkaProducerConfig(Utils.readKafkaProperties(params))
+				.setDeliverGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
+				.build();
 
 		DataStream<Message> input = env.addSource(new DataGeneratorSource())
 				.name("Data Generator Source");
 
-		input.addSink(kafkaSink)
+		input.sinkTo(kafkaSink)
 				.name("Kafka Sink")
-				.uid("Kafka Sink");
+				.uid("kafka-sink");
 
 		input.print();
 

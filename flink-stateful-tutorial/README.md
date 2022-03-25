@@ -31,7 +31,7 @@ Keeping in mind the purpose of the application, we designed it to scale to very 
 
 > **Note:** For the sake of readability, this tutorial uses command line parameters in short form. Details about the options can be found under the help. Execute: `flink run -h`
 
-> **Note:** Don't forget to [set up your HDFS home directory](https://docs.cloudera.com/csa/1.2.0/installation/topics/csa-hdfs-home-install.html).
+> **Note:** Don't forget to [set up your HDFS home directory](https://docs.cloudera.com/csa/latest/installation/topics/csa-hdfs-home-install.html).
 
 ### Overview of the data pipeline
 
@@ -102,7 +102,7 @@ We use the following simple POJO types to capture the data structure. Notice tha
 - `Query` : (long queryId, String itemId)
 
 *Keyed State*
-- `itemId -> ItemInfo`: (String itemId, int quantity)
+- `itemId -> ItemInfo`: (String itemId, int quantity, String itemName)
 
 *Output*
 - `TransactionResult`: (ItemTransaction transaction, boolean success)
@@ -145,7 +145,7 @@ The `ItemInfo` state is created during the operator initialization step in the `
 
 ### Setting up Kafka inputs and outputs
 
-As you have seen earlier, the `KafkaItemTransactionJob` extends the abstract `ItemTransactionJob` and implements the Kafka wiring logic to read the query and transactions streams, and to write the outputs at the end.
+As you have seen earlier, the `KafkaItemTransactionJob` extends the abstract `ItemTransactionJob` and implements the Kafka wiring logic to read the query and transaction streams, and to write the outputs at the end.
 
 As the core item management logic is in place, the next step is to connect the application to the external environment:
 - Create input sources for incoming transactions and queries
@@ -165,60 +165,72 @@ query.input.topic=query.input.log.1
 query.output.topic=query.output.log.1
 ```
 
-#### Setting up the FlinkKafkaConsumer sources
+#### Setting up KafkaSource
 
-The `FlinkKafkaConsumer` class is used to consume the input records.
+The `KafkaSource` class is used to consume the input records.
 
 Let's look at one of the consumers:
 ```java
 String topic = params.getRequired(TRANSACTION_INPUT_TOPIC_KEY);
-FlinkKafkaConsumer<ItemTransaction> transactionSource = new FlinkKafkaConsumer<>(
-        topic, new TransactionSchema(topic),
-        Utils.readKafkaProperties(params));
-
-transactionSource.setCommitOffsetsOnCheckpoints(true);
-transactionSource.setStartFromEarliest();
+KafkaSource<ItemTransaction> transactionSource = KafkaSource.<ItemTransaction>builder()
+        .setBootstrapServers(params.get(KAFKA_BOOTSTRAP_SERVERS))
+        .setTopics(topic)
+        .setValueOnlyDeserializer(new TransactionSchema(topic))
+        .setStartingOffsets(OffsetsInitializer.earliest())
+        .setProperties(Utils.readKafkaProperties(params))
+        .build();
 ```
-
-The `FlinkKafkaConsumer` can be created with a few different constructors, in this case we provide:
-1. Topic to consume
-2. Schema implementation that provides the message deserialization format
-3. Consumer properties
+A builder class is provided for constructing instance of `KafkaSource`, in this case we set the following properties:
+1. Bootstrap servers (required)
+2. Topic to consume (required)
+3. Schema implementation that provides the message deserialization format (required)
+4. Starting offset
+5. Consumer properties
 
 For `ItemTransactions` we used the custom `TransactionSchema` implementation that serializers the records in json format for readability. We used the same schema in the data generator job later to write to the Kafka topic.
 
 For `Query` inputs we use the similar `QuerySchema` class.
 
-We created a simple utility class to generate the consumer properties based on the input properties (it extracts props with `kafka.` prefix):
-- `group.id=...`: *REQUIRED*
-- `bootstrap.servers=...`: *REQUIRED*
-- `flink.partition-discovery.interval-millis=60000`: Used by Flink to control how often the consumed topics are checked for new partitions. (Disabled by default)
+We created a simple utility class to generate the consumer properties based on the input properties (it extracts props with `kafka.` prefix). KafkaSource has [further options](https://nightlies.apache.org/flink/flink-docs-stable/docs/connectors/datastream/kafka/#additional-properties) for configuration.
 
-Flink relies on its own consumer offset management when consuming Kafka messages. The `.setCommitOffsetsOnCheckpoints(true)` tells the consumer to commit offsets on Flink checkpoints. Like this, other tools can track the consumed messages.
+We are specifying the following properties as job properties:
+- `bootstrap.servers=...`: Required and used by the above setter.
+- `group.id=...`: Property group.id is required when offset commit is enabled
+- `partition.discovery.interval.ms=60000`: Used by Flink to control how often the consumed topics are checked for new partitions. (Disabled by default)
+- `commit.offsets.on.checkpoint=true`: Flink relies on its own consumer offset management when consuming Kafka messages. This property tells the consumer to commit offsets on Flink checkpoints. Like this, other tools can track the consumed messages.
 
-Finally, we set the consumer start offset that takes effect when the job is started for the first time (no checkpoint present). When a job is restored from checkpoints or recovers after a failure, it will always continue exactly where it left off.
+We set the consumer [starting offset](https://nightlies.apache.org/flink/flink-docs-stable/docs/connectors/datastream/kafka/#starting-offset) that takes effect when the job is started for the first time (no checkpoint present). When a job is restored from checkpoints or recovers after a failure, it will always continue exactly where it left off.
 
-#### Setting up the FlinkKafkaProducer sinks
+#### Setting up KafkaSink
 
 Let's look at the Kafka sink used to write query results:
 ```java
 String topic = params.getRequired(QUERY_OUTPUT_TOPIC_KEY);
-FlinkKafkaProducer<QueryResult> queryOutputSink = new FlinkKafkaProducer<>(
-        topic, new QueryResultSchema(topic),
-        Utils.readKafkaProperties(params),
-        FlinkKafkaProducer.Semantic.AT_LEAST_ONCE);
+KafkaSink<QueryResult> queryOutputSink = KafkaSink.<QueryResult>builder()
+        .setBootstrapServers(params.get(KAFKA_BOOTSTRAP_SERVERS))
+        .setRecordSerializer(KafkaRecordSerializationSchema.builder()
+              .setTopic(topic)
+              .setValueSerializationSchema(new QueryResultSchema(topic))
+              .build())
+        .setKafkaProducerConfig(Utils.readKafkaProperties(params))
+        .setDeliverGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
+        .build();
 ```
 
-We specified the following constructor parameters:
-1. Default producer topic (can be set dynamically from the schema if needed)
-2. Serialization schema for the `QueryResults` objects
+We specified the following properties:
+1. Bootstrap servers (required)
+2. Record serializer for transforming incoming elements from the data stream to Kafka producer records (required)
 3. Producer properties
-4. Producer semantic (can be NONE, AT_LEAST_ONCE, and EXACTLY_ONCE)
+4. Delivery guarantee (can be NONE, AT_LEAST_ONCE, and EXACTLY_ONCE)
+
+Flink offers a serialization schema builder which we used to set the Kafka topic and the value serialization schema.
 
 The `QueryResultSchema` provides simple json format for the messages, and we used the `queryId` as the key for the Kafka records.
 
+[Additional properties](https://nightlies.apache.org/flink/flink-docs-stable/docs/connectors/datastream/kafka/#additional-properties) can also be defined for KafkaSink.
+
 For the producer properties, we set the following two parameters:
-- `bootstrap.servers=...`: *REQUIRED*
+- `bootstrap.servers=...`: Required and used by the above setter.
 - `retries=3`: Letting the producer retry failed messages up to 3 times before failing the job. This is useful in production environment where broker changes are expected.
 
 We used a custom Kafka partitioner that will ensure that `QueryResult` messages are partitioned according to their `queryId`s. This allows you to create a nicely scalable querying service.
@@ -229,12 +241,12 @@ An interesting thing to compute would be the number of failed and successful tra
 ```java
 processedTransactions
         .keyBy(res -> res.transaction.itemId)
-        .timeWindow(Time.minutes(10))
+        .window(createTimeWindow(params))
         .aggregate(new TransactionSummaryAggregator())
         .filter(new SummaryAlertingCondition(params));
 ```
 
-By using the standard windowing API, you can transparently switch between event and processing time by setting the `TimeCharacteristics` on the `StreamExecutionEnvironment`.
+The default time characteristic of the `StreamExecutionEnvironment` is `TimeCharacteristics.EventTime`, however explicitly using processing time windows and timers works in event time mode. Event time window properties can be configured in the properties file.
 
 ### Enriching query results using a Database
 
@@ -394,7 +406,7 @@ For one million items a very generous estimate would be:
 
 The result can be rounded up to 1 GB to be on the safer side. This means if you split the state on two `TaskManagers`, you need to give them an extra 500 MB memory on top of the default 1000 MB associated to them leading to the `-ytm 1500` setting.
 
-These are just rough estimates that you might need to adjust later, for more detailed information about Flink memory configuration please check the [documentation](https://ci.apache.org/projects/flink/flink-docs-release-1.10/ops/memory/mem_setup.html).
+These are just rough estimates that you might need to adjust later, for more detailed information about Flink memory configuration please check the [documentation](https://nightlies.apache.org/flink/flink-docs-stable/docs/deployment/memory/mem_setup/).
 
 #### RocksDB state backend for larger state
 
@@ -463,11 +475,11 @@ Now that we have a transaction input stream in the `transaction.log.1` topic, we
 flink run -d -p 8 -ys 4 -ytm 1500 -ynm TransactionProcessor target/flink-stateful-tutorial-1.14.0-csa1.7.0.0-SNAPSHOT.jar config/job.properties
 ```
 
-> **Note:** If the deployment hangs, make sure that `yarn.scheduler.maximum-allocation-vcores` is set to at least 4 in the YARN configuration for the cluster
+> **Note:** If the deployment hangs, make sure that `yarn.scheduler.maximum-allocation-vcores` is set to at least 4 in the YARN configuration for the cluster. If this doesn't work, try a lower parallelism value (the `-p` parameter in the above command).
 
 Once the job is up and running, we can look at the Flink UI and observe that the job does not run as fast as our data generator.
 
-By looking at the `numRecordsInPerSecond` metric at one of our transaction processor we can see that the instance processes 1-2 records/sec, as the datagenerator with the default configurations produces at the rate of 10 records/sec and Flink tries to evenly distribute this workload between the 8 parallel processor instances.
+By looking at the `numRecordsInPerSecond` metric at one of our transaction processor we can see that the instance processes 1-2 records/sec, as the data generator with the default configurations produces at the rate of 10 records/sec and Flink tries to evenly distribute this workload between the 8 parallel processor instances.
 Based on the cluster's available resources though, we can easily go up to processing hundreds of thousands records per sec with the current deployment by either lowering the `sleep` value in `config/job.properties`,
 starting multiple data generator jobs or temporarily pausing the transaction processor and then resuming it to observe the processor instances churn through the accumulated records.
 

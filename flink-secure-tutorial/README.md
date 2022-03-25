@@ -3,18 +3,20 @@
 ## Table of Contents
 
  1. [Overview](#overview)
- 2. [Build](#build)
-     + [Prerequisites](#prerequisites)
+ 2. [Preparation](#preparation)
+     + [Cluster setup](#cluster-setup)
+     + [Kafka topic](#kafka-topic)
+     + [HDFS home directory](#hdfs-home-directory)
+     + [Kerberos principal](#kerberos-principal)
+     + [Internal TLS encryption](#internal-tls-encryption)
+     + [Authorization](#authorization)
  3. [Understanding security parameters](#understanding-security-parameters)
- 4. [Submitting Flink jobs with full security](#submitting-flink-jobs-with-full-security)
-     + [Preparation](#preparation)
-     + [Steps to run the secured Flink application tutorial](#steps-to-run-the-secured-flink-application-tutorial)
-     + [Job properties](#jobproperties)
+ 4. [Running the secured Flink application](#running-the-secured-flink-application)
+     + [Using job.properties](#using-jobproperties)
+     + [Flink default configs](#flink-default-configs)
+     + [ParameterTool](#parametertool)
  5. [Kafka metrics reporter](#kafka-metrics-reporter)
  6. [Schema Registry integration](#schema-registry-integration)
- 7. [Sample commands](#sample-commands)
-     + [Kerberos related commands](#kerberos-related-commands)
-     + [Kafka related commands](#kafka-related-commands)
 
 ## Overview
 
@@ -23,52 +25,152 @@ This tutorial demonstrates how to enable essential Flink security features (e.g.
 ```java
 public class KafkaToHDFSSimpleJob {
 
+    private static final String BOOTSTRAP_SERVERS = "kafka.bootstrap.servers";
+    public static final String KAFKA_TOPIC = "kafkaTopic";
+
     public static void main(String[] args) throws Exception {
+        ParameterTool params = Utils.parseArgs(args);
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        ...
+        KafkaSource<String> consumer = KafkaSource.<String>builder()
+                .setBootstrapServers(params.get(BOOTSTRAP_SERVERS))
+                .setTopics(KAFKA_TOPIC)
+                .setValueOnlyDeserializer(new SimpleStringSchema())
+                .setProperties(Utils.readKafkaProperties(params))
+                .build();
 
-        FlinkKafkaConsumer<String> consumer = new FlinkKafkaConsumer<>(
-                params.getRequired("kafkaTopic"), new SimpleStringSchema(),
-                Utils.readKafkaProperties(params));
-        DataStream<String> source = env.addSource(consumer)
-                .name("Kafka Source")
-                .uid("Kafka Source");
+        DataStream<String> source = env.fromSource(consumer, WatermarkStrategy.noWatermarks(), "Kafka Source").uid("kafka-source");
 
         StreamingFileSink<String> sink = StreamingFileSink
-                .forRowFormat(new Path(P_FS_OUTPUT), new SimpleStringEncoder<String>("UTF-8"))
+                .forRowFormat(new Path(params.getRequired(K_HDFS_OUTPUT)), new SimpleStringEncoder<String>("UTF-8"))
                 .build();
 
         source.addSink(sink)
                 .name("FS Sink")
-                .uid("FS Sink");
+                .uid("fs-sink");
         source.print();
 
-        env.execute("Flink Streaming Secured Job Sample");
- }
+        env.execute("Secured Flink Streaming Job");
+    }
 }
 ```
 We will introduce the security configs gradually that makes it easier to consume. For more information about Flink Security, see the section [Security Overview](https://docs.cloudera.com/csa/latest/security/topics/csa-authentication.html) in Cloudera Streaming Analytics document.
 
-## Build
+## Preparation
 
-### Prerequisites
+### Cluster setup
 
-You need to [create a topic called `flink`](#kafka-related-commands).
-Also, don't forget to [set up your HDFS home directory](https://docs.cloudera.com/csa/latest/installation/topics/csa-hdfs-home-install.html) if you haven't done it yet. Once the dependencies are in place we can build the project:
+You have to set up Cloudera Runtime 7.0+ clusters with Kerberos (MIT or AD) and TLS integration (Manual or Auto TLS) including the following services:
+  * HDFS
+  * Kafka
+  * YARN
+  * Flink
+  * Ranger
+
+### Kafka topic
+
+You need to create a Kafka topic called `flink`. Since Kafka configurations are loaded from a *kafka.client.properties* file, you need to create this file first:
 ```shell
-cd flink-tutorials/flink-secure-tutorial
-mvn clean package
-cd target
+cat << "EOF" > kafka.client.properties
+security.protocol=SASL_SSL
+ssl.truststore.location=/var/lib/cloudera-scm-agent/agent-cert/cm-auto-global_truststore.jks
+sasl.jaas.config=com.sun.security.auth.module.Krb5LoginModule required \
+   serviceName=kafka \
+   useTicketCache=true;
+EOF
 ```
 
-On a typical *NON-SECURED* CDP cluster, the command to start our flink job would look something like this:
+The topic called `flink` can be created using the following command:
 ```shell
-flink run -d -ynm SecureTutorial flink-secure-tutorial-1.14.0-csa1.7.0.0-SNAPSHOT.jar \
-  --kafka.bootstrap.servers "<your-broker>":9092 \
-  --kafkaTopic flink
+kafka-topics --command-config=kafka.client.properties --bootstrap-server <your_broker_1>:9093 --create --replication-factor 3 --partitions 3 --topic flink
+```
+> **Note:** If Ranger is deployed make sure that the current user is authorized to create topics. This can be done on the Ranger UI by navigating to the `cm_kafka` policy group and checking the users added to the policy `all - topic`.
+
+Verify that the topic has been created:
+```shell
+kafka-topics --command-config=kafka.client.properties --bootstrap-server <your_broker_1>:9093 --list
 ```
 
-> **Note:** The tutorial uses the flink command line parameters in short form, to see all the options run `flink run -h`. The default non-secured kafka port is 9092, the default TLS port is 9093.
+> **Note:** The default non-secured kafka port is 9092, the default TLS port is 9093.
+
+### HDFS home directory
+
+Initialize the HDFS home directory for the test user with a superuser:
+```
+> kinit hdfs
+Password for hdfs@<hostname>: <password_of_hdfs_user>
+> hdfs dfs -mkdir /user/test
+> hdfs dfs -chown test:test /user/test
+```
+
+### Kerberos principal
+
+You also need an existing test user in the Kerberos realm and as local users on each cluster nodes.
+
+Create the user `test` using `kadmin.local` in the local Kerberos server:
+```
+> kadmin.local
+kadmin.local:  addprinc test
+Enter password for principal "test@<hostname>": <password_of_test_user>
+Re-enter password for principal "test@<hostname>": <password_of_test_user>
+Principal "test@<hostname>" created.
+kadmin.local:  quit
+```
+
+Create the test user locally **on each node**:
+```
+> useradd test
+```
+
+Create a keytab for the test user with `ktutil`:
+```
+> ktutil
+ktutil: add_entry -password -p test -k 1 -e des3-cbc-sha1
+Password for test@<hostname>: <password_of_test_user>
+ktutil:  write_kt test.keytab
+ktutil:  quit
+```
+List the stored principal(s) from the keytab:
+```
+> klist -kte test.keytab
+Keytab name: FILE:test.keytab
+KVNO Timestamp           Principal
+---- ------------------- ------------------------------------------------------
+   1 09/19/2019 02:12:18 test@<hostname> (des3-cbc-sha1)
+```
+
+Verify with `kinit` and `klist` if authentication works properly with the keytab:
+```
+> kdestroy
+> kinit test
+Password for test@<hostname>: <password_of_test_user>
+> klist -e
+Ticket cache: FILE:/tmp/krb5cc_0
+Default principal: test@<hostname>
+
+Valid starting       Expires              Service principal
+09/24/2019 03:49:09  09/24/2019 04:14:09  krbtgt/<hostname@<hostname
+    renew until 09/24/2019 05:19:09, Etype (skey, tkt): des3-cbc-sha1, des3-cbc-sha1
+```
+
+The keytab file for Kerberos authentication of the user submitting the Flink job is now created. 
+
+### Internal TLS encryption
+
+For internal TLS encryption generate a keystore file for the user intended to run the Flink application. If the `JAVA_HOME` is not set globally on the host, then the keytool can be usually accessed at `/usr/java/default/bin/keytool`.
+```shell
+keytool -genkeypair -alias flink.internal -keystore keystore.jks -dname "CN=flink.internal" -storepass <internal_store_password> -keyalg RSA -keysize 4096 -storetype PKCS12
+```
+
+The key pair acts as the shared secret for internal security, and we can directly use it as keystore and truststore.
+
+### Authorization
+
+If Ranger is also present the test user should be authorized to publish to the flink topic. This can be done on the Ranger UI. Navigate to `cm_kafka` policy group, click on the `Add New Policy` button, then configure it like this:
+
+![Ranger Settings](images/RangerSettings.png "Ranger Settings")
+
+> **Note:** If you are automatically logged in to Ranger UI as the current user (and not as `admin`) try opening the Ranger UI in a private / incognito browser window or clear the cookies. Default password for the `admin` user on the Ranger UI is `admin123`.
 
 ## Understanding security parameters
 
@@ -82,10 +184,10 @@ Apache Flink differentiates between internal and external connectivity. All inte
 ```
 -yD security.ssl.internal.enabled=true
 -yD security.ssl.internal.keystore=keystore.jks
--yD security.ssl.internal.key-password=******
--yD security.ssl.internal.keystore-password=******
+-yD security.ssl.internal.key-password=<internal_store_password>
+-yD security.ssl.internal.keystore-password=<internal_store_password>
 -yD security.ssl.internal.truststore=keystore.jks
--yD security.ssl.internal.truststore-password=******
+-yD security.ssl.internal.truststore-password=<internal_store_password>
 -yt keystore.jks
 ```
 > **Note:** External TLS configuration is out of scope of this tutorial
@@ -107,98 +209,101 @@ for (String key : params.getProperties().stringPropertyNames()) {
 }
 
 ...
-
-FlinkKafkaConsumer<String> consumer = new FlinkKafkaConsumer<>(
-        params.getRequired("kafkaTopic"), new SimpleStringSchema(),
-        Utils.readKafkaProperties(params));
+        
+KafkaSource<String> consumer = KafkaSource.<String>builder()
+        .setBootstrapServers(params.get(BOOTSTRAP_SERVERS))
+        .setTopics(KAFKA_TOPIC)
+        .setValueOnlyDeserializer(new SimpleStringSchema())
+        .setProperties(Utils.readKafkaProperties(params))
+        .build();
 ```
-> **Note:** The truststore given for the Kafka connector for example is different from the one generated for Flink internal encryption. This is the truststore used to access the TLS protected Kafka endpoint. For more security information, see the Apache Flink documentation about [Kerberos](https://ci.apache.org/projects/flink/flink-docs-release-1.13/deployment/security/security-kerberos.html), [TLS](https://ci.apache.org/projects/flink/flink-docs-release-1.13/deployment/security/security-ssl.html) and [Kafka](https://ci.apache.org/projects/flink/flink-docs-release-1.13/dev/connectors/kafka.html#enabling-kerberos-authentication) connector.
+> **Note:** The truststore given for the Kafka connector for example is different from the one generated for Flink internal encryption. This is the truststore used to access the TLS protected Kafka endpoint. For more security information, see the Apache Flink documentation about [Kerberos](https://ci.apache.org/projects/flink/flink-docs-stable/deployment/security/security-kerberos.html), [TLS](https://nightlies.apache.org/flink/flink-docs-stable/docs/deployment/security/security-ssl/) and [Kafka](https://ci.apache.org/projects/flink/flink-docs-stable/dev/connectors/kafka.html#enabling-kerberos-authentication) connector.
 
-## Submitting Flink jobs with full security
+## Running the secured Flink application
 
-### Preparation
-
-* Cloudera Runtime 7.0+ clusters with Kerberos (MIT or AD) and TLS integration (Manual or Auto TLS) including services:
-  * HDFS
-  * Kafka
-  * YARN
-  * Flink
-* Existing test user in the Kerberos realm and as local users on each cluster nodes. You can find some useful commands for fulfilling the prerequisites in a dedicated chapter [here](#sample-commands).
-
-### Steps to tun the secured Flink application tutorial
-
-1. For Kerberos authentication, generate a keytab file for the user intended to submit the Flink job. Keytabs can be generated with `ktutil` as the following example:
-```
-> ktutil
-ktutil: add_entry -password -p test -k 1 -e des3-cbc-sha1
-Password for test@:
-ktutil:  wkt test.keytab
-ktutil:  quit
-```
-2. For internal TLS encryption generate a keystore file for the user intended to run the Flink application. If the `JAVA_HOME` is not set globally on the host, then the keytool can be usually accessed at `/usr/java/default/bin/keytool`.
-```shell
-keytool -genkeypair -alias flink.internal -keystore keystore.jks -dname "CN=flink.internal" -storepass ****** -keyalg RSA -keysize 4096 -storetype PKCS12
-```
-
-The key pair acts as the shared secret for internal security, and we can directly use it as keystore and truststore.
-
-3. If Ranger is also present the test user should be authorized to publish to the flink topic. This can be done on the Ranger UI. Navigate to Kafka, click on the `Add New Policy` button, then configure it like this:
-
-![Ranger Settings](images/RangerSettings.png "Ranger Settings")
-
-4. Using additional security configuration parameters, submit Flink application as normal:
+Using additional security configuration parameters, submit Flink application as normal:
 ```shell
 flink run -d -ynm SecureTutorial \
   -yD security.kerberos.login.keytab=test.keytab \
   -yD security.kerberos.login.principal=test \
   -yD security.ssl.internal.enabled=true \
   -yD security.ssl.internal.keystore=keystore.jks \
-  -yD security.ssl.internal.key-password=****** \
-  -yD security.ssl.internal.keystore-password=****** \
+  -yD security.ssl.internal.key-password=<internal_store_password> \
+  -yD security.ssl.internal.keystore-password=<internal_store_password> \
   -yD security.ssl.internal.truststore=keystore.jks \
-  -yD security.ssl.internal.truststore-password=****** \
+  -yD security.ssl.internal.truststore-password=<internal_store_password> \
   -yt keystore.jks \
   flink-secure-tutorial-1.14.0-csa1.7.0.0-SNAPSHOT.jar \
-  --kafkaTopic flink \
   --hdfsOutput hdfs:///tmp/flink-sec-tutorial \
-  --kafka.bootstrap.servers <your-broker-1>:9093 \
+  --kafkaTopic flink \
+  --kafka.bootstrap.servers <your_broker_1>:9093 \
   --kafka.security.protocol SASL_SSL \
   --kafka.sasl.kerberos.service.name kafka \
   --kafka.ssl.truststore.location /var/lib/cloudera-scm-agent/agent-cert/cm-auto-global_truststore.jks
  ```
-5. Send some messages to the `flink` topic in Kafka.
-6. Check the application logs and HDFS output folder to verify that messages arrive as expected.
+Run the console producer client using the below command and write a few messages into the `flink` topic. 
+```shell
+kafka-console-producer --broker-list <your_broker_1>:9093 --producer.config kafka.client.properties --topic flink
+```
+Check the application logs and HDFS output folder (`hdfs:///tmp/flink-sec-tutorial`) to verify that messages arrive as expected. You can check the HDFS output folder on the HDFS NameNode Web UI or using the below commands.
 
-### job.properties
+```shell
+> hdfs dfs -ls hdfs:///tmp/flink-sec-tutorial
+Found 1 items
+drwxrwxrwx   - test supergroup          0 2022-03-16 04:31 hdfs:///tmp/flink-sec-tutorial/2022-03-16--04
 
-As you can see, the number of security related configuration options can make our `flink run` command fairly complicated pretty quickly.
+> hdfs dfs -ls hdfs:///tmp/flink-sec-tutorial/2022-03-16--04
+Found 1 items
+-rw-r--r--   2 test supergroup         19 2022-03-16 04:32 hdfs:///tmp/flink-sec-tutorial/2022-03-16--04/.part-0-0.inprogress.76298b05-b458-4fe6-9614-6ba24343c0d5
+
+> hdfs dfs -cat hdfs:///tmp/flink-sec-tutorial/2022-03-16--04/.part-0-0.inprogress.76298b05-b458-4fe6-9614-6ba24343c0d5
+one
+two
+three
+four
+```
+
+You can also read the events you are writing into the `flink` topic if you open another terminal session and run the console consumer client.
+```shell
+kafka-console-consumer --bootstrap-server <your_broker_1>:9093  --consumer.config kafka.client.properties --topic flink --from-beginning
+```
+
+> **Note:** If Ranger is deployed on your cluster make sure that `user` have access to the relevant consumer group.
+
+To test the `RandomKafkaDataGeneratorJob` (which generates random `UUID`s) run the following command. Leave the consumer terminal session open and you will see the generated data in the `flink` topic. You can also check the HDFS output folder (`hdfs:///tmp/flink-sec-tutorial`) again to see if the data is written there as well.
 
 ```shell
 flink run -d -ynm SecureTutorial \
-  -yD security.kerberos.login.keytab=test.keytab \
-  -yD security.kerberos.login.principal=test \
-  -yD security.ssl.internal.enabled=true \
-  -yD security.ssl.internal.keystore=keystore.jks \
-  -yD security.ssl.internal.key-password=****** \
-  -yD security.ssl.internal.keystore-password=****** \
-  -yD security.ssl.internal.truststore=keystore.jks \
-  -yD security.ssl.internal.truststore-password=****** \
-  -yt keystore.jks \
-  flink-secure-tutorial-1.14.0-csa1.7.0.0-SNAPSHOT.jar \
-  --kafkaTopic flink \
-  --hdfsOutput hdfs:///tmp/flink-sec-tutorial \
-  --kafka.bootstrap.servers <your-broker-1>:9093 \
-  --kafka.security.protocol SASL_SSL \
-  --kafka.sasl.kerberos.service.name kafka \
-  --kafka.ssl.truststore.location /var/lib/cloudera-scm-agent/agent-cert/cm-auto-global_truststore.jks
+    -yD security.kerberos.login.keytab=test.keytab \
+    -yD security.kerberos.login.principal=test \
+    -yD security.ssl.internal.enabled=true \
+    -yD security.ssl.internal.keystore=keystore.jks \
+    -yD security.ssl.internal.key-password=<internal_store_password> \
+    -yD security.ssl.internal.keystore-password=<internal_store_password> \
+    -yD security.ssl.internal.truststore=keystore.jks \
+    -yD security.ssl.internal.truststore-password=<internal_store_password> \
+    -yt keystore.jks \
+    -c com.cloudera.streaming.examples.flink.RandomKafkaDataGeneratorJob \
+    flink-secure-tutorial-1.14.0-csa1.7.0.0-SNAPSHOT.jar \
+    --hdfsOutput hdfs:///tmp/flink-sec-tutorial \
+    --kafkaTopic flink \
+    --kafka.bootstrap.servers <your_broker_1>:9093 \
+    --kafka.security.protocol SASL_SSL \
+    --kafka.sasl.kerberos.service.name kafka \
+    --kafka.ssl.truststore.location /var/lib/cloudera-scm-agent/agent-cert/cm-auto-global_truststore.jks
 ```
+
+### Using job.properties
+
+As you can see, the number of security related configuration options can make our `flink run` command fairly complicated pretty quickly.
+
 Therefore, it is recommended to ship connector related security properties along with other business properties in a separate configuration file (e.g. `job.properties`):
 
 ```shell
 cat << "EOF" > job.properties
 kafkaTopic=flink
 hdfsOutput=hdfs:///tmp/flink-sec-tutorial
-kafka.bootstrap.servers=<your-broker-1>:9093
+kafka.bootstrap.servers=<your_broker_1>:9093
 kafka.security.protocol=SASL_SSL
 kafka.sasl.kerberos.service.name=kafka
 kafka.ssl.truststore.location=/var/lib/cloudera-scm-agent/agent-cert/cm-auto-global_truststore.jks
@@ -207,34 +312,53 @@ EOF
 Our command looks a bit better now:
 ```shell
 flink run -d -ynm SecureTutorial \
-  -yD security.kerberos.login.keytab=test.keytab \
-  -yD security.kerberos.login.principal=test \
-  -yD security.ssl.internal.enabled=true \
-  -yD security.ssl.internal.keystore=keystore.jks \
-  -yD security.ssl.internal.key-password=****** \
-  -yD security.ssl.internal.keystore-password=****** \
-  -yD security.ssl.internal.truststore=keystore.jks \
-  -yD security.ssl.internal.truststore-password=****** \
-  -yt keystore.jks \
-  flink-secure-tutorial-1.14.0-csa1.7.0.0-SNAPSHOT.jar \
-  --properties.file job.properties
+    -yD security.kerberos.login.keytab=test.keytab \
+    -yD security.kerberos.login.principal=test \
+    -yD security.ssl.internal.enabled=true \
+    -yD security.ssl.internal.keystore=keystore.jks \
+    -yD security.ssl.internal.key-password=<internal_store_password> \
+    -yD security.ssl.internal.keystore-password=<internal_store_password> \
+    -yD security.ssl.internal.truststore=keystore.jks \
+    -yD security.ssl.internal.truststore-password=<internal_store_password> \
+    -yt keystore.jks \
+    -c com.cloudera.streaming.examples.flink.RandomKafkaDataGeneratorJob \
+    flink-secure-tutorial-1.14.0-csa1.7.0.0-SNAPSHOT.jar \
+    --properties.file job.properties
   ```
+
+Cancel the running Data Generator job before execution of the above command. You can use the below commands to list and cancel running jobs.
+
+```shell
+> flink list -a
+Waiting for response...
+------------------ Running/Restarting Jobs -------------------
+16.03.2022 04:29:18 : 62706a876f50e442133cee7a79d774a7 : Secured Flink Streaming Job (RUNNING)
+16.03.2022 04:43:44 : fbc747c6a41d5685936a842906466e6f : String Data Generator Job (RUNNING)
+--------------------------------------------------------------
+No scheduled jobs.
+
+> flink cancel fbc747c6a41d5685936a842906466e6f
+Cancelling job fbc747c6a41d5685936a842906466e6f.
+Cancelled job fbc747c6a41d5685936a842906466e6f.
+```
+
 > **Note:** We can also simplify our command further if we leave out the optional TLS configs
 ```shell
 flink run -d -ynm SecureTutorial \
-  -yD security.kerberos.login.keytab=test.keytab \
-  -yD security.kerberos.login.principal=test \
-  flink-secure-tutorial-1.14.0-csa1.7.0.0-SNAPSHOT.jar \
-  --properties.file job.properties
+    -yD security.kerberos.login.keytab=test.keytab \
+    -yD security.kerberos.login.principal=test \
+    -c com.cloudera.streaming.examples.flink.RandomKafkaDataGeneratorJob \
+    flink-secure-tutorial-1.14.0-csa1.7.0.0-SNAPSHOT.jar \
+    --properties.file job.properties
   ```
 
-### Flink default configs (/etc/flink/conf/flink-conf.yaml)
+### Flink default configs
 
-The keytab and the keystore files that are referred to as `-yD security.kerberos.login.keytab=test.keytab` and `-yt keystore.jks` respectively are distributed automatically to the temporary folder of the YARN container on the remote hosts. These properties are user specific, and usually cannot be added to the default Flink configuration unless a single technical user is used to submit the Flink jobs. If there is a dedicated technical user for submitting Flink jobs on a cluster, the keytab and keystore files can be provisioned to the YARN hosts in advance. In this case the related configuration parameters can be set globally in Cloudera Manager using Safety Valves.
+The keytab and the keystore files that are referred to as `test.keytab` and `keystore.jks` respectively are distributed automatically to the temporary folder of the YARN container on the remote hosts. These properties are user specific, and usually cannot be added to the default Flink configuration unless a single technical user is used to submit the Flink jobs. If there is a dedicated technical user for submitting Flink jobs on a cluster, the keytab and keystore files can be provisioned to the YARN hosts in advance. In this case the related configuration parameters can be set globally in Cloudera Manager using Safety Valves.
 
 ### ParameterTool
 
-Flink has a built-in `ParameterTool` class to handle program arguments elegantly. You can merge the arguments given in the command line and configuration file like the example below:
+Flink has a built-in `ParameterTool` class to handle program arguments elegantly. You can merge the arguments given in the command line and configuration file as done by the `parseArgs` function of `Utils`:
 ```java
 ParameterTool params = ParameterTool.fromArgs(args);
 String propertiesFile = params.get("properties.file");
@@ -254,14 +378,20 @@ String hdfsOutput = params.get("hdfsOutput");
 
 ## Kafka metrics reporter
 
-There is a metrics reporter implementation for writing Flink metrics to a target Kafka topic in JSON format. The corresponding security related Kafka properties can be set either in the command itself or globally using Cloudera Manager safety valve (Flink Client Advanced Configuration Snippet for flink-conf-xml/flink-cli-conf.xml).
+There is a metrics reporter implementation for writing Flink metrics to a target Kafka topic in JSON format. The corresponding security related Kafka properties can be set either in the command itself or [globally using Cloudera Manager Safety Valve](https://docs.cloudera.com/cloudera-manager/7.4.2/configuration-properties/topics/cm_props_cdh720_flink.html#ariaid-title2).
 ```
 -yD metrics.reporter.kafka.class=org.apache.flink.metrics.kafka.KafkaMetricsReporter \
 -yD metrics.reporter.kafka.topic=metrics-topic.log \
--yD metrics.reporter.kafka.bootstrap.servers=<your-broker-1>:9093 \
+-yD metrics.reporter.kafka.bootstrap.servers=<your_broker_1>:9093 \
 -yD metrics.reporter.kafka.security.protocol=SASL_SSL \
 -yD metrics.reporter.kafka.sasl.kerberos.service.name=kafka \
 -yD metrics.reporter.kafka.ssl.truststore.location=/var/lib/cloudera-scm-agent/agent-cert/cm-auto-global_truststore.jks \
+```
+
+Use the following command to check the metrics, but don't forget to add `metrics-topic.log` topic to the [`flink access` policy](#authorization) before.
+
+```shell
+kafka-console-consumer --bootstrap-server <your_broker_1>:9093  --consumer.config kafka.client.properties --topic metrics-topic.log --from-beginning
 ```
 
 ## Schema Registry integration
@@ -283,11 +413,11 @@ The ```Message``` Avro type is a Java class generated from the Avro schema ```me
 
 The schema of the Avro types are automatically registered in the Cloudera Schema Registry at the first record serialization.
 
-The schema registry can be plugged directly into a ```FlinkKafkaConsumer``` or a ```FlinkKafkaProducer``` using the appropriate ```ClouderaRegistryKafkaDeserializationSchema``` and ```ClouderaRegistryKafkaSerializationSchema``` classes respectively.
+The schema registry can be plugged directly into a ```KafkaSource``` or a ```KafkaSink``` using the appropriate ```ClouderaRegistryKafkaDeserializationSchema``` and ```ClouderaRegistryKafkaRecordSerializationSchema``` classes respectively.
 
 Two sample Jobs were written to demonstrate how to integrate with Cloudera Schema Registry from Flink in a secured way.
 
-The ```AvroDataGeneratorJob``` uses a Kafka sink with ```ClouderaRegistryKafkaSerializationSchema``` to write ```Message``` records to a Kafka topic:
+The ```AvroDataGeneratorJob``` uses a Kafka sink with ```ClouderaRegistryKafkaRecordSerializationSchema``` to write ```Message``` records to a Kafka topic:
 ```java
 public class AvroDataGeneratorJob {
 
@@ -296,15 +426,18 @@ public class AvroDataGeneratorJob {
         ...
 
         String topic = params.getRequired(K_KAFKA_TOPIC);
-        KafkaSerializationSchema<Message> schema = ClouderaRegistryKafkaSerializationSchema
+        KafkaRecordSerializationSchema<Message> schema = ClouderaRegistryKafkaRecordSerializationSchema
                 .<Message>builder(topic)
                 .setConfig(Utils.readSchemaRegistryProperties(params))
                 .setKey(Message::getId)
                 .build();
 
-        FlinkKafkaProducer<Message> kafkaSink = new FlinkKafkaProducer<>(
-                topic, schema, Utils.readKafkaProperties(params),
-                FlinkKafkaProducer.Semantic.AT_LEAST_ONCE);
+        KafkaSink<Message> kafkaSink = KafkaSink.<Message>builder()
+                .setBootstrapServers(params.get(BOOTSTRAP_SERVERS))
+                .setRecordSerializer(schema)
+                .setKafkaProducerConfig(Utils.readKafkaProperties(params))
+                .setDeliverGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
+                .build();
 
         ...
     }
@@ -324,32 +457,51 @@ public class KafkaToHDFSAvroJob {
                 .setConfig(Utils.readSchemaRegistryProperties(params))
                 .build();
 
-        FlinkKafkaConsumer<Message> kafkaSource = new FlinkKafkaConsumer<>(
-                params.getRequired(K_KAFKA_TOPIC), schema,
-                Utils.readKafkaProperties(params));
+        KafkaSource<Message> kafkaSource = KafkaSource.<Message>builder()
+                .setBootstrapServers(params.get(BOOTSTRAP_SERVERS))
+                .setTopics(params.get(K_KAFKA_TOPIC))
+                .setDeserializer(KafkaRecordDeserializationSchema.of(schema))
+                .setProperties(Utils.readKafkaProperties(params))
+                .build();
 
-        DataStream<String> source = env.addSource(kafkaSource)
-                .name("Kafka Source")
-                .uid("Kafka Source")
+        DataStream<String> source = env.fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "Kafka Source")
+                .uid("kafka-source")
                 .map(record -> record.getId() + "," + record.getName() + "," + record.getDescription())
-                .name("ToOutputString");
+                .name("To Output String")
+                .uid("to-output-string");
         ...
     }
 }
 ```
 
-The ```ClouderaRegistryKafkaSerializationSchema/ClouderaRegistryKafkaDeserializationSchema ``` related configuration parameters can be shipped in the job.properties file too:
+The ```ClouderaRegistryKafkaRecordSerializationSchema/ ClouderaRegistryKafkaDeserializationSchema ``` related configuration parameters can be shipped in the job.properties file too:
 ```properties
-schema.registry.url=https://<your-sr-host>:7790/api/v1
+schema.registry.url=https://<your_broker_1>:7790/api/v1
 schema.registry.client.ssl.trustStorePath=/var/lib/cloudera-scm-agent/agent-cert/cm-auto-global_truststore.jks
-schema.registry.client.ssl.trustStorePassword=******
+schema.registry.client.ssl.trustStorePassword=<trust_store_password>
 ```
+
+The password for the trust store can be retrieved as follows:
+```shell
+>ps aux | pgrep -u kafka
+16131
+16148
+16206
+16207
+16221
+16222
+>cat /proc/<highest_pid_listed_above>/environ
+... KAFKA_BROKER_TRUSTORE_PASSWORD=<trust_store_password> ...
+```
+
+> **Note:**  If Ranger is deployed on your cluster make sure the `test` user has access to the schema groups and schema metadata through the `cm_schema-registry` policy group
+
 Once the schema registry properties has been added to `job.properties` the `AvroDataGeneratorJob` can be submitted with:
 
 ```shell
 flink run -d -ynm AvroDataGeneratorJob \
--yD security.kerberos.login.keytab=morhidi.keytab \
--yD security.kerberos.login.principal=morhidi \
+-yD security.kerberos.login.keytab=test.keytab \
+-yD security.kerberos.login.principal=test \
 -c com.cloudera.streaming.examples.flink.AvroDataGeneratorJob \
 flink-secure-tutorial-1.14.0-csa1.7.0.0-SNAPSHOT.jar \
 --properties.file job.properties
@@ -358,8 +510,8 @@ The generated avro messages can be read by the `KafkaToHDFSAvroJob`
 
 ```shell
 flink run -d -ynm KafkaToHDFSAvroJob \
--yD security.kerberos.login.keytab=morhidi.keytab \
--yD security.kerberos.login.principal=morhidi \
+-yD security.kerberos.login.keytab=test.keytab \
+-yD security.kerberos.login.principal=test \
 -c com.cloudera.streaming.examples.flink.KafkaToHDFSAvroJob \
 flink-secure-tutorial-1.14.0-csa1.7.0.0-SNAPSHOT.jar \
 --properties.file job.properties
@@ -370,103 +522,4 @@ For Kerberos authentication Flink provides seamless integration for Cloudera Sch
 security.kerberos.login.contexts=Client,KafkaClient,RegistryClient
 ```
 
-> **Note:**  If Ranger is deployed on your cluster make sure the `test` user has access to the schema groups and schema metadata through the `cm_schema-registry` policy group
 
-## Sample commands
-
-Here are some sample commands, which can be useful for preparing your CDP environment for running the Tutorial Application.
-
-### Kerberos related commands
-
-Creating a **test** user for submitting Flink jobs using `kadmin.local` in the local Kerberos server:
-```
-> kadmin.local
-kadmin.local:  addprinc test
-Enter password for principal "test@<hostname>":
-Re-enter password for principal "test@<hostname>":
-Principal "test@<hostname>" created.
-kadmin.local:  quit
-```
-
-Initializing the HDFS home directory for the test user with a superuser:
-```
-> kinit hdfs
-Password for hdfs@<hostname>:
-> hdfs dfs -mkdir /user/test
-> hdfs dfs -chown test:test /user/test
-```
-
-Creating the test user locally (should be added on each node):
-```
-> useradd test
-```
-
-Creating a keytab for the test user with `ktutil`:
-```
-> ktutil
-ktutil: add_entry -password -p test -k 1 -e des3-cbc-sha1
-Password for test@<hostname>:
-ktutil:  wkt test.keytab
-ktutil:  quit
-```
-Listing the stored principal(s) from the keytab:
-```
-> klist -kte test.keytab
-Keytab name: FILE:test.keytab
-KVNO Timestamp           Principal
----- ------------------- ------------------------------------------------------
-   1 09/19/2019 02:12:18 test@<hostname> (des3-cbc-sha1)
-```
-
-Verifying with `kinit` and `klist` if authentication works properly with the keytab:
-```
-[root@morhidi-1 ~]# klist -e
-Ticket cache: FILE:/tmp/krb5cc_0
-Default principal: test@<hostname>
-
-Valid starting       Expires              Service principal
-09/24/2019 03:49:09  09/24/2019 04:14:09  krbtgt/<hostname@<hostname
-    renew until 09/24/2019 05:19:09, Etype (skey, tkt): des3-cbc-sha1, des3-cbc-sha1
-```
-
-### Kafka related commands
-
-Creating the `flink` topic in Kafka for testing:
-```shell
-kafka-topics --command-config=kafka.client.properties --bootstrap-server `hostname`:9093  --create --replication-factor 3 --partitions 3 --topic flink
-kafka-topics --command-config=kafka.client.properties --bootstrap-server `hostname`:9093 --list
-```
-
-Sending messages to the *flink* topic with **kafka-console-producer**:
-
-```shell
-kafka-console-producer --broker-list  `hostname`:9093 --producer.config kafka.client.properties --topic flink
-```
-
-Reading messages from the *flink* topic with **kafka-console-consumer**:
-```shell
-kafka-console-consumer --bootstrap-server `hostname`:9093  --consumer.config kafka.client.properties --topic flink --from-beginning
-```
-
-Kafka configurations are loaded from a *kafka.client.properties* file:
-```shell
-cat << "EOF" > kafka.client.properties
-security.protocol=SASL_SSL
-ssl.truststore.location=/var/lib/cloudera-scm-agent/agent-cert/cm-auto-global_truststore.jks
-sasl.jaas.config=com.sun.security.auth.module.Krb5LoginModule required \
-   serviceName=kafka \
-   useTicketCache=true;
-EOF
-```
-
-Preparing a *.kafka.jaas.conf* file for **kafka-console-producer** to access the secured Kafka service:
-```shell
-cat << "EOF" > .kafka.jaas.conf
-KafkaClient {
-com.sun.security.auth.module.Krb5LoginModule required
-useTicketCache=true;
-};
-EOF
-```
-
-> **Note:** This approach can also be used for testing and verifying the security properties for the Kafka connector used in the Flink application itself.

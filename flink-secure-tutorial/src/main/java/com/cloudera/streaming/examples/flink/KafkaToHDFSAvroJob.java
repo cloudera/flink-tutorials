@@ -18,18 +18,21 @@
 
 package com.cloudera.streaming.examples.flink;
 
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.serialization.SimpleStringEncoder;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.connector.kafka.source.KafkaSource;
+import org.apache.flink.connector.kafka.source.reader.deserializer.KafkaRecordDeserializationSchema;
 import org.apache.flink.core.fs.Path;
 import org.apache.flink.formats.avro.registry.cloudera.ClouderaRegistryKafkaDeserializationSchema;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.KafkaDeserializationSchema;
 
 import com.cloudera.streaming.examples.flink.data.Message;
 
+import static com.cloudera.streaming.examples.flink.Constants.K_BOOTSTRAP_SERVERS;
 import static com.cloudera.streaming.examples.flink.Constants.K_HDFS_OUTPUT;
 import static com.cloudera.streaming.examples.flink.Constants.K_KAFKA_TOPIC;
 
@@ -47,15 +50,18 @@ public class KafkaToHDFSAvroJob {
 				.setConfig(Utils.readSchemaRegistryProperties(params))
 				.build();
 
-		FlinkKafkaConsumer<Message> kafkaSource = new FlinkKafkaConsumer<>(
-				params.getRequired(K_KAFKA_TOPIC), schema,
-				Utils.readKafkaProperties(params));
+		KafkaSource<Message> kafkaSource = KafkaSource.<Message>builder()
+				.setBootstrapServers(params.get(K_BOOTSTRAP_SERVERS))
+				.setTopics(params.get(K_KAFKA_TOPIC))
+				.setDeserializer(KafkaRecordDeserializationSchema.of(schema))
+				.setProperties(Utils.readKafkaProperties(params))
+				.build();
 
-		DataStream<String> source = env.addSource(kafkaSource)
-				.name("Kafka Source")
-				.uid("Kafka Source")
+		DataStream<String> source = env.fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "Kafka Source")
+				.uid("kafka-source")
 				.map(record -> record.getId() + "," + record.getName() + "," + record.getDescription())
-				.name("ToOutputString");
+				.name("To Output String")
+				.uid("to-output-string");
 
 		StreamingFileSink<String> sink = StreamingFileSink
 				.forRowFormat(new Path(params.getRequired(K_HDFS_OUTPUT)), new SimpleStringEncoder<String>("UTF-8"))
@@ -63,7 +69,7 @@ public class KafkaToHDFSAvroJob {
 
 		source.addSink(sink)
 				.name("FS Sink")
-				.uid("FS Sink");
+				.uid("fs-sink");
 
 		source.print();
 

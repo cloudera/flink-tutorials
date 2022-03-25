@@ -18,36 +18,36 @@
 
 package com.cloudera.streaming.examples.flink.types;
 
-import org.apache.flink.streaming.connectors.kafka.KafkaSerializationSchema;
+import org.apache.flink.api.common.serialization.DeserializationSchema;
+import org.apache.flink.api.common.serialization.SerializationSchema;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.kafka.clients.producer.ProducerRecord;
 
 /**
  * Common serialization logic for JSON schemas.
  */
-public abstract class JsonKafkaSerializationSchema<T> implements KafkaSerializationSchema<T> {
+public abstract class JsonKafkaSerializationSchema<T> implements SerializationSchema<T>, DeserializationSchema<T> {
 
-  protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-  protected final String topic;
+    protected final String topic;
 
-  protected JsonKafkaSerializationSchema(String topic) {
-    this.topic = topic;
-  }
-
-  protected abstract byte[] getKeyAsBytes(T obj);
-
-  @Override
-  public ProducerRecord<byte[], byte[]> serialize(T obj, Long ts) {
-    try {
-      byte[] key = getKeyAsBytes(obj);
-      byte[] val = OBJECT_MAPPER.writeValueAsBytes(obj);
-
-      return new ProducerRecord<>(topic, key, val);
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException(e);
+    protected JsonKafkaSerializationSchema(String topic) {
+        this.topic = topic;
     }
-  }
+
+    @Override
+    public boolean isEndOfStream(T nextElement) {
+        return false;
+    }
+
+    @Override
+    public byte[] serialize(T obj) {
+        try {
+            return OBJECT_MAPPER.writeValueAsBytes(obj);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

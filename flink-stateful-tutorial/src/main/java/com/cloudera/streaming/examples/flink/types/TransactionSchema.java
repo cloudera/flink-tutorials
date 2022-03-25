@@ -18,17 +18,15 @@
 
 package com.cloudera.streaming.examples.flink.types;
 
-import org.apache.flink.api.common.serialization.DeserializationSchema;
 import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Transaction serialization schema for running the example with kafka.
  */
-public class TransactionSchema extends JsonKafkaSerializationSchema<ItemTransaction> implements DeserializationSchema<ItemTransaction> {
+public class TransactionSchema extends JsonKafkaSerializationSchema<ItemTransaction> {
 
 	public TransactionSchema(String topic) {
 		super(topic);
@@ -44,18 +42,8 @@ public class TransactionSchema extends JsonKafkaSerializationSchema<ItemTransact
 	}
 
 	@Override
-	public boolean isEndOfStream(ItemTransaction nextElement) {
-		return false;
-	}
-
-	@Override
 	public TypeInformation<ItemTransaction> getProducedType() {
 		return new TypeHint<ItemTransaction>() {
 		}.getTypeInfo();
-	}
-
-	@Override
-	protected byte[] getKeyAsBytes(ItemTransaction itemTransaction) {
-		return itemTransaction.itemId.getBytes(StandardCharsets.UTF_8);
 	}
 }

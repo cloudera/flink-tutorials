@@ -19,9 +19,11 @@
 package com.cloudera.streaming.examples.flink;
 
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.connector.base.DeliveryGuarantee;
+import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
+import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 
 import com.cloudera.streaming.examples.flink.operators.ItemTransactionGeneratorSource;
 import com.cloudera.streaming.examples.flink.operators.QueryGeneratorSource;
@@ -37,6 +39,7 @@ import com.cloudera.streaming.examples.flink.utils.Utils;
 public class KafkaDataGeneratorJob {
 
 	private static final String GENERATE_QUERIES = "generate.queries";
+	public static final String KAFKA_BOOTSTRAP_SERVERS = "kafka.bootstrap.servers";
 
 	public static void main(String[] args) throws Exception {
 		if (args.length != 1) {
@@ -47,29 +50,45 @@ public class KafkaDataGeneratorJob {
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 		DataStream<ItemTransaction> generatedInput =
 				env.addSource(new ItemTransactionGeneratorSource(params))
-						.name("Item Transaction Generator");
+						.name("Item Transaction Generator")
+						.uid("item-transaction-generator");
 
 		String transactionTopic = params.getRequired(KafkaItemTransactionJob.TRANSACTION_INPUT_TOPIC_KEY);
-		FlinkKafkaProducer<ItemTransaction> kafkaSink = new FlinkKafkaProducer<>(
-				transactionTopic,
-				new TransactionSchema(transactionTopic),
-				Utils.readKafkaProperties(params),
-				FlinkKafkaProducer.Semantic.AT_LEAST_ONCE);
+		KafkaSink<ItemTransaction> kafkaSink = KafkaSink.<ItemTransaction>builder()
+				.setBootstrapServers(params.get(KAFKA_BOOTSTRAP_SERVERS))
+				.setRecordSerializer(KafkaRecordSerializationSchema.builder()
+						.setTopic(transactionTopic)
+						.setValueSerializationSchema(new TransactionSchema(transactionTopic))
+						.build())
+				.setKafkaProducerConfig(Utils.readKafkaProperties(params))
+				.setDeliverGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
+				.build();
 
-		generatedInput.keyBy(t -> t.itemId).addSink(kafkaSink).name("Transaction Kafka Sink");
+		generatedInput.keyBy(t -> t.itemId)
+				.sinkTo(kafkaSink)
+				.name("Transaction Kafka Sink")
+				.uid("transaction-kafka-sink");
 
 		if (params.getBoolean(GENERATE_QUERIES, false)) {
 			DataStream<Query> queries = env.addSource(new QueryGeneratorSource(params))
-					.name("Query Generator");
+					.name("Query Generator")
+					.uid("query-generator");
 
 			String queryTopic = params.getRequired(KafkaItemTransactionJob.QUERY_INPUT_TOPIC_KEY);
-			FlinkKafkaProducer<Query> querySink = new FlinkKafkaProducer<>(
-					queryTopic,
-					new QuerySchema(queryTopic),
-					Utils.readKafkaProperties(params),
-					FlinkKafkaProducer.Semantic.AT_LEAST_ONCE);
+			KafkaSink<Query> querySink = KafkaSink.<Query>builder()
+					.setBootstrapServers(params.get(KAFKA_BOOTSTRAP_SERVERS))
+					.setRecordSerializer(KafkaRecordSerializationSchema.builder()
+							.setTopic(queryTopic)
+							.setValueSerializationSchema(new QuerySchema(queryTopic))
+							.build())
+					.setKafkaProducerConfig(Utils.readKafkaProperties(params))
+					.setDeliverGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
+					.build();
 
-			queries.keyBy(q -> q.itemId).addSink(querySink).name("Query Kafka Sink");
+			queries.keyBy(q -> q.itemId)
+					.sinkTo(querySink)
+					.name("Query Kafka Sink")
+					.uid("query-kafka-sink");
 		}
 
 		env.execute("Kafka Data generator");

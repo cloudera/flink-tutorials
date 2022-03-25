@@ -18,7 +18,10 @@
 
 package com.cloudera.streaming.examples.flink.types;
 
-import java.nio.charset.StandardCharsets;
+import org.apache.flink.api.common.typeinfo.TypeHint;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
+
+import java.io.IOException;
 
 /**
  * Query result serialization schema for running the example with kafka.
@@ -30,7 +33,17 @@ public class QueryResultSchema extends JsonKafkaSerializationSchema<QueryResult>
 	}
 
 	@Override
-	protected byte[] getKeyAsBytes(QueryResult queryResult) {
-		return String.valueOf(queryResult.queryId).getBytes(StandardCharsets.UTF_8);
+	public QueryResult deserialize(byte[] message) throws IOException {
+		try {
+			return OBJECT_MAPPER.readValue(message, QueryResult.class);
+		} catch (IOException e) {
+			return null;
+		}
+	}
+
+	@Override
+	public TypeInformation<QueryResult> getProducedType() {
+		return new TypeHint<QueryResult>() {
+		}.getTypeInfo();
 	}
 }

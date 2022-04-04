@@ -255,14 +255,14 @@ You will need to edit the `kafka-appender/log4j2.xml` file and replace the place
     your_broker_1:9092,your_broker_2:9092,your_broker_3:9092
 </Property>
 ```
-
+Then copy it to the node from where you will execute the Flink command.
 By default, we are using the `flink-heap-alerts` Kafka topic in the application for tracking the alerts. You can create this topic in your application as follows:
 ```
 kafka-topics --create --partitions 16 --replication-factor 1 --zookeeper $(hostname -f):2181/kafka --topic flink-heap-alerts
 ```
 > **Note:** In the above command `$(hostname -f)` assumes that you are running Zookeeper on the Flink Gateway node. If you are running it on a different node, simply replace it with your Zookeeper hostname.
 
-Here is an example for the full command with Kafka logging:
+Here is an example for the full command with Kafka logging, assuming your current working directory contains `kafka-appender/log4j2.xml`:
 ```
 flink run -ynm HeapMonitor -yD logging.configuration.file=kafka-appender/log4j2.xml target/flink-simple-tutorial-1.2-SNAPSHOT.jar
 ```
@@ -281,6 +281,7 @@ kafka-console-consumer --bootstrap-server <your_broker>:9092 --topic flink-heap-
 
 00:17:53,800 INFO  com.cloudera.streaming.examples.flink.LogSink                 - HeapAlert{message='42 was found in the HeapMetrics ratio.', triggeringStats=HeapMetrics{area=PS Eden Space, used=54560840, max=94371840, ratio=0.578147464328342, jobId=0, hostname='<yourhostname>'}}
 ```
+You can also check the created topic and the produced messages on the Streams Messaging Manager UI. Open `<your_hostname>:7180` in your browser and click `Streams Messaging Manager UI`. You should find your created topic in the list. Clicking the `Profile` button and then switching to the `Data Explorer` tab should show the same alert messages as seen on the console.
 
 ### Writing output to HDFS
 
@@ -289,12 +290,7 @@ On a cluster environment, it is more preferable to write the output to a durable
 --cluster true
 ```
 
-By default, the output files will be stored under `hdfs:///tmp/flink-heap-stats`, but the output location is configurable with the `--output` parameter. The complete command that includes saving the output to HDFS and logging to Kafka looks like this:
-```
-flink run -ynm HeapMonitor -yD logging.configuration.file=kafka-appender/log4j2.xml target/flink-simple-tutorial-1.2-SNAPSHOT.jar --cluster true
-```
-
-To inspect the output, you can call `hdfs` directly:
+By default, the output files will be stored under `hdfs:///tmp/flink-heap-stats`. To inspect the output, you can call `hdfs` directly:
 ```
 hdfs dfs -cat /tmp/flink-heap-stats/*/*
 ...
@@ -302,3 +298,11 @@ HeapMetrics{area=PS Eden Space, used=50399064, max=90701824, ratio=0.55565656540
 HeapMetrics{area=PS Survivor Space, used=903448, max=15728640, ratio=0.05743967692057292, jobId=1, hostname='<yourhostname>'}
 HeapMetrics{area=PS Old Gen, used=19907144, max=251658240, ratio=0.07910388310750326, jobId=1, hostname='<yourhostname>'}
 ```
+
+The output location is configurable with the `--output` parameter. The complete command that includes saving the output to an arbitrary directory on HDFS and logging to Kafka looks like this:
+```
+flink run -ynm HeapMonitor -yD logging.configuration.file=kafka-appender/log4j2.xml target/flink-simple-tutorial-1.2-SNAPSHOT.jar --cluster true --output hdfs:///user/root/datasource
+```
+This will create a folder named `datasource` which will contain folders and files storing the data in a rolling manner.
+
+To check the files in your web browser using `Hadoop file browser` open `<your_hostname>:20101`. Click `Utilities` then `Browse the file system`.

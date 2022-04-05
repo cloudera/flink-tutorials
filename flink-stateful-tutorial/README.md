@@ -187,7 +187,7 @@ A builder class is provided for constructing instance of `KafkaSource`, in this 
 4. Starting offset
 5. Consumer properties
 
-For `ItemTransactions` we used the custom `TransactionSchema` implementation that serializers the records in json format for readability. We used the same schema in the data generator job later to write to the Kafka topic.
+For `ItemTransactions` we used the custom `TransactionSchema` implementation that serializes the records in json format for readability. We used the same schema in the data generator job later to write to the Kafka topic.
 
 For `Query` inputs we use the similar `QuerySchema` class.
 
@@ -278,6 +278,7 @@ enable.db.enrichment=true
 db.connection.string=jdbc:mysql://user:pw@db-host/db-name
 async.threadpool.size=5
 ```
+Please note that if you enable enrichment, you will need to set your configuration and source up properly. Otherwise, running the job with `flink cli` will show no error messages, but it will be stuck in a cancel-restart loop not doing any actual work. You may find the relevant exceptions on the job's dashboard page's exceptions tab.
 
 ## Testing and validating our pipeline
 
@@ -494,10 +495,14 @@ We can also look at the checkpoints page where we see the completed and triggere
 
 ![Checkpoints](images/cp.png "Checkpoints")
 
+You can configure checkpointing by code or editing Flink's configuration via UI following [this guide](https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/config/#basic-setup) (see `Checkpointing` under section `Basic Setup`).
+
 *Sending queries*
 ```shell
 kafka-console-producer --broker-list "<your_broker_1>":9092 --topic query.input.log.1
 ```
+Your query input should look something similar to this: `{"queryId":1, "itemId":"item_182883"}`. You can find a valid `itemId` by inspecting the records produced by the DataGenerator job using `kafka-console-consumer` (see above). 
+
 
 *Getting query output*
 ```shell
@@ -507,6 +512,11 @@ kafka-console-consumer --bootstrap-server "<your_broker_1>":9092 --topic query.o
 *Taking a savepoint*
 ```shell
 flink savepoint -yid "<yarnAppId>" "<flinkJobId>"
+```
+
+*Stopping the Flink job while taking a savepoint to an arbitrary location*
+```shell
+flink stop --savepointPath "hdfs://<NameNodeURL:8020>/<savepoint_path>" "<flink_job_id>"
 ```
 
 *Restoring from a savepoint*

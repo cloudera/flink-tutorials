@@ -274,8 +274,8 @@ under the License.
 		</repository>
 
 		<repository>
-			<id>cloudera-internal-snapshots</id>
-			<url>http://maven.jenkins.cloudera.com:8081/artifactory/libs-snapshot-local/</url>
+                        <id>nexus-public-snapshot</id>
+                        <url>https://nexus-private.hortonworks.com/nexus/repository/PUBLIC-SNAPSHOT</url>
 			<releases>
 				<enabled>false</enabled>
 			</releases>

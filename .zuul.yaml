@@ -1,0 +1,47 @@
+- project:
+    post-github-infra:
+       jobs:
+         - common-flink-tutorials:
+             vars:
+               slack_notify: true
+             secrets:
+               - name: failure_slack_url
+                 secret: slack_channel_flink_build_failures_tutorial
+                 pass-to-parent: true
+               - name: success_slack_url
+                 secret: slack_channel_flink_builds_tutorial
+                 pass-to-parent: true
+             required-projects:
+               - name: CDH/flink-tools
+                 override-checkout: master
+
+- secret:
+    name: slack_channel_flink_build_failures_tutorial
+    data:
+      api_url: !encrypted/pkcs1-oaep
+        - TKi+EHOMb4dnjFFBzWzzgl7pORteTgzQGOySW0Lva2QMr5jR4mdW4R+1iIlJ/Eiwe5fvc
+          /lz6xiGvSKTLRXR4lks/YLd9wqtMGfEkVN2P7j3F2lK4ma8enzP577A0jUifdXTtXbsKM
+          ByyuyPaH1akoBjhFQ427dAERFzVL3d+k/n0vIj/lKl9GzaifgBZM7oNN4++UbiHxonvdy
+          vXC8cxfDRomQjsD1cJuXtCaHHcwiWsOPU+VV1KJn2KHu98iMtRN/ZuN6r3qeWTFNp3gKL
+          HdcgaADWObxClPj209hIq+QImifAezIezmwUM5Edu5i0zOp2YztLWEriZZw5gzzKIVf+5
+          Wh5g8l/v7UuIcQg7ZjzJsNoNdrsd8e55r/aLsXhXqJwYdB63MHrK/+hykUCj83XTwoFp0
+          F8Q9+HHzZQ0N7E9+06uVbAJkdC7Mn5IVll0AthoG1ZonzxGPGucJ6ZBFfUJMmaHAylz1s
+          swvuaLpML52EqouZIw/NEubnBd2N+GWsiDHrmFCyBkmt+ldGnHkwcsfCGqqbnweNEEocR
+          g+XHmARFvT/34sP3xvnd8MMPx8sqrlSWb0hJPCfK+MojGPRR8zaBsZMPmHukzPek7qp+j
+          LD3HjdS4L2yv5iMN7Tt+c4lK/9ho93/uq9fLwgHovloRIWU4pRKczsS8KyaBtA=
+
+- secret:
+    name: slack_channel_flink_builds_tutorial
+    data:
+      api_url: !encrypted/pkcs1-oaep
+        - Pp0n4w4wdBKRlHkS0j++FJRZYEK5pNBSFLDZ5TZjwVcPmkB3mDbWjBAyYIJnA9D50LcP3
+          Z/HyrvhqRGwl4Hd22poXTNYbNqJvfJVfeQrU3dJ1e98k+3XQ6iuYvWmyR0ukvMcvvFm3V
+          mTBm4or514bg04J4oP5DJ+MWQX079u2JQ9KqAAFddKXvZxc3KbRkwIggQ9o+gMySX3p5r
+          dLMs0TO7jBy+fyX+5jcqq43iUJGeJMo2PYO6k2XxbpgguejV30A02nlnoYRJ62LW1lD9A
+          hB3PL1+0ORpOmvqFUDzxIJzAYbGDdbRyUpxhOUtO4vxZS2Da2hL9sUG6za5LEDvKYwAIh
+          A3ptgzcHV3NTbNPPihRe+TEK9yn/V8TiTw/lzsQHAGK/x8Q9p3jGuQG0JGGFqDw3aITjU
+          +s5QzaJxW9fYbXInXpYuxYqq9f4BQHRO7h8fzRqrwm+NBKRonSWgMoj8JB51c5UN61ca+
+          DOqqWc3pDoGOAejc/nQMNInWXe3jafg9DJFpI+ko+8Lv8QgeNkEso3kEY1sR9h93dhZ5r
+          5iYT0Z5ciEPVsqMz+s1Q45PJGsYnSKhW7NgmjeywMG1vgU0AqgUX1WYD5H9od4LMRvRpX
+          pOe7HXDmOAty3BJ1l8ScbuM4TE2ahcwWLv4cTJo3wTqpOYyhUJOWs3MYIeBTz4=
+

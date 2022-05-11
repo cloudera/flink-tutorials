@@ -55,6 +55,14 @@ under the License.
 		<maven.shade.plugin.version>3.0.0</maven.shade.plugin.version>
 	</properties>
 
+        <distributionManagement>
+                <snapshotRepository>
+                        <id>in-qa-snapshot</id>
+                        <name>Cloudera Snapshot Artifactory</name>
+                        <url>https://nexus-private.hortonworks.com/nexus/repository/IN-QA-SNAPSHOT</url>
+                </snapshotRepository>
+        </distributionManagement>
+
 	<dependencyManagement>
 		<dependencies>
 			<!--  Flink  -->

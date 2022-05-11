@@ -1,7 +1,7 @@
 - project:
     post-github-infra:
        jobs:
-         - common-flink-tutorials:
+         - common-flink-tutorials-build:
              vars:
                slack_notify: true
              secrets:

@@ -233,7 +233,7 @@ flink run -d -ynm SecureTutorial \
   -yD security.ssl.internal.truststore=keystore.jks \
   -yD security.ssl.internal.truststore-password=<internal_store_password> \
   -yt keystore.jks \
-  flink-secure-tutorial-1.14.0-csa1.7.0.0-SNAPSHOT.jar \
+  flink-secure-tutorial-1.14.0-csa1.7.0.0.jar \
   --hdfsOutput hdfs:///tmp/flink-sec-tutorial \
   --kafkaTopic flink \
   --kafka.bootstrap.servers <your_broker_1>:9093 \
@@ -284,7 +284,7 @@ flink run -d -ynm SecureTutorial \
     -yD security.ssl.internal.truststore-password=<internal_store_password> \
     -yt keystore.jks \
     -c com.cloudera.streaming.examples.flink.RandomKafkaDataGeneratorJob \
-    flink-secure-tutorial-1.14.0-csa1.7.0.0-SNAPSHOT.jar \
+    flink-secure-tutorial-1.14.0-csa1.7.0.0.jar \
     --hdfsOutput hdfs:///tmp/flink-sec-tutorial \
     --kafkaTopic flink \
     --kafka.bootstrap.servers <your_broker_1>:9093 \
@@ -322,7 +322,7 @@ flink run -d -ynm SecureTutorial \
     -yD security.ssl.internal.truststore-password=<internal_store_password> \
     -yt keystore.jks \
     -c com.cloudera.streaming.examples.flink.RandomKafkaDataGeneratorJob \
-    flink-secure-tutorial-1.14.0-csa1.7.0.0-SNAPSHOT.jar \
+    flink-secure-tutorial-1.14.0-csa1.7.0.0.jar \
     --properties.file job.properties
   ```
 
@@ -348,7 +348,7 @@ flink run -d -ynm SecureTutorial \
     -yD security.kerberos.login.keytab=test.keytab \
     -yD security.kerberos.login.principal=test \
     -c com.cloudera.streaming.examples.flink.RandomKafkaDataGeneratorJob \
-    flink-secure-tutorial-1.14.0-csa1.7.0.0-SNAPSHOT.jar \
+    flink-secure-tutorial-1.14.0-csa1.7.0.0.jar \
     --properties.file job.properties
   ```
 
@@ -503,7 +503,7 @@ flink run -d -ynm AvroDataGeneratorJob \
 -yD security.kerberos.login.keytab=test.keytab \
 -yD security.kerberos.login.principal=test \
 -c com.cloudera.streaming.examples.flink.AvroDataGeneratorJob \
-flink-secure-tutorial-1.14.0-csa1.7.0.0-SNAPSHOT.jar \
+flink-secure-tutorial-1.14.0-csa1.7.0.0.jar \
 --properties.file job.properties
 ```
 The generated avro messages can be read by the `KafkaToHDFSAvroJob`
@@ -513,7 +513,7 @@ flink run -d -ynm KafkaToHDFSAvroJob \
 -yD security.kerberos.login.keytab=test.keytab \
 -yD security.kerberos.login.principal=test \
 -c com.cloudera.streaming.examples.flink.KafkaToHDFSAvroJob \
-flink-secure-tutorial-1.14.0-csa1.7.0.0-SNAPSHOT.jar \
+flink-secure-tutorial-1.14.0-csa1.7.0.0.jar \
 --properties.file job.properties
 ```
 

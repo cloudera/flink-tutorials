@@ -24,7 +24,7 @@ under the License.
 	<parent>
 		<groupId>com.cloudera.flink</groupId>
 		<artifactId>flink-tutorials</artifactId>
-		<version>1.14.0-csa1.7.0.0-SNAPSHOT</version>
+		<version>1.14.0-csa1.7.0.0</version>
 	</parent>
 
 	<artifactId>flink-sql-tutorial</artifactId>
@@ -54,7 +54,7 @@ under the License.
 
 		<dependency>
 			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-table-planner-blink_${scala.binary.version}</artifactId>
+			<artifactId>flink-table-planner_${scala.binary.version}</artifactId>
 			<scope>provided</scope>
 		</dependency>
 

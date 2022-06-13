@@ -22,11 +22,6 @@ We dive deeper into structuring streaming application code, state handling and r
 The [flink-secure-tutorial](flink-secure-tutorial) application demonstrates Flink's security features for applications intended to run in secured CDP environments. It covers Kerberos authentication and TLS encryption for HDFS and Kafka connectors.
 
 
-##  Flink SQL Showcase
-
-The [flink-sql-tutorial](flink-sql-tutorial) demonstrates Flink's SQL features, via creating tables backed by Kafka topics. It builds on the datagenerator used in the [flink-stateful-tutorial](flink-stateful-tutorial) and showcases both the SQL cli and embedding Flink SQL statements into Java applications.
-
-
 ## Flink Quickstart Archetype
 
 The [flink-quickstart-archetype](flink-quickstart-archetype) is a maven archetype for generating application skeletons specificly for Flink on Cloudera.

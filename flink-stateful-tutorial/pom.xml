@@ -24,7 +24,7 @@ under the License.
 	<parent>
 		<groupId>com.cloudera.flink</groupId>
 		<artifactId>flink-tutorials</artifactId>
-		<version>1.14.0-csa1.8.0.0-SNAPSHOT</version>
+		<version>1.15.1-csa1.8.0.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>flink-stateful-tutorial</artifactId>
@@ -42,7 +42,7 @@ under the License.
 		<!--  Provided dependencies  -->
 		<dependency>
 			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-clients_${scala.binary.version}</artifactId>
+			<artifactId>flink-clients</artifactId>
 			<scope>provided</scope>
 		</dependency>
 
@@ -54,13 +54,13 @@ under the License.
 
 		<dependency>
 			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-statebackend-rocksdb_${scala.binary.version}</artifactId>
+			<artifactId>flink-statebackend-rocksdb</artifactId>
 			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
+			<artifactId>flink-streaming-java</artifactId>
 			<scope>provided</scope>
 		</dependency>
 
@@ -73,7 +73,7 @@ under the License.
 		<!--  Compile dependencies  -->
 		<dependency>
 			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-connector-kafka_${scala.binary.version}</artifactId>
+			<artifactId>flink-connector-kafka</artifactId>
 		</dependency>
 
 		<dependency>
@@ -108,7 +108,7 @@ under the License.
 		<!--  Test dependencies  -->
 		<dependency>
 			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-test-utils_${scala.binary.version}</artifactId>
+			<artifactId>flink-test-utils</artifactId>
 			<scope>test</scope>
 		</dependency>
 

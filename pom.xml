@@ -23,7 +23,7 @@ under the License.
 
 	<groupId>com.cloudera.flink</groupId>
 	<artifactId>flink-tutorials</artifactId>
-	<version>1.14.0-csa1.8.0.0-SNAPSHOT</version>
+	<version>1.15.1-csa1.8.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Flink Tutorials</name>
 
@@ -37,7 +37,7 @@ under the License.
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<scala.binary.version>2.12</scala.binary.version>
 
-		<flink.version>1.14.0-csa1.8.0.0-SNAPSHOT</flink.version>
+		<flink.version>1.15.1-csa1.8.0.0-SNAPSHOT</flink.version>
 
 		<!-- Dependency versions -->
 		<hive.version>3.1.2</hive.version>
@@ -54,13 +54,13 @@ under the License.
 		<maven.shade.plugin.version>3.0.0</maven.shade.plugin.version>
 	</properties>
 
-        <distributionManagement>
-                <snapshotRepository>
-                        <id>in-qa-snapshot</id>
-                        <name>Cloudera Snapshot Artifactory</name>
-                        <url>https://nexus-private.hortonworks.com/nexus/repository/IN-QA-SNAPSHOT</url>
-                </snapshotRepository>
-        </distributionManagement>
+	<distributionManagement>
+			<snapshotRepository>
+					<id>in-qa-snapshot</id>
+					<name>Cloudera Snapshot Artifactory</name>
+					<url>https://nexus-private.hortonworks.com/nexus/repository/IN-QA-SNAPSHOT</url>
+			</snapshotRepository>
+	</distributionManagement>
 
 	<dependencyManagement>
 		<dependencies>
@@ -73,7 +73,7 @@ under the License.
 
 			<dependency>
 				<groupId>org.apache.flink</groupId>
-				<artifactId>flink-clients_${scala.binary.version}</artifactId>
+				<artifactId>flink-clients</artifactId>
 				<version>${flink.version}</version>
 			</dependency>
 
@@ -85,7 +85,7 @@ under the License.
 
 			<dependency>
 				<groupId>org.apache.flink</groupId>
-				<artifactId>flink-connector-kafka_${scala.binary.version}</artifactId>
+				<artifactId>flink-connector-kafka</artifactId>
 				<version>${flink.version}</version>
 			</dependency>
 
@@ -103,13 +103,13 @@ under the License.
 
 			<dependency>
 				<groupId>org.apache.flink</groupId>
-				<artifactId>flink-statebackend-rocksdb_${scala.binary.version}</artifactId>
+				<artifactId>flink-statebackend-rocksdb</artifactId>
 				<version>${flink.version}</version>
 			</dependency>
 
 			<dependency>
 				<groupId>org.apache.flink</groupId>
-				<artifactId>flink-streaming-java_${scala.binary.version}</artifactId>
+				<artifactId>flink-streaming-java</artifactId>
 				<version>${flink.version}</version>
 			</dependency>
 
@@ -127,7 +127,7 @@ under the License.
 
 			<dependency>
 				<groupId>org.apache.flink</groupId>
-				<artifactId>flink-test-utils_${scala.binary.version}</artifactId>
+				<artifactId>flink-test-utils</artifactId>
 				<version>${flink.version}</version>
 			</dependency>
 
@@ -281,8 +281,8 @@ under the License.
 		</repository>
 
 		<repository>
-                        <id>nexus-public-snapshot</id>
-                        <url>https://nexus-private.hortonworks.com/nexus/repository/PUBLIC-SNAPSHOT</url>
+			<id>nexus-public-snapshot</id>
+			<url>https://nexus-private.hortonworks.com/nexus/repository/PUBLIC-SNAPSHOT</url>
 			<releases>
 				<enabled>false</enabled>
 			</releases>

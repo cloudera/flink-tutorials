@@ -23,7 +23,7 @@ on:
       - CSA-DH-1.8.0.0
 
 jobs:
-  build_flink_cdc_connectors:
+  build_flink_tutorials:
 
     runs-on: [re-centos7]
 

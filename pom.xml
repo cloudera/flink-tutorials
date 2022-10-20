@@ -23,7 +23,7 @@ under the License.
 
 	<groupId>com.cloudera.flink</groupId>
 	<artifactId>flink-tutorials</artifactId>
-	<version>1.15.1-csadh1.8.0.0-SNAPSHOT</version>
+	<version>1.15.1-csadh1.9.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Flink Tutorials</name>
 
@@ -37,7 +37,7 @@ under the License.
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<scala.binary.version>2.12</scala.binary.version>
 
-		<flink.version>1.15.1-csadh1.8.0.0-SNAPSHOT</flink.version>
+		<flink.version>1.15.1-csadh1.9.0.0-SNAPSHOT</flink.version>
 
 		<!-- Dependency versions -->
 		<hive.version>3.1.2</hive.version>

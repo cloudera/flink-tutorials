@@ -24,7 +24,7 @@ under the License.
 
 	<groupId>com.cloudera.flink</groupId>
 	<artifactId>flink-quickstart-archetype</artifactId>
-	<version>1.15.1-csadh1.8.0.0-SNAPSHOT</version>
+	<version>1.15.1-csadh1.9.0.0-SNAPSHOT</version>
 	<packaging>maven-archetype</packaging>
 	<name>Flink Quickstart Archetype</name>
 

@@ -413,11 +413,11 @@ The ```Message``` Avro type is a Java class generated from the Avro schema ```me
 
 The schema of the Avro types are automatically registered in the Cloudera Schema Registry at the first record serialization.
 
-The schema registry can be plugged directly into a ```KafkaSource``` or a ```KafkaSink``` using the appropriate ```ClouderaRegistryKafkaDeserializationSchema``` and ```ClouderaRegistryKafkaRecordSerializationSchema``` classes respectively.
+The schema registry can be plugged directly into a ```KafkaSource``` or a ```KafkaSink``` using the appropriate ```ClouderaRegistryAvroKafkaDeserializationSchema``` and ```ClouderaRegistryAvroKafkaRecordSerializationSchema``` classes respectively.
 
 Two sample Jobs were written to demonstrate how to integrate with Cloudera Schema Registry from Flink in a secured way.
 
-The ```AvroDataGeneratorJob``` uses a Kafka sink with ```ClouderaRegistryKafkaRecordSerializationSchema``` to write ```Message``` records to a Kafka topic:
+The ```AvroDataGeneratorJob``` uses a Kafka sink with ```ClouderaRegistryAvroKafkaRecordSerializationSchema``` to write ```Message``` records to a Kafka topic:
 ```java
 public class AvroDataGeneratorJob {
 
@@ -426,7 +426,7 @@ public class AvroDataGeneratorJob {
         ...
 
         String topic = params.getRequired(K_KAFKA_TOPIC);
-        KafkaRecordSerializationSchema<Message> schema = ClouderaRegistryKafkaRecordSerializationSchema
+        KafkaRecordSerializationSchema<Message> schema = ClouderaRegistryAvroKafkaRecordSerializationSchema
                 .<Message>builder(topic)
                 .setConfig(Utils.readSchemaRegistryProperties(params))
                 .setKey(Message::getId)
@@ -444,7 +444,7 @@ public class AvroDataGeneratorJob {
 }
 ```
 
-The ```KafkaToHDFSAvroJob``` uses a Kafka source with ```ClouderaRegistryKafkaDeserializationSchema``` to read the Avro records. Then, it saves them as CSV files into HDFS and standard output:
+The ```KafkaToHDFSAvroJob``` uses a Kafka source with ```ClouderaRegistryAvroKafkaDeserializationSchema``` to read the Avro records. Then, it saves them as CSV files into HDFS and standard output:
 ```java
 public class KafkaToHDFSAvroJob {
 
@@ -452,7 +452,7 @@ public class KafkaToHDFSAvroJob {
 
         ...
 
-        KafkaDeserializationSchema<Message> schema = ClouderaRegistryKafkaDeserializationSchema
+        KafkaDeserializationSchema<Message> schema = ClouderaRegistryAvroKafkaDeserializationSchema
                 .builder(Message.class)
                 .setConfig(Utils.readSchemaRegistryProperties(params))
                 .build();
@@ -474,7 +474,7 @@ public class KafkaToHDFSAvroJob {
 }
 ```
 
-The ```ClouderaRegistryKafkaRecordSerializationSchema/ ClouderaRegistryKafkaDeserializationSchema ``` related configuration parameters can be shipped in the job.properties file too:
+The ```ClouderaRegistryAvroKafkaRecordSerializationSchema/ ClouderaRegistryAvroKafkaDeserializationSchema ``` related configuration parameters can be shipped in the job.properties file too:
 ```properties
 schema.registry.url=https://<your_broker_1>:7790/api/v1
 schema.registry.client.ssl.trustStorePath=/var/lib/cloudera-scm-agent/agent-cert/cm-auto-global_truststore.jks

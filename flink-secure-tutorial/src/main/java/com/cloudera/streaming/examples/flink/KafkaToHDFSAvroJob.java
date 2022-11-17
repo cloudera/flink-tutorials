@@ -24,7 +24,7 @@ import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.reader.deserializer.KafkaRecordDeserializationSchema;
 import org.apache.flink.core.fs.Path;
-import org.apache.flink.formats.avro.registry.cloudera.ClouderaRegistryKafkaDeserializationSchema;
+import org.apache.flink.formats.registry.cloudera.avro.ClouderaRegistryAvroKafkaDeserializationSchema;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink;
@@ -45,7 +45,7 @@ public class KafkaToHDFSAvroJob {
 		ParameterTool params = Utils.parseArgs(args);
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-		KafkaDeserializationSchema<Message> schema = ClouderaRegistryKafkaDeserializationSchema
+		KafkaDeserializationSchema<Message> schema = ClouderaRegistryAvroKafkaDeserializationSchema
 				.builder(Message.class)
 				.setConfig(Utils.readSchemaRegistryProperties(params))
 				.build();

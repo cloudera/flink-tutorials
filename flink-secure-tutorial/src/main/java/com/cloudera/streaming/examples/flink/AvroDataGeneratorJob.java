@@ -22,7 +22,7 @@ import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
-import org.apache.flink.formats.avro.registry.cloudera.ClouderaRegistryKafkaRecordSerializationSchema;
+import org.apache.flink.formats.registry.cloudera.avro.ClouderaRegistryAvroKafkaRecordSerializationSchema;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.ParallelSourceFunction;
@@ -45,7 +45,7 @@ public class AvroDataGeneratorJob {
 		StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
 		String topic = params.getRequired(K_KAFKA_TOPIC);
-		KafkaRecordSerializationSchema<Message> schema = ClouderaRegistryKafkaRecordSerializationSchema
+		KafkaRecordSerializationSchema<Message> schema = ClouderaRegistryAvroKafkaRecordSerializationSchema
 				.<Message>builder(topic)
 				.setConfig(Utils.readSchemaRegistryProperties(params))
 				.setKey(Message::getId)

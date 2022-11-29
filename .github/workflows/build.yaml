@@ -20,7 +20,7 @@ name: Build flink-tutorials
 on:
   push:
     branches: 
-      - CSA-DH-1.9.0.0
+      - CSA-1.9.0.0
 
 jobs:
   build_flink_tutorials:

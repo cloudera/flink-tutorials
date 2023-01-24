@@ -45,7 +45,7 @@ under the License.
 		<junit.version>4.13.1</junit.version>
 		<log4j.version>2.17.2</log4j.version>
 		<metrics.version>4.1.0</metrics.version>
-		<mysql.version>8.0.20</mysql.version>
+		<mysql.version>8.0.28</mysql.version>
 
 		<!-- Plugin versions -->
 		<avro.plugin.version>1.9.1</avro.plugin.version>

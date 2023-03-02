@@ -1,13 +1,16 @@
-target/
-dependency-reduced-pom.xml
+# MacOS
 .DS_Store
 
-# idea
+# Maven
+target/
+dependency-reduced-pom.xml
+
+# IntelliJ
 .idea/
 *.iml
 
-# eclipse
-/bin/
+# Eclipse
+bin/
 .classpath
 .project
 .settings

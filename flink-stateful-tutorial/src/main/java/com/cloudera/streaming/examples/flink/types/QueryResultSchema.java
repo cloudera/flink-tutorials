@@ -33,7 +33,7 @@ public class QueryResultSchema extends JsonKafkaSerializationSchema<QueryResult>
 	}
 
 	@Override
-	public QueryResult deserialize(byte[] message) throws IOException {
+	public QueryResult deserialize(byte[] message) {
 		try {
 			return OBJECT_MAPPER.readValue(message, QueryResult.class);
 		} catch (IOException e) {

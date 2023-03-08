@@ -38,7 +38,7 @@ public class AlertingFunction implements FlatMapFunction<HeapMetrics, HeapAlert>
 	}
 
 	@Override
-	public void flatMap(HeapMetrics stats, Collector<HeapAlert> out) throws Exception {
+	public void flatMap(HeapMetrics stats, Collector<HeapAlert> out) {
 		if (Double.toString(stats.ratio).contains(alertMask)) {
 			out.collect(HeapAlert.maskRatioMatch(alertMask, stats));
 		}

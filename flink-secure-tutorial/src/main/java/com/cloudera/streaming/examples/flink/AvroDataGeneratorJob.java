@@ -55,7 +55,7 @@ public class AvroDataGeneratorJob {
 				.setBootstrapServers(params.get(K_BOOTSTRAP_SERVERS))
 				.setRecordSerializer(schema)
 				.setKafkaProducerConfig(Utils.readKafkaProperties(params))
-				.setDeliverGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
+				.setDeliveryGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
 				.build();
 
 		DataStream<Message> input = env.addSource(new DataGeneratorSource())

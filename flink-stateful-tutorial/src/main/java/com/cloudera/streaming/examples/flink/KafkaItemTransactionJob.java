@@ -102,7 +102,7 @@ public class KafkaItemTransactionJob extends ItemTransactionJob {
 						.setValueSerializationSchema(new QueryResultSchema(topic))
 						.build())
 				.setKafkaProducerConfig(Utils.readKafkaProperties(params))
-				.setDeliverGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
+				.setDeliveryGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
 				.build();
 
 		queryResultStream.sinkTo(queryOutputSink)

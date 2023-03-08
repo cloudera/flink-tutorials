@@ -121,8 +121,7 @@ public final class Utils {
 		String keyInLower = key.toLowerCase();
 		String[] sensitiveKeys = value.split(",");
 
-		for (int i = 0; i < sensitiveKeys.length; ++i) {
-			String hideKey = sensitiveKeys[i];
+		for (String hideKey : sensitiveKeys) {
 			if (keyInLower.length() >= hideKey.length() && keyInLower.contains(hideKey)) {
 				return true;
 			}

@@ -61,7 +61,7 @@ public class KafkaDataGeneratorJob {
 						.setValueSerializationSchema(new TransactionSchema(transactionTopic))
 						.build())
 				.setKafkaProducerConfig(Utils.readKafkaProperties(params))
-				.setDeliverGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
+				.setDeliveryGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
 				.build();
 
 		generatedInput.keyBy(t -> t.itemId)
@@ -82,7 +82,7 @@ public class KafkaDataGeneratorJob {
 							.setValueSerializationSchema(new QuerySchema(queryTopic))
 							.build())
 					.setKafkaProducerConfig(Utils.readKafkaProperties(params))
-					.setDeliverGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
+					.setDeliveryGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
 					.build();
 
 			queries.keyBy(q -> q.itemId)

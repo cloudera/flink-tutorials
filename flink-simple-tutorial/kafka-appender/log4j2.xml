@@ -3,7 +3,7 @@
   <Appenders>
     <Kafka name="Kafka" topic="flink-heap-alerts">
       <Property name="bootstrap.servers">
-        fcsaky-1.vpc.cloudera.com:9092,fcsaky-2.vpc.cloudera.com:9092,fcsaky-3.vpc.cloudera.com:9092
+        your_broker_1:9092,your_broker_2:9092,your_broker_3:9092
       </Property>
       <PatternLayout charset="UTF-8">
         <Pattern>%d{HH:mm:ss,SSS} %-5p %-60c %x - %m%n</Pattern>

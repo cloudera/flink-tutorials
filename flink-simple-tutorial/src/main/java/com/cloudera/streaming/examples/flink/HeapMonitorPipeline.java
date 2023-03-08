@@ -20,10 +20,10 @@ package com.cloudera.streaming.examples.flink;
 
 import org.apache.flink.api.common.serialization.SimpleStringEncoder;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.connector.file.sink.FileSink;
 import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink;
 
 import com.cloudera.streaming.examples.flink.types.HeapAlert;
 import com.cloudera.streaming.examples.flink.types.HeapMetrics;
@@ -55,11 +55,11 @@ public class HeapMonitorPipeline {
 			heapStats.print();
 		} else {
 			// In cluster execution mode write the stats to HDFS
-			final StreamingFileSink<String> sfs = StreamingFileSink
+			final FileSink<String> sfs = FileSink
 					.forRowFormat(new Path(output), new SimpleStringEncoder<String>("UTF-8"))
 					.build();
 
-			heapStats.map(stats -> stats.toString()).addSink(sfs).name("HDFS Sink");
+			heapStats.map(HeapMetrics::toString).sinkTo(sfs).name("HDFS Sink");
 		}
 
 		// Detect suspicious events in the statistics stream, defining this as a separate function enables testing

@@ -22,11 +22,11 @@ import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.serialization.SimpleStringEncoder;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.connector.file.sink.FileSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink;
 
 import static com.cloudera.streaming.examples.flink.Constants.K_BOOTSTRAP_SERVERS;
 import static com.cloudera.streaming.examples.flink.Constants.K_HDFS_OUTPUT;
@@ -49,11 +49,11 @@ public class KafkaToHDFSSimpleJob {
 				.build();
 		DataStream<String> source = env.fromSource(consumer, WatermarkStrategy.noWatermarks(), "Kafka Source").uid("kafka-source");
 
-		StreamingFileSink<String> sink = StreamingFileSink
+		FileSink<String> sink = FileSink
 				.forRowFormat(new Path(params.getRequired(K_HDFS_OUTPUT)), new SimpleStringEncoder<String>("UTF-8"))
 				.build();
 
-		source.addSink(sink)
+		source.sinkTo(sink)
 				.name("FS Sink")
 				.uid("fs-sink");
 		source.print();

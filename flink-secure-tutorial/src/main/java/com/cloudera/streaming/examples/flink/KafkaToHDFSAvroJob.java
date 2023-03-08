@@ -21,13 +21,13 @@ package com.cloudera.streaming.examples.flink;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.serialization.SimpleStringEncoder;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.connector.file.sink.FileSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.reader.deserializer.KafkaRecordDeserializationSchema;
 import org.apache.flink.core.fs.Path;
 import org.apache.flink.formats.registry.cloudera.avro.ClouderaRegistryAvroKafkaDeserializationSchema;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink;
 import org.apache.flink.streaming.connectors.kafka.KafkaDeserializationSchema;
 
 import com.cloudera.streaming.examples.flink.data.Message;
@@ -63,11 +63,11 @@ public class KafkaToHDFSAvroJob {
 				.name("To Output String")
 				.uid("to-output-string");
 
-		StreamingFileSink<String> sink = StreamingFileSink
+		FileSink<String> sink = FileSink
 				.forRowFormat(new Path(params.getRequired(K_HDFS_OUTPUT)), new SimpleStringEncoder<String>("UTF-8"))
 				.build();
 
-		source.addSink(sink)
+		source.sinkTo(sink)
 				.name("FS Sink")
 				.uid("fs-sink");
 

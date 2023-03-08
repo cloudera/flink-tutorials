@@ -24,7 +24,7 @@ under the License.
 	<parent>
 		<groupId>com.cloudera.flink</groupId>
 		<artifactId>flink-tutorials</artifactId>
-		<version>1.15.1-csadh1.10.0.0-SNAPSHOT</version>
+		<version>1.16.1-csadh1.10.0.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>flink-secure-tutorial</artifactId>
@@ -81,6 +81,11 @@ under the License.
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-connector-kafka</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-connector-files</artifactId>
 		</dependency>
 
 		<!--  Runtime dependencies  -->

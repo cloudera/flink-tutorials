@@ -1,0 +1,82 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+name: Publish
+
+on:
+  push:
+    branches:
+      - CSA*
+
+env:
+  MVN_CMD: /grid/0/jenkins/tools/maven/apache-maven-3.5.2/bin/mvn
+  JVM_ARGS: -Xms2g -Xmx4g -XX:MaxPermSize=1024m
+  JAVA_OPTS: -Xms2g -Xmx4g -XX:MaxPermSize=1024m -verbose:gc -XX:+UseConcMarkSweepGC -XX:-UseGCOverheadLimit
+  MAVEN_OPTS: -Xmx6g -XX:MaxPermSize=1024m -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:ReservedCodeCacheSize=1024m -Djava.net.preferIPv4Stack=true
+
+jobs:
+  test:
+    uses: ./.github/workflows/test.yaml
+
+  publish:
+    needs: test
+    runs-on: ci_builds
+
+    env:
+      MVN_CMD: /grid/0/jenkins/tools/maven/apache-maven-3.5.2/bin/mvn
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v3
+        with:
+          java-version: 8
+          distribution: 'adopt'
+
+      - name: Download settings.xml
+        run: wget https://github.infra.cloudera.com/raw/CDH/flink-tools/master/csa-build/cloudera-mirrors-releng-settings.xml -q -O /tmp/settings.xml
+
+      - name: Build flink-tutorials
+        run: ${MVN_CMD} clean deploy -DskipTests -B -s /tmp/settings.xml
+
+      - name: Slack Notification Build Success
+        uses: CDH/flink-tools/github-action/action-slack@master
+        if: success()
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,ref,workflow,took
+          github_base_url: https://github.infra.cloudera.com/
+          icon_emoji: ':thumbsup:'
+          author_name: 'Github Actions'
+          text: 'GitHub Actions'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.ENG_FLINK_BUILDS }}
+
+      - name: Slack Notification Build Failed
+        uses: CDH/flink-tools/github-action/action-slack@master
+        if: failure()
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,ref,workflow,took,mention_author,mention_committer
+          github_base_url: https://github.infra.cloudera.com/
+          icon_emoji: ':fire:'
+          author_name: 'Github Actions'
+          text: 'GitHub Actions'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.ENG_FLINK_BUILD_FAILURES }}

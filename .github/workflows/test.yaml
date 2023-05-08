@@ -1,0 +1,51 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+name: Test
+
+on:
+  pull_request:
+  workflow_call:
+
+env:
+  MVN_CMD: /grid/0/jenkins/tools/maven/apache-maven-3.5.2/bin/mvn
+  JVM_ARGS: -Xms2g -Xmx4g -XX:MaxPermSize=1024m
+  JAVA_OPTS: -Xms2g -Xmx4g -XX:MaxPermSize=1024m -verbose:gc -XX:+UseConcMarkSweepGC -XX:-UseGCOverheadLimit
+  MAVEN_OPTS: -Xmx6g -XX:MaxPermSize=1024m -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:ReservedCodeCacheSize=1024m -Djava.net.preferIPv4Stack=true
+
+jobs:
+  test:
+    runs-on: ci_builds
+
+    env:
+      MVN_CMD: /grid/0/jenkins/tools/maven/apache-maven-3.5.2/bin/mvn
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v3
+        with:
+          java-version: 8
+          distribution: 'adopt'
+
+      - name: Download settings.xml
+        run: wget https://github.infra.cloudera.com/raw/CDH/flink-tools/master/csa-build/cloudera-mirrors-releng-settings.xml -q -O /tmp/settings.xml
+
+      - name: Test flink-tutorials
+        run: ${MVN_CMD} clean install -B -s /tmp/settings.xml

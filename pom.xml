@@ -23,7 +23,7 @@ under the License.
 
 	<groupId>com.cloudera.flink</groupId>
 	<artifactId>flink-tutorials</artifactId>
-	<version>1.16.1-csadh1.11.0.0-SNAPSHOT</version>
+	<version>1.18.0-csadh1.12.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Flink Tutorials</name>
 
@@ -37,7 +37,8 @@ under the License.
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<scala.binary.version>2.12</scala.binary.version>
 
-		<flink.version>1.16.1-csadh1.11.0.0-SNAPSHOT</flink.version>
+		<flink.version>1.18.0-csadh1.12.0.0-SNAPSHOT</flink.version>
+		<flink.kafka.connector.version>3.1-csadh1.12.0.0-SNAPSHOT</flink.kafka.connector.version>
 
 		<!-- Dependency versions -->
 		<hive.version>3.1.2</hive.version>
@@ -77,8 +78,14 @@ under the License.
 
 			<dependency>
 				<groupId>org.apache.flink</groupId>
-				<artifactId>flink-connector-kafka</artifactId>
+				<artifactId>flink-connector-base</artifactId>
 				<version>${flink.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.flink</groupId>
+				<artifactId>flink-connector-kafka</artifactId>
+				<version>${flink.kafka.connector.version}</version>
 			</dependency>
 
 			<dependency>

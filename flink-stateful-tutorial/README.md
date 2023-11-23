@@ -435,7 +435,7 @@ Build a jar of the application containing all dependencies (fatjar or uberjar) b
 mvn clean package
 ```
 
-If everything runs correctly, the jar is located under `target/flink-stateful-tutorial-1.16.1-csadh1.11.0.0-SNAPSHOT.jar`.
+If everything runs correctly, the jar is located under `target/flink-stateful-tutorial-1.18.0-csadh1.12.0.0-SNAPSHOT.jar`.
 
 Now it's time to copy the jar and job configuration located under `config/job.properties` to the cluster.
 
@@ -460,7 +460,7 @@ kafka-topics --create --partitions 16 --replication-factor 1 --zookeeper $(hostn
 
 ```shell
 # Run the data generator job
-flink run -d -p 2 -ys 2 -ynm DataGenerator -c com.cloudera.streaming.examples.flink.KafkaDataGeneratorJob target/flink-stateful-tutorial-1.16.1-csadh1.11.0.0-SNAPSHOT.jar config/job.properties
+flink run -d -p 2 -ys 2 -ynm DataGenerator -c com.cloudera.streaming.examples.flink.KafkaDataGeneratorJob target/flink-stateful-tutorial-1.18.0-csadh1.12.0.0-SNAPSHOT.jar config/job.properties
 ```
 
 We can now check the configured Kafka topic for the generated transaction data stream from the command line:
@@ -473,7 +473,7 @@ kafka-console-consumer --bootstrap-server "<your_broker_1>":9092 --topic transac
 Now that we have a transaction input stream in the `transaction.log.1` topic, we can deploy the transaction processor job.
 
 ```shell
-flink run -d -p 8 -ys 4 -ytm 1500 -ynm TransactionProcessor target/flink-stateful-tutorial-1.16.1-csadh1.11.0.0-SNAPSHOT.jar config/job.properties
+flink run -d -p 8 -ys 4 -ytm 1500 -ynm TransactionProcessor target/flink-stateful-tutorial-1.18.0-csadh1.12.0.0-SNAPSHOT.jar config/job.properties
 ```
 
 > **Note:** If the deployment hangs, make sure that `yarn.scheduler.maximum-allocation-vcores` is set to at least 4 in the YARN configuration for the cluster. If this doesn't work, try a lower parallelism value (the `-p` parameter in the above command).
@@ -521,5 +521,5 @@ flink stop --savepointPath "hdfs://<NameNodeURL:8020>/<savepoint_path>" "<flink_
 
 *Restoring from a savepoint*
 ```shell
-flink run -d -p 8 -ys 4 -ytm 1500 -ynm TransactionProcessor -s hdfs://savepointpath target/flink-stateful-tutorial-1.16.1-csadh1.11.0.0-SNAPSHOT.jar config/job.properties
+flink run -d -p 8 -ys 4 -ytm 1500 -ynm TransactionProcessor -s hdfs://savepointpath target/flink-stateful-tutorial-1.18.0-csadh1.12.0.0-SNAPSHOT.jar config/job.properties
 ```

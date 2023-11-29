@@ -43,7 +43,7 @@ under the License.
 
 		<!-- Dependency versions -->
 		<jackson.version>2.14.3</jackson.version>
-		<junit.version>4.13.2</junit.version>
+		<junit-jupiter.version>5.10.1</junit-jupiter.version>
 		<log4j.version>2.22.0</log4j.version>
 		<metrics.version>4.2.22</metrics.version>
 		<mysql.version>8.0.33</mysql.version>
@@ -53,6 +53,7 @@ under the License.
 		<lifecycle.mapping.version>1.0.0</lifecycle.mapping.version>
 		<maven.checkstyle.plugin.version>2.17</maven.checkstyle.plugin.version>
 		<maven.shade.plugin.version>3.4.1</maven.shade.plugin.version>
+		<maven.surefire.plugin.version>3.2.2</maven.surefire.plugin.version>
 	</properties>
 
 	<dependencyManagement>
@@ -68,6 +69,12 @@ under the License.
 				<groupId>org.apache.flink</groupId>
 				<artifactId>flink-connector-cloudera-registry</artifactId>
 				<version>${flink.cloudera.connector.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>junit</groupId>
+						<artifactId>junit</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 
 			<dependency>
@@ -116,6 +123,16 @@ under the License.
 				<groupId>org.apache.flink</groupId>
 				<artifactId>flink-test-utils</artifactId>
 				<version>${flink.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>junit</groupId>
+						<artifactId>junit</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.junit.vintage</groupId>
+						<artifactId>junit-vintage-engine</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 
 			<!--  Log4j  -->
@@ -139,9 +156,10 @@ under the License.
 
 			<!--  Unit tests  -->
 			<dependency>
-				<groupId>junit</groupId>
-				<artifactId>junit</artifactId>
-				<version>${junit.version}</version>
+				<groupId>org.junit.jupiter</groupId>
+				<artifactId>junit-jupiter-engine</artifactId>
+				<version>${junit-jupiter.version}</version>
+				<scope>test</scope>
 			</dependency>
 
 			<!--  Everything else  -->
@@ -166,6 +184,13 @@ under the License.
 	</dependencyManagement>
 
 	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+			</plugin>
+		</plugins>
+
 		<pluginManagement>
 			<plugins>
 				<plugin>
@@ -178,6 +203,12 @@ under the License.
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-shade-plugin</artifactId>
 					<version>${maven.shade.plugin.version}</version>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>${maven.surefire.plugin.version}</version>
 				</plugin>
 
 				<plugin>

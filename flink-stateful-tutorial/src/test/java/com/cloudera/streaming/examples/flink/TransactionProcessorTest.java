@@ -32,15 +32,15 @@ import com.cloudera.streaming.examples.flink.types.Query;
 import com.cloudera.streaming.examples.flink.types.QueryResult;
 import com.cloudera.streaming.examples.flink.types.TransactionResult;
 import com.cloudera.streaming.examples.flink.types.TransactionSummary;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Simple unit test covering the core functions of the stateful example.
  */
-public class TransactionProcessorTest extends ItemTransactionJob {
+class TransactionProcessorTest extends ItemTransactionJob {
 
 	private final CollectingSink<TransactionResult> transactionResultSink = new CollectingSink<>();
 	private final CollectingSink<QueryResult> queryResultSink = new CollectingSink<>();
@@ -49,7 +49,7 @@ public class TransactionProcessorTest extends ItemTransactionJob {
 	private ManualSource<Query> querySource;
 
 	@Test
-	public void runTest() throws Exception {
+	void runTest() throws Exception {
 		JobTester.startTest(createApplicationPipeline(ParameterTool.fromArgs(new String[]{})));
 
 		ItemTransaction it1 = new ItemTransaction(1, 2, "item_1", 100);

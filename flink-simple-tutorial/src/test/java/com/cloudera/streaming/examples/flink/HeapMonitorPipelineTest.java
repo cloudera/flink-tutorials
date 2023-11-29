@@ -26,22 +26,22 @@ import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import com.cloudera.streaming.examples.flink.types.HeapAlert;
 import com.cloudera.streaming.examples.flink.types.HeapMetrics;
 import org.apache.commons.compress.utils.Sets;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Simple unit test for the simple example.
  */
-public class HeapMonitorPipelineTest {
+class HeapMonitorPipelineTest {
 
 	private static Set<HeapAlert> testOutput = new HashSet<>();
 
 	@Test
-	public void testPipeline() throws Exception {
+	void testPipeline() throws Exception {
 
 		final String alertMask = "42";
 

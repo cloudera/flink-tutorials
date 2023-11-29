@@ -73,7 +73,7 @@ under the License.
 		<!--  Compile dependencies  -->
 		<dependency>
 			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-cloudera-registry</artifactId>
+			<artifactId>flink-connector-cloudera-registry</artifactId>
 		</dependency>
 
 		<!-- Add connector dependencies here. They must be in the default scope (compile). -->

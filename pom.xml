@@ -38,6 +38,7 @@ under the License.
 		<scala.binary.version>2.12</scala.binary.version>
 
 		<flink.version>1.18.0-csadh1.12.0.0-SNAPSHOT</flink.version>
+		<flink.cloudera.connector.version>1.0-csadh1.12.0.0-SNAPSHOT</flink.cloudera.connector.version>
 		<flink.kafka.connector.version>3.1-csadh1.12.0.0-SNAPSHOT</flink.kafka.connector.version>
 
 		<!-- Dependency versions -->
@@ -60,14 +61,14 @@ under the License.
 			<!--  Flink  -->
 			<dependency>
 				<groupId>org.apache.flink</groupId>
-				<artifactId>flink-cloudera-registry</artifactId>
+				<artifactId>flink-clients</artifactId>
 				<version>${flink.version}</version>
 			</dependency>
 
 			<dependency>
 				<groupId>org.apache.flink</groupId>
-				<artifactId>flink-clients</artifactId>
-				<version>${flink.version}</version>
+				<artifactId>flink-connector-cloudera-registry</artifactId>
+				<version>${flink.cloudera.connector.version}</version>
 			</dependency>
 
 			<dependency>

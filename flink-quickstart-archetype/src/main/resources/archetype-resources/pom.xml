@@ -36,8 +36,8 @@ under the License.
 
 		<flink.version>1.18.0-csadh1.12.0.0-SNAPSHOT</flink.version>
 
-		<junit.version>4.13.1</junit.version>
-		<log4j.version>2.16.0</log4j.version>
+		<junit-jupiter.version>5.10.1</junit-jupiter.version>
+		<log4j.version>2.22.0</log4j.version>
 	</properties>
 
 	<dependencies>
@@ -84,9 +84,9 @@ under the License.
 		</dependency>
 
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>${junit.version}</version>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<version>${junit-jupiter.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -96,7 +96,7 @@ under the License.
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.1.1</version>
+				<version>3.4.1</version>
 				<executions>
 					<execution>
 						<phase>package</phase>

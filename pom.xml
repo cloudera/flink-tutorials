@@ -31,6 +31,7 @@ under the License.
 		<module>flink-simple-tutorial</module>
 		<module>flink-stateful-tutorial</module>
 		<module>flink-secure-tutorial</module>
+		<module>flink-kubernetes-tutorial</module>
 	</modules>
 
 	<properties>
@@ -92,6 +93,12 @@ under the License.
 			<dependency>
 				<groupId>org.apache.flink</groupId>
 				<artifactId>flink-connector-files</artifactId>
+				<version>${flink.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.flink</groupId>
+				<artifactId>flink-connector-datagen</artifactId>
 				<version>${flink.version}</version>
 			</dependency>
 

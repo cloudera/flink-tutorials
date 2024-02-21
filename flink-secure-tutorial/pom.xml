@@ -74,6 +74,12 @@ under the License.
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-cloudera-registry</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.everit.json</groupId>
+					<artifactId>org.everit.json.schema</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- Add connector dependencies here. They must be in the default scope (compile). -->

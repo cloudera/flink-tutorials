@@ -63,5 +63,5 @@ sample-project
         │           └── flink
         │               └── StreamingJob.java
         └── resources
-            └── log4j.properties
+            └── log4j2.properties
 ```

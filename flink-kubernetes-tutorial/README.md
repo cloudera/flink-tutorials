@@ -33,11 +33,8 @@ This will update your current Kubernetes configuration and now you should be abl
 kubectl create -f https://github.com/jetstack/cert-manager/releases/download/v1.8.2/cert-manager.yaml
 kubectl wait -n cert-manager --for=condition=Available deployment --all
 
-# TODO: Put correct Cloudera Operator Helm chart here, for now clone the repo and install repo from local dir
-git clone git@github.infra.cloudera.com:CDH/flink-kubernetes-operator.git
-helm install -n flink --create-namespace flink-kubernetes-operator flink-kubernetes-operator/helm/flink-kubernetes-operator
-#helm repo add flink-operator-repo https://downloads.apache.org/flink/flink-kubernetes-operator-1.7.0/
-#helm install -n flink --create-namespace flink-kubernetes-operator flink-operator-repo/flink-kubernetes-operator
+# Install CSA Operator via Helm
+helm install csa-operator --namespace flink --set 'flink-kubernetes-operator.image.imagePullSecrets[0].name=[***SECRET NAME***]' oci://container.repository.cloudera.com/cloudera-helm/csa-operator/csa-operator --version 0.8.0-b10
 ```
 
 ## Build

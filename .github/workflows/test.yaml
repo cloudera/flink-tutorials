@@ -41,8 +41,8 @@ jobs:
 
       - uses: actions/setup-java@v3
         with:
-          java-version: 8
-          distribution: 'adopt'
+          java-version: 11
+          distribution: 'temurin'
 
       - name: Download settings.xml
         run: wget https://github.infra.cloudera.com/raw/CDH/flink-tools/master/csa-build/cloudera-mirrors-releng-settings.xml -q -O /tmp/settings.xml

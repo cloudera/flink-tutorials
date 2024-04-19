@@ -34,7 +34,7 @@ kubectl create -f https://github.com/jetstack/cert-manager/releases/download/v1.
 kubectl wait -n cert-manager --for=condition=Available deployment --all
 
 # Install CSA Operator via Helm
-helm install csa-operator --namespace flink --set 'flink-kubernetes-operator.image.imagePullSecrets[0].name=[***SECRET NAME***]' oci://container.repository.cloudera.com/cloudera-helm/csa-operator/csa-operator --version 0.8.0-b10
+helm install csa-operator --namespace flink --set 'flink-kubernetes-operator.image.imagePullSecrets[0].name=[***SECRET NAME***]' oci://container.repository.cloudera.com/cloudera-helm/csa-operator/csa-operator --version 0.9.0-b8
 ```
 
 ## Build

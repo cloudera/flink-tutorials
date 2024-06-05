@@ -192,6 +192,14 @@ Apache Flink differentiates between internal and external connectivity. All inte
 ```
 > **Note:** External TLS configuration is out of scope of this tutorial
 
+In case of a cluster using YARN and HDFS, the delegation token renewer property needs to be set with
+```
+-yD security.kerberos.token.provider.hadoopfs.renewer=yarn
+```
+In case the renewer is not set, YARN will be unable to renew the token and collect the application logs. When the delegation token expires, Flink jobs will fail with no written application logs.
+
+> **Note:** This only applies to clusters using HDFS. For more information on delegation tokens in Flink, see the [Apache Flink documentation](https://nightlies.apache.org/flink/flink-docs-stable/docs/deployment/security/security-delegation-token/).
+
 Kafka connector security properties should be defined as normal job arguments, since there are no built-in configurations for them in Flink:
 ```
 --kafka.security.protocol SASL_SSL \

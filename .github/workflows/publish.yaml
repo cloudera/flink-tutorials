@@ -34,7 +34,7 @@ jobs:
 
   publish:
     needs: test
-    runs-on: ci_builds
+    runs-on: ci-builds
 
     env:
       MVN_CMD: /grid/0/jenkins/tools/maven/apache-maven-3.5.2/bin/mvn

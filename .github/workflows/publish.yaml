@@ -21,6 +21,7 @@ on:
   push:
     branches:
       - CSA*
+      - master*
 
 env:
   MVN_CMD: /grid/0/jenkins/tools/maven/apache-maven-3.5.2/bin/mvn

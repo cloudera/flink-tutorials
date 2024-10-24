@@ -40,6 +40,9 @@ helm install csa-operator --namespace flink --set 'flink-kubernetes-operator.ima
 ## Build
 
 Before you start the tutorial, check out the repository and build the artifacts. You will also need to create a Docker image that will contain the built Flink jar using the following commands:
+
+You will need Cloudera credentials to access the base Flink docker image referenced in the Dockerfile.
+
 ```bash
 git clone https://github.com/cloudera/flink-tutorials.git
 cd flink-tutorials/flink-kubernetes-tutorial

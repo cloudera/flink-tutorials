@@ -236,7 +236,7 @@ flink run -d -ynm SecureTutorial \
   -yD security.ssl.internal.truststore=keystore.jks \
   -yD security.ssl.internal.truststore-password=<internal_store_password> \
   -yt keystore.jks \
-  flink-secure-tutorial-1.19.1-csa1.13.2.0.jar \
+  flink-secure-tutorial-1.19.2-csa1.13.3.0.jar \
   --hdfsOutput hdfs:///tmp/flink-sec-tutorial \
   --kafkaTopic flink \
   --kafka.bootstrap.servers <your_broker_1>:9093 \
@@ -287,7 +287,7 @@ flink run -d -ynm SecureTutorial \
     -yD security.ssl.internal.truststore-password=<internal_store_password> \
     -yt keystore.jks \
     -c com.cloudera.streaming.examples.flink.RandomKafkaDataGeneratorJob \
-    flink-secure-tutorial-1.19.1-csa1.13.2.0.jar \
+    flink-secure-tutorial-1.19.2-csa1.13.3.0.jar \
     --hdfsOutput hdfs:///tmp/flink-sec-tutorial \
     --kafkaTopic flink \
     --kafka.bootstrap.servers <your_broker_1>:9093 \
@@ -325,7 +325,7 @@ flink run -d -ynm SecureTutorial \
     -yD security.ssl.internal.truststore-password=<internal_store_password> \
     -yt keystore.jks \
     -c com.cloudera.streaming.examples.flink.RandomKafkaDataGeneratorJob \
-    flink-secure-tutorial-1.19.1-csa1.13.2.0.jar \
+    flink-secure-tutorial-1.19.2-csa1.13.3.0.jar \
     --properties.file job.properties
   ```
 
@@ -351,7 +351,7 @@ flink run -d -ynm SecureTutorial \
     -yD security.kerberos.login.keytab=test.keytab \
     -yD security.kerberos.login.principal=test \
     -c com.cloudera.streaming.examples.flink.RandomKafkaDataGeneratorJob \
-    flink-secure-tutorial-1.19.1-csa1.13.2.0.jar \
+    flink-secure-tutorial-1.19.2-csa1.13.3.0.jar \
     --properties.file job.properties
   ```
 
@@ -381,7 +381,7 @@ String hdfsOutput = params.get("hdfsOutput");
 
 ## Kafka metrics reporter
 
-There is a metrics reporter implementation for writing Flink metrics to a target Kafka topic in JSON format. The corresponding security related Kafka properties can be set either in the command itself or [globally using Cloudera Manager Safety Valve](https://docs.cloudera.com/cloudera-manager/7.4.2/configuration-properties/topics/cm_props_cdh720_flink.html#ariaid-title2).
+There is a metrics reporter implementation for writing Flink metrics to a target Kafka topic in JSON format. The corresponding security related Kafka properties can be set either in the command itself or [globally using Cloudera Manager Safety Valve](https://docs.cloudera.com/cloudera-manager/7.11.0/configuration-properties/topics/cm_props_cdh720_flink.html#ariaid-title2).
 ```
 -yD metrics.reporter.kafka.class=org.apache.flink.metrics.kafka.KafkaMetricsReporter \
 -yD metrics.reporter.kafka.topic=metrics-topic.log \
@@ -506,7 +506,7 @@ flink run -d -ynm AvroDataGeneratorJob \
 -yD security.kerberos.login.keytab=test.keytab \
 -yD security.kerberos.login.principal=test \
 -c com.cloudera.streaming.examples.flink.AvroDataGeneratorJob \
-flink-secure-tutorial-1.19.1-csa1.13.2.0.jar \
+flink-secure-tutorial-1.19.2-csa1.13.3.0.jar \
 --properties.file job.properties
 ```
 The generated avro messages can be read by the `KafkaToHDFSAvroJob`
@@ -516,7 +516,7 @@ flink run -d -ynm KafkaToHDFSAvroJob \
 -yD security.kerberos.login.keytab=test.keytab \
 -yD security.kerberos.login.principal=test \
 -c com.cloudera.streaming.examples.flink.KafkaToHDFSAvroJob \
-flink-secure-tutorial-1.19.1-csa1.13.2.0.jar \
+flink-secure-tutorial-1.19.2-csa1.13.3.0.jar \
 --properties.file job.properties
 ```
 

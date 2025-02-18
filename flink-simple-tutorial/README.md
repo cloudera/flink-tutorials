@@ -219,7 +219,7 @@ You can configure the alert mask with a more simple value to produce more freque
 
 ## Running the application on a Cloudera cluster
 
-The Simple Flink Application Tutorial can be deployed on a Cloudera Runtime cluster remotely. The actual version of the application was tested on Cloudera Runtime 7.0.3.0 and FLINK-1.9.1-csa1.1.0.0-cdh7.0.3.0-79-1753674 without any security integration on it. 
+The Simple Flink Application Tutorial can be deployed on a Cloudera Runtime cluster remotely. 
 
 After you have [built](#Build) the project, run the application from a Flink GateWay node using the following command:
 

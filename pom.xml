@@ -293,6 +293,22 @@ under the License.
 		</repository>
 
 		<repository>
+			<id>cloudera-mirrors-maven-central</id>
+			<url>https://nexus-private.hortonworks.com/nexus/repository/public/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+
+		<repository>
+			<id>hortonworks</id>
+			<url>https://repo.hortonworks.com/content/repositories/releases/</url>
+		</repository>
+
+		<repository>
 			<id>nexus-public-snapshot</id>
 			<url>https://nexus-private.hortonworks.com/nexus/repository/PUBLIC-SNAPSHOT</url>
 			<releases>
@@ -301,11 +317,6 @@ under the License.
 			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
-		</repository>
-
-		<repository>
-			<id>hortonworks</id>
-			<url>https://repo.hortonworks.com/content/repositories/releases/</url>
 		</repository>
 	</repositories>
 

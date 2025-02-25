@@ -315,6 +315,10 @@ under the License.
 			<name>Cloudera Snapshot Artifactory</name>
 			<url>https://nexus-private.hortonworks.com/nexus/repository/IN-QA-SNAPSHOT</url>
 		</snapshotRepository>
+		<repository>
+			<id>in-qa</id>
+			<url>https://nexus-private.hortonworks.com/nexus/repository/IN-QA</url>
+		</repository>
 	</distributionManagement>
 
 </project>

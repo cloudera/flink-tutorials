@@ -39,7 +39,7 @@ under the License.
 
 		<flink.version>1.20.1-csa2.0.0.0-SNAPSHOT</flink.version>
 		<flink.connector.cloudera.version>1.0-csa2.0.0.0-SNAPSHOT</flink.connector.cloudera.version>
-		<flink.connector.kafka.version>3.3-csa2.0.0.0-SNAPSHOT</flink.connector.kafka.version>
+		<flink.connector.kafka.version>3.4.0-csa2.0.0.0-SNAPSHOT</flink.connector.kafka.version>
 
 		<!-- Dependency versions -->
 		<jackson.version>2.14.3</jackson.version>

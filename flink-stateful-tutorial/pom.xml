@@ -24,7 +24,7 @@ under the License.
 	<parent>
 		<groupId>com.cloudera.flink</groupId>
 		<artifactId>flink-tutorials</artifactId>
-		<version>1.16.2-csa1.11.2.0</version>
+		<version>1.16.3-csa1.11.3.0</version>
 	</parent>
 
 	<artifactId>flink-stateful-tutorial</artifactId>

@@ -37,7 +37,7 @@ under the License.
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<scala.binary.version>2.12</scala.binary.version>
 
-		<flink.version>1.20.1-csa2.0.0.0-SNAPSHOT</flink.version>
+		<flink.version>1.20.1-csaop1.3.0-SNAPSHOT</flink.version>
 		<flink.connector.cloudera.version>1.2.0-csa2.0.0.0-SNAPSHOT</flink.connector.cloudera.version>
 		<flink.connector.kafka.version>3.4.0-csa2.0.0.0-SNAPSHOT</flink.connector.kafka.version>
 

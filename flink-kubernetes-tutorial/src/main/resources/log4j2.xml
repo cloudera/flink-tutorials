@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO">
+  <Appenders>
+    <Console name="stdout" target="SYSTEM_OUT">
+      <PatternLayout charset="UTF-8">
+        <Pattern>%d{HH:mm:ss,SSS} %-5p %-60c %x - %m%n</Pattern>
+      </PatternLayout>
+    </Console>
+
+    <Console name="stderr" target="SYSTEM_ERR">
+      <PatternLayout charset="UTF-8">
+        <Pattern>%d{HH:mm:ss,SSS} %-5p %-60c %x - %m%n</Pattern>
+      </PatternLayout>
+    </Console>
+  </Appenders>
+
+  <Loggers>
+    <Root level="INFO">
+      <AppenderRef ref="stdout"/>
+    </Root>
+
+    <Logger name="com.cloudera.streaming.examples.flink.LogSink" level="INFO">
+      <AppenderRef ref="stderr"/>
+    </Logger>
+  </Loggers>
+</Configuration>

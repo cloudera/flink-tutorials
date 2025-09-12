@@ -1,0 +1,11 @@
+.idea/
+target/
+dependency-reduced-pom.xml
+.DS_Store
+
+# eclipse
+/bin/
+.classpath
+.project
+.settings
+

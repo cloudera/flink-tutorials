@@ -1,4 +1,4 @@
-FROM container.repository.cloudera.com/cloudera/flink:1.20.1-csaop1.4.0-b13
+FROM container.repository.cloudera.com/cloudera/flink:1.20.1-csaop1.3.0-b13
 # To build this example without a Cloudera license, please switch to the Apache docker image:
 #FROM flink:1.20
 

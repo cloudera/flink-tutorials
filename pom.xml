@@ -294,7 +294,7 @@ under the License.
 
 		<repository>
 			<id>nexus-public-snapshot</id>
-			<url>https://nexus-private.hortonworks.com/nexus/repository/PUBLIC-SNAPSHOT</url>
+			<url>https://nexus-private.eng.cloudera.com/nexus/repository/PUBLIC-SNAPSHOT</url>
 			<releases>
 				<enabled>false</enabled>
 			</releases>
@@ -303,21 +303,21 @@ under the License.
 			</snapshots>
 		</repository>
 
-		<repository>
-			<id>hortonworks</id>
-			<url>https://repo.hortonworks.com/content/repositories/releases/</url>
-		</repository>
+<!--		<repository>-->
+<!--			<id>hortonworks</id>-->
+<!--			<url>https://repo.hortonworks.com/content/repositories/releases/</url>-->
+<!--		</repository>-->
 	</repositories>
 
 	<distributionManagement>
 		<snapshotRepository>
 			<id>in-qa-snapshot</id>
 			<name>Cloudera Snapshot Artifactory</name>
-			<url>https://nexus-private.hortonworks.com/nexus/repository/IN-QA-SNAPSHOT</url>
+			<url>https://nexus-private.eng.cloudera.com/nexus/repository/IN-QA-SNAPSHOT</url>
 		</snapshotRepository>
 		<repository>
 			<id>in-qa</id>
-			<url>https://nexus-private.hortonworks.com/nexus/repository/IN-QA</url>
+			<url>https://nexus-private.eng.cloudera.com/nexus/repository/IN-QA</url>
 		</repository>
 	</distributionManagement>
 

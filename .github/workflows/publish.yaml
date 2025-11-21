@@ -24,10 +24,10 @@ on:
       - master*
 
 env:
-  MVN_CMD: /grid/0/jenkins/tools/maven/apache-maven-3.5.2/bin/mvn
-  JVM_ARGS: -Xms2g -Xmx4g -XX:MaxPermSize=1024m
-  JAVA_OPTS: -Xms2g -Xmx4g -XX:MaxPermSize=1024m -verbose:gc -XX:+UseConcMarkSweepGC -XX:-UseGCOverheadLimit
-  MAVEN_OPTS: -Xmx6g -XX:MaxPermSize=1024m -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:ReservedCodeCacheSize=1024m -Djava.net.preferIPv4Stack=true
+  MVN_CMD: /grid/0/jenkins/tools/maven/apache-maven-3.8.6/bin/mvn
+  JVM_ARGS: -Xms2g -Xmx4g
+  JAVA_OPTS: -Xms2g -Xmx4g -verbose:gc -XX:-UseGCOverheadLimit
+  MAVEN_OPTS: -Xmx6g -XX:ReservedCodeCacheSize=1024m -Djava.net.preferIPv4Stack=true
 
 jobs:
   test:

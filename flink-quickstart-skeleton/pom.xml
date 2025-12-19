@@ -37,7 +37,7 @@ under the License.
 		<flink.version>1.20.1-csa1.16.0.0</flink.version>
 
 		<junit-jupiter.version>5.10.1</junit-jupiter.version>
-		<log4j.version>2.22.0</log4j.version>
+		<log4j.version>2.25.3</log4j.version>
 	</properties>
 
 	<dependencies>

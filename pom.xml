@@ -291,5 +291,28 @@ under the License.
 			<id>cloudera</id>
 			<url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
 		</repository>
+
+		<repository>
+			<id>nexus-public-snapshot</id>
+			<url>https://nexus-private.eng.cloudera.com/nexus/repository/PUBLIC-SNAPSHOT</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
 	</repositories>
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>in-qa-snapshot</id>
+			<name>Cloudera Snapshot Artifactory</name>
+			<url>https://nexus-private.eng.cloudera.com/nexus/repository/IN-QA-SNAPSHOT</url>
+		</snapshotRepository>
+		<repository>
+			<id>in-qa</id>
+			<url>https://nexus-private.eng.cloudera.com/nexus/repository/IN-QA</url>
+		</repository>
+	</distributionManagement>
 </project>

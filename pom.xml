@@ -31,6 +31,7 @@ under the License.
 		<module>flink-simple-tutorial</module>
 		<module>flink-stateful-tutorial</module>
 		<module>flink-secure-tutorial</module>
+		<module>flink-kubernetes-tutorial</module>
 	</modules>
 
 	<properties>

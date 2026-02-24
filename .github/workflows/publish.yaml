@@ -20,9 +20,7 @@ name: Publish
 on:
   workflow_dispatch:
   push:
-    branches:
-      - CSA*
-      - master*
+    branches: [ "CSA-OPERATOR-*", "operator-main" ]
 
 env:
   MVN_CMD: /grid/0/jenkins/tools/maven/apache-maven-3.8.6/bin/mvn

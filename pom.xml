@@ -38,8 +38,8 @@ under the License.
 		<scala.binary.version>2.12</scala.binary.version>
 
         <flink.version>1.19.2-csa1.13.4.0</flink.version>
-		<flink.cloudera.connector.version>1.0-csa1.13.2.0</flink.cloudera.connector.version>
-		<flink.kafka.connector.version>3.2-csa1.13.2.0</flink.kafka.connector.version>
+		<flink.cloudera.connector.version>1.0-csa1.13.4.0</flink.cloudera.connector.version>
+		<flink.kafka.connector.version>3.2-csa1.13.4.0</flink.kafka.connector.version>
 
 		<!-- Dependency versions -->
 		<jackson.version>2.14.3</jackson.version>
